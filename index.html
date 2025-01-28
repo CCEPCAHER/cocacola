@@ -47,9 +47,15 @@
       products.forEach((product, index) => {
         const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
         const quantities = PRODUCT_QUANTITIES[product] || [9, 18];
+
+        // Modify image path for Coca Cola section
+        let imageName = (sectionName === "Coca Cola" && (index === 0 || index === 1)) 
+          ? `coca_cola_${index}.jpg` 
+          : `${sectionName.replace(/\s+/g, '_')}_${index}.jpg`;
+
         sectionHTML += `
           <div class="product">
-            <img src="images/${sectionName.replace(/\s+/g, '_')}_${index}.jpg" alt="${product}" style="width: 100%; height: auto;">
+            <img src="images/${imageName}" alt="${product}" style="width: 100%; height: auto;">
             <h3>${product}</h3>
             <div class="quantity-buttons">
               ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
@@ -166,3 +172,4 @@
   </script>
 </body>
 </html>
+
