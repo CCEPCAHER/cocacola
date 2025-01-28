@@ -19,7 +19,7 @@
     const sections = {
       "Coca Cola": ["Coca Cola pack 6 2L", "Coca Cola pack 4 2L", "Coca Cola Bipack 2L", "Coca Cola 2L","Coca Cola Bipack 1,25l","Coca Cola 1,25L","Coca Cola P4 Pet500","Coca Cola pet500"],
       "Coca Cola Zero": ["Coca Cola Zero pack 6 2L", "Coca Cola Zero pack 4 2L", "Coca Cola Zero Bipack 2L", "Coca Cola Zero 2L","Coca Cola Zero Bipack 1,25l","Coca Cola Zero 1,25L","Coca Cola Zero P4 Pet500","Coca Cola Zero pet500"],
-      "Coca Cola Light": ["Coca Cola Light 500ml", "Coca Cola Light 1L", "Coca Cola Light 2L"],
+      "Coca Cola Light": [ "Coca Cola light pack 4 2L", "Coca Cola light Bipack 2L", "Coca Cola light 2L","Coca Cola light 1,25L","Coca Cola light pet500"],
       "Coca Cola Sabores": ["Coca Cola Cherry 500ml", "Coca Cola Vainilla 1L"],
       "Coca Cola Zero Zero": ["Coca Cola Zero Zero 500ml", "Coca Cola Zero Zero 1L"],
       "Fanta naranja": ["Fanta lata","Fanta pack 9","Fanta 2L"],
@@ -52,6 +52,8 @@
         let imageName;
         if (sectionName === "Coca Cola" && [0, 1, 2, 3, 4, 5, 6, 7, 8].includes(index)) {
           imageName = `coca_cola_${index}.jpg`;
+        } else if (sectionName === "Coca Cola Zero" && [0, 1].includes(index)) {
+          imageName = `coca_cola_zero_${index}.jpg`;
         } else if (sectionName === "Fanta naranja" && [0, 1].includes(index)) {
           imageName = `fanta_naranja_${index}.jpg`;
         } else {
