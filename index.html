@@ -47,11 +47,16 @@
       products.forEach((product, index) => {
         const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
         const quantities = PRODUCT_QUANTITIES[product] || [9, 18];
-
-        // Modify image path for Coca Cola section
-        let imageName = (sectionName === "Coca Cola" && (index === 0 || index === 1)) 
-          ? `coca_cola_${index}.jpg` 
-          : `${sectionName.replace(/\s+/g, '_')}_${index}.jpg`;
+        
+        // Modify image path for known products
+        let imageName;
+        if (sectionName === "Coca Cola" && [0, 1, 2].includes(index)) {
+          imageName = `coca_cola_${index}.jpg`;
+        } else if (sectionName === "Fanta naranja" && [0, 1].includes(index)) {
+          imageName = `fanta_naranja_${index}.jpg`;
+        } else {
+          imageName = `${sectionName.replace(/\s+/g, '_')}_${index}.jpg`;
+        }
 
         sectionHTML += `
           <div class="product">
@@ -172,4 +177,3 @@
   </script>
 </body>
 </html>
-
