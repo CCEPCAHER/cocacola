@@ -79,14 +79,16 @@ h1 {
     margin-bottom: 10px;
 }
 .product h3 {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     margin-bottom: 8px;
-    max-height: 40px; /* Ajusta para permitir más líneas */
+    height: 32px; /* Ajusta según sea necesario */
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* Número de líneas máximo */
+    -webkit-line-clamp: 2; /* Limita a 2 líneas */
     -webkit-box-orient: vertical;
+    text-align: center;
+    word-wrap: break-word;
 }
 .quantity-buttons {
     display: flex;
