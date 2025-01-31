@@ -85,7 +85,8 @@ h1 {
     height: 32px; /* Ajusta según sea necesario */
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* Limita a 2 líneas */
+    line-clamp: 3; /* Definir la propiedad estándar */
+    -webkit-line-clamp: 3; /* Prefijo para compatibilidad */
     -webkit-box-orient: vertical;
     text-align: center;
     word-wrap: break-word;
