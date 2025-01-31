@@ -25,3 +25,19 @@ document.getElementById('pedidoForm').addEventListener('submit', async function(
         alert('Hubo un error al enviar el pedido.');
     }
 });
+document.addEventListener("DOMContentLoaded", function () {
+    let lazyImages = document.querySelectorAll("img.lazy");
+
+    let observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                let img = entry.target;
+                img.src = img.getAttribute("data-src");
+                img.classList.remove("lazy");
+                observer.unobserve(img);
+            }
+        });
+    });
+
+    lazyImages.forEach(img => observer.observe(img));
+});
