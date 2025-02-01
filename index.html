@@ -17,11 +17,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     const sections = {
-    "semi": ["SEMI Zero Lata (960x2)=1920","SEMI Reg Lata (960x2)=1920","SEMI P12 lata (90x2)=180","SEMI P12 Zero (90x2)=180","SEMI P12 Z.Z (90x2)=180","SEMI P9 Light (120x2)=240","SEMI Coca Cola pet 1,25 L.", "SEMI Coca Cola pet 2 L.", "SEMI Coca Cola Zero Pet 2 L.", "SEMI BIPACK Coca Cola Zero Pet 2x2 L.", "SEMI BIPACK Coca Cola 2x2L", "SEMI BIPACK CC Zero Zero Pet 2x2L", "SEMI PACK 4 Coca-Cola 2 L.", "SEMI PACK 4 Coca Zero 2 L.", "SEMI PACK 4 Coca Zero Zero Regular 2 L.", "SEMI Fanta Pet.2 L Naranja (150x2)=300", "SEMI Fanta Pet.2 L Limón (150x2)=300", "SEMI BIPACK Fanta Naranja 2X2L", "SEMI BIPACK Fanta Limón 2X2L"],  
-    "Coca Cola": ["Coca Cola pack 6 2L", "Coca Cola pack 4 2L", "Coca Cola Bipack 2L", "Coca Cola 2L", "Coca Cola Bipack 1,25L", "Coca Cola 1,25L", "Coca Cola P4 Pet500", "Coca Cola pet500", "VNR 1L Coca-Cola C6", "VNR Coca-Cola 20 cl P4 C6", "Coca-Cola Lata 33", "Bandeja Coca-Cola 33 cl. Pack 24", "PACK 12 Coca-Cola Lata 33", "COCA-COLA REGULAR LATA PACK 6X20 CL."],
+    "Pedidos Semis Palets": [
+    "SEMI Zero Lata (960x2)=1920",
+    "SEMI Reg Lata (960x2)=1920",
+    "SEMI P12 lata (90x2)=180",
+    "SEMI P12 Zero (90x2)=180",
+    "SEMI P12 Z.Z (90x2)=180",
+    "SEMI P9 Light (120x2)=240",
+    "SEMI Coca Cola pet 1,25 L.",
+    "SEMI Coca Cola pet 2 L.",
+    "SEMI Coca Cola Zero Pet 2 L.",
+    "SEMI BIPACK Coca Cola Zero Pet 2x2 L.",
+    "SEMI BIPACK Coca Cola 2x2L",
+    "SEMI BIPACK CC Zero Zero Pet 2x2L",
+    "SEMI PACK 4 Coca-Cola 2 L.",
+    "SEMI PACK 4 Coca Zero 2 L.",
+    "SEMI PACK 4 Coca Zero Zero Regular 2 L.",
+    "SEMI Fanta Pet.2 L Naranja (150x2)=300",
+    "SEMI Fanta Pet.2 L Limón (150x2)=300",
+    "SEMI BIPACK Fanta Naranja 2X2L",
+    "SEMI BIPACK Fanta Limón 2X2L"],
+    "Coca Cola": ["Coca Cola pack 6 2L", "Coca Cola pack 4 2L", "Coca Cola Bipack 2L", "Coca Cola 2L","Coca Cola Bipack 1,25l","Coca Cola 1,25L","Coca Cola P4 Pet500","Coca Cola pet500","VNR 1L Coca-Cola C6","VNR Coca-Cola 20 cl P4 C6","Coca-Cola Lata 33",
+    "Bandeja Coca-Cola 33 cl. Pack 24",
+    "PACK 12 Coca-Cola Lata 33",
+    "COCA-COLA REGULAR LATA PACK 6X20 CL."],
       "Coca Cola Zero": ["Coca Cola Zero pack 6 2L", "Coca Cola Zero pack 4 2L", "Coca Cola Zero Bipack 2L", "Coca Cola Zero 2L","Coca Cola Zero Bipack 1,25l","Coca Cola Zero 1,25L","Coca Cola Zero P4 Pet500","Coca Cola Zero pet500",“VNR 1L Coca-Cola Zero C6”,“VNR Coca-Cola Zero 20 cl P4 C6”,“Coca-Cola Zero Lata 33”,“Bandeja Coca-Cola Zero 33 cl. Pack 24”,“PACK 12 Coca-Cola Zero Lata 33”,“COCA-COLA ZERO LATA PACK 6X20 CL.”],
       "Coca Cola Light": [ "Coca-Cola Light pack 6 2L", "Coca-Cola Light pack 4 2L", "Coca-Cola Light Bipack 2L", "Coca-Cola Light 2L", "Coca-Cola Light Bipack 1,25L", "Coca-Cola Light 1,25L", "Coca-Cola Light P4 Pet500", "Coca-Cola Light Pet500", "VNR 1L Coca-Cola Light C6", "VNR Coca-Cola Light 20 cl P4 C6", "Coca-Cola Light Lata 33", "Bandeja Coca-Cola Light 33 cl Pack 24", "PACK 12 Coca-Cola Light Lata 33", "COCA-COLA LIGHT LATA PACK 6X20 CL."],
-      "Coca Cola Zero Zero": ["Coca-Cola Zero Zero pack 6 2L", "Coca-Cola Zero Zero pack 4 2L", "Coca-Cola Zero Zero Bipack 2L", "Coca-Cola Zero Zero 2L", "Coca-Cola Zero Zero Bipack 1,25L", "Coca-Cola Zero Zero 1,25L", "Coca-Cola Zero Zero P4 Pet500", "Coca-Cola Zero Zero Pet500", "VNR 1L Coca-Cola Zero Zero C6", "VNR Coca-Cola Zero Zero 20 cl P4 C6", "Coca-Cola Zero Zero Lata 33", "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "PACK 12 Coca-Cola Zero Zero Lata 33", "COCA-COLA ZERO ZERO LATA PACK 6X20 CL."],
+      "Coca Cola Zero Zero": [""Coca-Cola Zero Zero pack 6 2L", "Coca-Cola Zero Zero pack 4 2L", "Coca-Cola Zero Zero Bipack 2L", "Coca-Cola Zero Zero 2L", "Coca-Cola Zero Zero Bipack 1,25L", "Coca-Cola Zero Zero 1,25L", "Coca-Cola Zero Zero P4 Pet500", "Coca-Cola Zero Zero Pet500", "VNR 1L Coca-Cola Zero Zero C6", "VNR Coca-Cola Zero Zero 20 cl P4 C6", "Coca-Cola Zero Zero Lata 33", "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "PACK 12 Coca-Cola Zero Zero Lata 33", "COCA-COLA ZERO ZERO LATA PACK 6X20 CL."],
       "Coca Cola Sabores": ["Coca Cola Cherry 500ml", "Coca Cola Vainilla 1L"],
       "Fanta naranja": ["Fanta lata","Fanta pack 9","Fanta 2L"],
       "Tónica": ["Nordic 330ml", "Nordic Blue"],
@@ -51,14 +73,6 @@
         
         // Modify image path for known products
         let imageName;
-        if (sectionName === "Coca Cola" && [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(index)) {
-          imageName = `coca_cola_${index}.jpg`;
-        } else if (sectionName === "Coca Cola Zero" && [0, 1, 2, 3, 4, 5, 6, 7, 8].includes(index)) {
-          imageName = `coca_cola_zero_${index}.jpg`;
-        } else if (sectionName === "Coca Cola Light" && [0, 1, 2, 3, 4, 5, 6, 7, 8].includes(index)) {
-          imageName = `coca_cola_light_${index}.jpg`;
-        } else if (sectionName === "Fanta naranja" && [0, 1].includes(index)) {
-          imageName = `fanta_naranja_${index}.jpg`;
         } else {
           imageName = `${sectionName.replace(/\s+/g, '_')}_${index}.jpg`;
         }
