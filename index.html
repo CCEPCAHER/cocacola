@@ -49,11 +49,11 @@
       "Fanta naranja": ["Fanta lata","Fanta pack 9","Fanta 2L"],
       "Tónica": ["Nordic 330ml", "Nordic Blue"],
       "Energéticas": ["Monster Energy 500ml", "Burn Energy 500ml"],
-      "Alcoholes": ["Jack&Coke", "Jack&Coke zero","Adsolut Sprite"],
       "Minute Maid": ["Minute Maid L&N 500ml"],
       "Isotónicas": ["Powerade Azul 500ml", "Powerade"],
       "Deportivas": ["Aquarius Naranja 500ml", "Aquarius Limón 1L"],
-      "Appletiser": ["Appletiser 750ml", "Appletiser pack 4"]
+      "Appletiser": ["Appletiser 750ml", "Appletiser pack 4"],
+            "Alcoholes": ["Jack&Coke", "Jack&Coke zero","Adsolut Sprite"]
     };
 
     const PRODUCT_QUANTITIES = {
@@ -74,7 +74,7 @@
         
         // Modify image path for known products
         let imageName;
-        if (sectionName === "Coca Cola" && [0, 1, 2, 3, 4, 5, 6, 7, 8].includes(index)) {
+        if (sectionName === "Coca Cola" && [0, 1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16].includes(index)) {
           imageName = `coca_cola_${index}.jpg`;
         } else if (sectionName === "Coca Cola Zero" && [0, 1, 2, 3, 4, 5, 6, 7, 8].includes(index)) {
           imageName = `coca_cola_zero_${index}.jpg`;
