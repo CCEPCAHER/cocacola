@@ -8,83 +8,61 @@
 </head>
 <body>
   <h1>Tienda de Bebidas</h1>
+
   <div id="product-list"></div>
+
   <div id="cart">
     <h2>Carrito de Compras</h2>
     <div id="cart-items">No hay productos añadidos.</div>
   </div>
+
   <button id="submit-order" onclick="submitOrder()">Enviar Pedido</button>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     const sections = {
-    "Pedidos Semis Palets": [
-    "SEMI Zero Lata (960x2)=1920",
-    "SEMI Reg Lata (960x2)=1920",
-    "SEMI P12 lata (90x2)=180",
-    "SEMI P12 Zero (90x2)=180",
-    "SEMI P12 Z.Z (90x2)=180",
-    "SEMI P9 Light (120x2)=240",
-    "SEMI Coca Cola pet 1,25 L.",
-    "SEMI Coca Cola pet 2 L.",
-    "SEMI Coca Cola Zero Pet 2 L.",
-    "SEMI BIPACK Coca Cola Zero Pet 2x2 L.",
-    "SEMI BIPACK Coca Cola 2x2L",
-    "SEMI BIPACK CC Zero Zero Pet 2x2L",
-    "SEMI PACK 4 Coca-Cola 2 L.",
-    "SEMI PACK 4 Coca Zero 2 L.",
-    "SEMI PACK 4 Coca Zero Zero Regular 2 L.",
-    "SEMI Fanta Pet.2 L Naranja (150x2)=300",
-    "SEMI Fanta Pet.2 L Limón (150x2)=300",
-    "SEMI BIPACK Fanta Naranja 2X2L",
-    "SEMI BIPACK Fanta Limón 2X2L"],
-    "Coca Cola": ["Coca Cola pack 6 2L", "Coca Cola pack 4 2L", "Coca Cola Bipack 2L", "Coca Cola 2L","Coca Cola Bipack 1,25l","Coca Cola 1,25L","Coca Cola P4 Pet500","Coca Cola pet500","VNR 1L Coca-Cola C6","VNR Coca-Cola 20 cl P4 C6","Coca-Cola Lata 33",
-    "Bandeja Coca-Cola 33 cl. Pack 24",
-    "PACK 12 Coca-Cola Lata 33",
-    "COCA-COLA REGULAR LATA PACK 6X20 CL."],
-      "Coca Cola Zero": ["Coca Cola Zero pack 6 2L", "Coca Cola Zero pack 4 2L", "Coca Cola Zero Bipack 2L", "Coca Cola Zero 2L","Coca Cola Zero Bipack 1,25l","Coca Cola Zero 1,25L","Coca Cola Zero P4 Pet500","Coca Cola Zero pet500",“VNR 1L Coca-Cola Zero C6”,“VNR Coca-Cola Zero 20 cl P4 C6”,“Coca-Cola Zero Lata 33”,“Bandeja Coca-Cola Zero 33 cl. Pack 24”,“PACK 12 Coca-Cola Zero Lata 33”,“COCA-COLA ZERO LATA PACK 6X20 CL.”],
-      "Coca Cola Light": [ "Coca-Cola Light pack 6 2L", "Coca-Cola Light pack 4 2L", "Coca-Cola Light Bipack 2L", "Coca-Cola Light 2L", "Coca-Cola Light Bipack 1,25L", "Coca-Cola Light 1,25L", "Coca-Cola Light P4 Pet500", "Coca-Cola Light Pet500", "VNR 1L Coca-Cola Light C6", "VNR Coca-Cola Light 20 cl P4 C6", "Coca-Cola Light Lata 33", "Bandeja Coca-Cola Light 33 cl Pack 24", "PACK 12 Coca-Cola Light Lata 33", "COCA-COLA LIGHT LATA PACK 6X20 CL."],
-      "Coca Cola Zero Zero": [""Coca-Cola Zero Zero pack 6 2L", "Coca-Cola Zero Zero pack 4 2L", "Coca-Cola Zero Zero Bipack 2L", "Coca-Cola Zero Zero 2L", "Coca-Cola Zero Zero Bipack 1,25L", "Coca-Cola Zero Zero 1,25L", "Coca-Cola Zero Zero P4 Pet500", "Coca-Cola Zero Zero Pet500", "VNR 1L Coca-Cola Zero Zero C6", "VNR Coca-Cola Zero Zero 20 cl P4 C6", "Coca-Cola Zero Zero Lata 33", "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "PACK 12 Coca-Cola Zero Zero Lata 33", "COCA-COLA ZERO ZERO LATA PACK 6X20 CL."],
-      "Coca Cola Sabores": ["Coca Cola Cherry 500ml", "Coca Cola Vainilla 1L"],
-      "Fanta naranja": ["Fanta lata","Fanta pack 9","Fanta 2L"],
-      "Tónica": ["Nordic 330ml", "Nordic Blue"],
-      "Energéticas": ["Monster Energy 500ml", "Burn Energy 500ml"],
-      "Alcoholes": ["Jack&Coke", "Jack&Coke zero","Adsolut Sprite"],
-      "Minute Maid": ["Minute Maid L&N 500ml"],
-      "Isotónicas": ["Powerade Azul 500ml", "Powerade"],
-      "Deportivas": ["Aquarius Naranja 500ml", "Aquarius Limón 1L"],
-      "Appletiser": ["Appletiser 750ml", "Appletiser pack 4"]
-    };
-
-    const PRODUCT_QUANTITIES = {
-      "Coca Cola pack 6 2L": [8, 16, 36],
-      "Coca Cola 1L": [9, 18],
-      "Coca Cola 2L": [9, 18],
-      "coca cola mini cam": [9, 18],
-      "Coca Cola Zero 500ml": [100, 18],
-      "Coca Cola Zero 1L": [100, 18],
-      "Coca Cola Zero 2L": [100, 18],
+      "semi": [
+        "SEMI Zero Lata (960x2)=1920", "SEMI Reg Lata (960x2)=1920", "SEMI P12 lata (90x2)=180", "SEMI P12 Zero (90x2)=180",
+        "SEMI P12 Z.Z (90x2)=180", "SEMI P9 Light (120x2)=240", "SEMI Coca Cola pet 1,25 L.", "SEMI Coca Cola pet 2 L.",
+        "SEMI Coca Cola Zero Pet 2 L.", "SEMI BIPACK Coca Cola Zero Pet 2x2 L.", "SEMI BIPACK Coca Cola 2x2L",
+        "SEMI BIPACK CC Zero Zero Pet 2x2L", "SEMI PACK 4 Coca-Cola 2 L.", "SEMI PACK 4 Coca Zero 2 L.",
+        "SEMI PACK 4 Coca Zero Zero Regular 2 L.", "SEMI Fanta Pet.2 L Naranja (150x2)=300",
+        "SEMI Fanta Pet.2 L Limón (150x2)=300", "SEMI BIPACK Fanta Naranja 2X2L", "SEMI BIPACK Fanta Limón 2X2L"
+      ],
+      "Coca Cola": [
+        "VNR Coca-Cola 20 cl P4 C6", "COCA-COLA REGULAR LATA PACK 6X20 CL.", "Coca-Cola Lata 33", "PACK 12 Coca-Cola Lata 33",
+        "Bandeja Coca-Cola 33 cl Pack 24", "VNR 1L Coca-Cola C6", "Coca Cola pet500", "Coca Cola P4 Pet500",
+        "Coca Cola 1,25L", "Coca Cola Bipack 1,25L", "Coca Cola 2L", "Coca Cola Bipack 2L", "Coca Cola pack 4 2L",
+        "Coca Cola pack 6 2L"
+      ],
+      "Coca Cola Zero": [
+        "VNR Coca-Cola Zero 20 cl P4 C6", "COCA-COLA ZERO LATA PACK 6X20 CL.", "Coca-Cola Zero Lata 33",
+        "PACK 12 Coca-Cola Zero Lata 33", "Bandeja Coca-Cola Zero 33 cl Pack 24", "VNR 1L Coca-Cola Zero C6",
+        "Coca Cola Zero pet500", "Coca Cola Zero P4 Pet500", "Coca Cola Zero 1,25L", "Coca Cola Zero Bipack 1,25L",
+        "Coca Cola Zero 2L", "Coca Cola Zero Bipack 2L", "Coca Cola Zero pack 4 2L", "Coca Cola Zero pack 6 2L"
+      ],
+      "Coca Cola Light": [
+        "VNR Coca-Cola Light 20 cl P4 C6", "COCA-COLA LIGHT LATA PACK 6X20 CL.", "Coca-Cola Light Lata 33",
+        "PACK 12 Coca-Cola Light Lata 33", "Bandeja Coca-Cola Light 33 cl Pack 24", "VNR 1L Coca-Cola Light C6",
+        "Coca-Cola Light Pet500", "Coca-Cola Light P4 Pet500", "Coca-Cola Light 1,25L", "Coca-Cola Light Bipack 1,25L",
+        "Coca-Cola Light 2L", "Coca-Cola Light Bipack 2L", "Coca-Cola Light pack 4 2L", "Coca-Cola Light pack 6 2L"
+      ],
+      "Coca Cola Zero Zero": [
+        "VNR Coca-Cola Zero Zero 20 cl P4 C6", "COCA-COLA ZERO ZERO LATA PACK 6X20 CL.", "Coca-Cola Zero Zero Lata 33",
+        "PACK 12 Coca-Cola Zero Zero Lata 33", "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "VNR 1L Coca-Cola Zero Zero C6",
+        "Coca-Cola Zero Zero Pet500", "Coca-Cola Zero Zero P4 Pet500", "Coca-Cola Zero Zero 1,25L",
+        "Coca-Cola Zero Zero Bipack 1,25L", "Coca-Cola Zero Zero 2L", "Coca-Cola Zero Zero Bipack 2L",
+        "Coca-Cola Zero Zero pack 4 2L", "Coca-Cola Zero Zero pack 6 2L"
+      ]
     };
 
     function createSection(sectionName, products) {
       let sectionHTML = `<div class="section-title">${sectionName}</div><div class="carousel-container">`;
       products.forEach((product, index) => {
         const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
-        const quantities = PRODUCT_QUANTITIES[product] || [9, 18];
-        
-        // Modify image path for known products
-        let imageName;
-        } else {
-          imageName = `${sectionName.replace(/\s+/g, '_')}_${index}.jpg`;
-        }
-
         sectionHTML += `
           <div class="product">
-            <img src="images/${imageName}" alt="${product}" style="width: 100%; height: auto;">
             <h3>${product}</h3>
-            <div class="quantity-buttons">
-              ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-              <input type="number" placeholder="0" oninput="validateInput(this)">
-            </div>
             <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product}')">Añadir al carrito</button>
           </div>
         `;
@@ -93,39 +71,14 @@
       return sectionHTML;
     }
 
-    function setQuantity(button, value) {
-      let input = button.parentElement.querySelector('input');
-      input.value = value;
-    }
-
-    function validateInput(input) {
-      if (input.value < 0) {
-        input.value = 0;
-      }
-    }
-
     function addToCart(button, productName) {
-      let input = button.parentElement.querySelector('input');
-      let quantity = parseInt(input.value);
-      if (isNaN(quantity) || quantity <= 0) {
-        alert("Por favor, ingresa una cantidad válida.");
-        return;
-      }
-      if (button.classList.contains('added')) {
-        alert("Este producto ya ha sido añadido.");
-        return;
-      }
-      button.classList.add('added');
-      button.style.backgroundColor = '#ffa500';
-      button.innerText = 'Añadido';
-
       let cartItems = document.getElementById("cart-items");
       if (cartItems.innerHTML.includes('No hay productos añadidos.')) {
         cartItems.innerHTML = '';
       }
       cartItems.innerHTML += `
         <div class="cart-item">
-          ${productName} - ${quantity} unidades
+          ${productName} 
           <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
         </div>
       `;
@@ -133,60 +86,16 @@
 
     function removeFromCart(button, buttonId) {
       button.parentElement.remove();
-      const addButton = document.getElementById(buttonId);
-      if (addButton) {
-        addButton.classList.remove('added');
-        addButton.style.backgroundColor = '#28a745';
-        addButton.innerText = 'Agregar';
-      }
       let cartItems = document.getElementById("cart-items");
       if (cartItems.children.length === 0) {
         cartItems.innerHTML = 'No hay productos añadidos.';
       }
     }
 
-    function collectCartData() {
-      const cartItems = document.getElementById("cart-items").children;
-      if (cartItems.length === 0 || cartItems[0].innerText === 'No hay productos añadidos.') {
-        alert("El carrito está vacío. No puedes enviar un pedido sin productos.");
-        return null;
-      }
-
-      const order = [];
-      for (const item of cartItems) {
-        const [product, quantityText] = item.innerText.split(" - ");
-        const quantity = parseInt(quantityText.replace(" unidades", ""));
-        order.push({ product, quantity });
-      }
-
-      return order;
-    }
-
-    function exportToExcel(order) {
-      if (!order) return;
-
-      const worksheet = XLSX.utils.json_to_sheet(order);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Pedido");
-
-      const filename = `pedido_${new Date().toISOString().slice(0, 10)}.xlsx`;
-      XLSX.writeFile(workbook, filename);
-    }
-
     function submitOrder() {
-      const order = collectCartData();
-      if (!order) return;
-
       if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
         alert("Pedido enviado con éxito. Gracias por tu compra.");
-        exportToExcel(order);
-        // Reiniciar carrito
         document.getElementById("cart-items").innerHTML = 'No hay productos añadidos.';
-        document.querySelectorAll('.add-btn').forEach(btn => {
-          btn.classList.remove('added');
-          btn.style.backgroundColor = '#28a745';
-          btn.innerText = 'Agregar';
-        });
       }
     }
 
