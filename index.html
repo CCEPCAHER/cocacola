@@ -77,6 +77,8 @@
           imageName = `coca_cola_zero_${index}.jpg`;
         } else if (sectionName === "Fanta naranja" && [0, 1].includes(index)) {
           imageName = `fanta_naranja_${index}.jpg`;
+        } else if (sectionName === "Alcoholes" && [0, 1, 2].includes(index)) {
+          imageName = `alcoholes_${index}.jpg`;
         } else {
           imageName = `${sectionName.replace(/\s+/g, '_')}_${index}.jpg`;
         }
