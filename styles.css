@@ -1,3 +1,5 @@
+CSS ORIGINAL
+
 body {
     font-family: 'Roboto', sans-serif;
     margin: 20px;
@@ -17,13 +19,12 @@ h1 {
 .section-title {
     font-size: 24px;
     margin: 20px 0;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    background: #007bff;
     color: white;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 5px;
     position: relative;
     display: inline-block;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .section-title::before,
@@ -34,7 +35,7 @@ h1 {
     transform: translateY(-50%);
     font-size: 24px;
     cursor: pointer;
-    color: #6a11cb;
+    color: #007bff;
 }
 
 .section-title::before {
@@ -52,8 +53,8 @@ h1 {
     white-space: nowrap;
     padding: 20px;
     background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin: 20px 0;
 }
 
@@ -63,42 +64,35 @@ h1 {
     margin: 0 15px;
     background: #fff;
     padding: 15px;
-    border-radius: 15px;
+    border-radius: 10px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .product:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .product img {
     width: 100%;
     border-radius: 10px;
     margin-bottom: 10px;
-    transition: transform 0.3s ease;
 }
-
-.product:hover img {
-    transform: scale(1.1);
-}
-
 .product h3 {
     font-size: 12px;
     font-weight: bold;
     margin-bottom: 8px;
-    height: 32px;
+    height: 32px; /* Ajusta según sea necesario */
     overflow: hidden;
     display: -webkit-box;
-    line-clamp: 3;
-    -webkit-line-clamp: 3;
+    line-clamp: 3; /* Definir la propiedad estándar */
+    -webkit-line-clamp: 3; /* Prefijo para compatibilidad */
     -webkit-box-orient: vertical;
     text-align: center;
     word-wrap: break-word;
 }
-
 .quantity-buttons {
     display: flex;
     justify-content: center;
@@ -112,15 +106,14 @@ h1 {
     font-size: 14px;
     border: none;
     cursor: pointer;
-    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    background: #ff3e3e;
     color: white;
-    border-radius: 8px;
-    transition: background 0.3s ease, transform 0.2s ease;
+    border-radius: 5px;
+    transition: background 0.3s;
 }
 
 .quantity-buttons button:hover {
-    background: linear-gradient(135deg, #ff4b2b, #ff416c);
-    transform: scale(1.1);
+    background: #e33b3b;
 }
 
 .quantity-buttons input {
@@ -129,7 +122,7 @@ h1 {
     font-size: 14px;
     text-align: center;
     border: 1px solid #ccc;
-    border-radius: 8px;
+    border-radius: 5px;
     outline: none;
 }
 
@@ -138,29 +131,24 @@ h1 {
     padding: 10px;
     width: 100%;
     font-size: 16px;
-    background: linear-gradient(135deg, #00b09b, #96c93d);
+    background: #28a745;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: background 0.3s;
 }
 
 .add-btn:hover {
-    background: linear-gradient(135deg, #96c93d, #00b09b);
-    transform: scale(1.05);
-}
-.add-btn.added {
-    background: linear-gradient(135deg, #ff416c, #ff4b2b);
-    color: white;
+    background: #218838;
 }
 
 #cart {
     margin-top: 30px;
     padding: 20px;
     background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .cart-item {
@@ -173,35 +161,33 @@ h1 {
 }
 
 .remove-btn {
-    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    background: #dc3545;
     color: white;
     border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 5px 10px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: background 0.3s;
 }
 
 .remove-btn:hover {
-    background: linear-gradient(135deg, #ff4b2b, #ff416c);
-    transform: scale(1.1);
+    background: #c82333;
 }
 
 #submit-order {
     margin-top: 20px;
     padding: 15px;
     font-size: 18px;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    background: #007bff;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: background 0.3s;
 }
 
 #submit-order:hover {
-    background: linear-gradient(135deg, #2575fc, #6a11cb);
-    transform: scale(1.05);
+    background: #0056b3;
 }
 
 /* Responsiveness */
