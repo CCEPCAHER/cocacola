@@ -150,6 +150,10 @@ h1 {
     background: linear-gradient(135deg, #96c93d, #00b09b);
     transform: scale(1.05);
 }
+.add-btn.added {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: white;
+}
 
 #cart {
     margin-top: 30px;
