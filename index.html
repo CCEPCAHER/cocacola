@@ -17,42 +17,22 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     const sections = {
-    "semi" : [
-    "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920",
-    "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920",
-    "SEMI PACK 12 lata CC (90x2)=180",
-    "SEMI Coca-Cola Light Lata 33 P9 SD120",
-    "SEMI PACK 12 CC Zero (90x2)=180",
-    "SEMI PACK 12 CC Zero Zero (90x2)=180",
-    "SEMI Coca Cola pet 1,25 L.",
-    "SEMI Coca Cola pet 2 L.",
-    "SEMI Coca Cola Zero Pet 2 L.",
-    "SEMI BIPACK Coca Cola Zero Pet 2x2 L.",
-    "SEMI BIPACK Coca Cola 2x2L",
-    "SEMI BIPACK CC Zero Zero Pet 2x2L",
-    "SEMI PACK 4 Coca-Cola 2 L.",
-    "SEMI PACK 4 Coca Zero 2 L.",
-    "SEMI PACK 4 Coca Zero Zero Regular 2 L.",
-    "SEMI Fanta Pet.2 L Naranja (150x2)=300",
-    "SEMI Fanta Pet.2 L Limón (150x2)=300",
-    "SEMI BIPACK Fanta Naranja 2X2L",
-    "SEMI BIPACK Fanta Limón 2X2L"],
-
+    "semi" : ["SEMI Coca Cola Zero lata 33 cl. (960x2)=1920","SEMI Coca Cola Reg lata 33 cl. (960x2)=1920","SEMI PACK 12 lata CC (90x2)=180","SEMI Coca-Cola Light Lata 33 P9 SD120","SEMI PACK 12 CC Zero (90x2)=180","SEMI PACK 12 CC Zero Zero (90x2)=180","SEMI Coca Cola pet 1,25 L.","SEMI Coca Cola pet 2 L.","SEMI Coca Cola Zero Pet 2 L.","SEMI BIPACK Coca Cola Zero Pet 2x2 L.","SEMI BIPACK Coca Cola 2x2L","SEMI BIPACK CC Zero Zero Pet 2x2L","SEMI PACK 4 Coca-Cola 2 L.","SEMI PACK 4 Coca Zero 2 L.","SEMI PACK 4 Coca Zero Zero Regular 2 L.","SEMI Fanta Pet.2 L Naranja (150x2)=300","SEMI Fanta Pet.2 L Limón (150x2)=300","SEMI BIPACK Fanta Naranja 2X2L","SEMI BIPACK Fanta Limón 2X2L"],
     "Coca Cola": ["Coca Cola pack 6 2L", "Coca Cola pack 4 2L", "Coca Cola Bipack 2L", "Coca Cola 2L","Coca Cola Bipack 1,25l","Coca Cola 1,25L","Coca Cola P4 Pet500","Coca Cola pet500","VNR 1L C6","VNR P4 C6","Coca-Cola Lata 33","Bandeja Pack 24","PACK 12 Lata 33","Minicam PACK 6X20 CL."],
     "Coca Cola Zero": ["Coca Cola Zero pack 6 2L", "Coca Cola Zero pack 4 2L", "Coca Cola Zero Bipack 2L","Coca Cola Zero 2L","Coca Cola Zero Bipack 1,25l","Coca Cola Zero 1,25L","Coca Cola Zero P4 Pet500","Coca Cola Zero pet500","VNR 1L zero C6","VNR zero P4 C6","zero Lata 33","Bandeja zero Pack 24","PACK 12 zero Lata 33","Minicam zero PACK 6X20 CL."],
-      "coca cola light": ["Coca-Cola Light pack 4 2L", "Coca-Cola Light Bipack 2L", "Coca-Cola Light 2L","Coca-Cola Light 1,25L","Coca-Cola Light Pet500","Coca-Cola Light Lata 33", "Bandeja Coca-Cola Light 33 cl Pack 24", "PACK 9 Light Lata 33"],
-      "Coca Cola Zero Zero": ["Coca-Cola Zero Zero pack 6 2L", "Coca-Cola Zero Zero pack 4 2L", "Coca-Cola Zero Zero Bipack 2L", "Coca-Cola Zero Zero 2L", "Coca-Cola Zero Zero Bipack 1,25L", "Coca-Cola Zero Zero 1,25L", "Coca-Cola Zero Zero P4 Pet500", "Coca-Cola Zero Zero Pet500", "VNR 1L Coca-Cola Zero Zero C6", "VNR Coca-Cola Zero Zero 20 cl P4 C6", "Coca-Cola Zero Zero Lata 33", "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "PACK 12 Coca-Cola Zero Zero Lata 33", "COCA-COLA ZERO ZERO LATA PACK 6X20 CL."],
-      "Coca Cola Sabores": ["Coca-Cola Zero Limón Lata 33", "Coca-Cola Zero Lima Lata 33 C24"],
-      "Fanta naranja": ["BIPACK Fanta Naranja Pet 2 L.", "Fanta Naranja Pet 2 L.", "Fanta Naranja Pet 1,25L", "Fanta Naranja Pet 500", "Pack x 9 Fanta Naranja Lata 33 cl.", "Fanta Naranja Lata 33 cl.", "MINI LATA Fanta Naranja pack 6X20 CL", "BIPACK Fanta Zero Nar 2 L.", "Fanta Zero Nar 2 L.", "Pack x 6 Fanta Zero Naranja Lata 33", "Fanta Zero Naranja Lata 33"],
-      "Fanta limón": ["BIPACK Fanta limón Pet 2 L.", "Fanta limón Pet 2 L.", "Fanta limón Pet 1,25L", "Fanta limón Pet 500", "Pack x 9 Fanta limón Lata 33 cl.", "Fanta limón Lata 33 cl.", "BIPACK Fanta Zero lim 2 L.", "Fanta Zero lim 2 L.", "Fanta Zero limón Lata 33"],
-      "Fanta sabores":["Fanta Sandía sin azúcar Pet 1.25L C6","Fanta Frambuesa sin azúcar Pet 1.25L C6","Fanta Sandía LATA 33","Fanta Frambuesa LATA 33"],
-      "Tónica": ["Nordic 330ml", "Nordic Blue"],
-      "Energéticas": ["Monster Energy 500ml", "Burn Energy 500ml"],
-      "Minute Maid": ["Minute Maid L&N 500ml"],
-      "Isotónicas": ["Powerade Azul 500ml", "Powerade"],
-      "Deportivas": ["Aquarius Naranja 500ml", "Aquarius Limón 1L"],
-      "Appletiser": ["Appletiser 750ml", "Appletiser pack 4"],
-      "Alcoholes": ["Jack&Coke", "Jack&Coke zero","Adsolut Sprite"]
+    "coca cola light": ["Coca-Cola Light pack 4 2L", "Coca-Cola Light Bipack 2L", "Coca-Cola Light 2L","Coca-Cola Light 1,25L","Coca-Cola Light Pet500","Coca-Cola Light Lata 33", "Bandeja Coca-Cola Light 33 cl Pack 24", "PACK 9 Light Lata 33"],
+    "Coca Cola Zero Zero": ["Coca-Cola Zero Zero pack 6 2L", "Coca-Cola Zero Zero pack 4 2L", "Coca-Cola Zero Zero Bipack 2L", "Coca-Cola Zero Zero 2L", "Coca-Cola Zero Zero Bipack 1,25L", "Coca-Cola Zero Zero 1,25L", "Coca-Cola Zero Zero P4 Pet500", "Coca-Cola Zero Zero Pet500", "VNR 1L Coca-Cola Zero Zero C6", "VNR Coca-Cola Zero Zero 20 cl P4 C6", "Coca-Cola Zero Zero Lata 33", "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "PACK 12 Coca-Cola Zero Zero Lata 33", "COCA-COLA ZERO ZERO LATA PACK 6X20 CL."],
+    "Coca Cola Sabores": ["Coca-Cola Zero Limón Lata 33", "Coca-Cola Zero Lima Lata 33 C24"],
+    "Fanta naranja": ["BIPACK Fanta Naranja Pet 2 L.", "Fanta Naranja Pet 2 L.", "Fanta Naranja Pet 1,25L", "Fanta Naranja Pet 500", "Pack x 9 Fanta Naranja Lata 33 cl.", "Fanta Naranja Lata 33 cl.", "MINI LATA Fanta Naranja pack 6X20 CL", "BIPACK Fanta Zero Nar 2 L.", "Fanta Zero Nar 2 L.", "Pack x 6 Fanta Zero Naranja Lata 33", "Fanta Zero Naranja Lata 33"],
+    "Fanta limón": ["BIPACK Fanta limón Pet 2 L.", "Fanta limón Pet 2 L.", "Fanta limón Pet 1,25L", "Fanta limón Pet 500", "Pack x 9 Fanta limón Lata 33 cl.", "Fanta limón Lata 33 cl.", "BIPACK Fanta Zero lim 2 L.", "Fanta Zero lim 2 L.", "Fanta Zero limón Lata 33"],
+    "Fanta sabores":["Fanta Sandía sin azúcar Pet 1.25L C6","Fanta Frambuesa sin azúcar Pet 1.25L C6","Fanta Sandía LATA 33","Fanta Frambuesa LATA 33"],
+    "Tónica": ["Nordic 330ml", "Nordic Blue"],
+    "Energéticas": ["Monster Energy 500ml", "Burn Energy 500ml"],
+    "Minute Maid": ["Minute Maid L&N 500ml"],
+    "Isotónicas": ["Powerade Azul 500ml", "Powerade"],
+    "Deportivas": ["Aquarius Naranja 500ml", "Aquarius Limón 1L"],
+    "Appletiser": ["Appletiser 750ml", "Appletiser pack 4"],
+    "Alcoholes": ["Jack&Coke", "Jack&Coke zero","Adsolut Sprite"]
     };
 
     const PRODUCT_QUANTITIES = {
