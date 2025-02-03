@@ -463,15 +463,13 @@
         
         sectionHTML += `
           <div class="product">
-            ${product.offer ? '<div class="offer-tag">Oferta</div>' : ''}
-            <img src="images/${product.name.replace(/\s+/g, '_').toLowerCase()}.jpg" alt="${product.name}" style="width: 100%; height: auto;">
-            <h3>${product.name}</h3>
-            <p>Precio: €${product.price.toFixed(2)}</p>
+            <img src="images/${imageName}" alt="${product}" style="width: 100%; height: auto;">
+            <h3>${product}</h3>
             <div class="quantity-buttons">
               ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
               <input type="number" placeholder="0" oninput="validateInput(this)">
             </div>
-            <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Añadir al carrito</button>
+            <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product}')">Añadir al carrito</button>
           </div>
         `;
       });
