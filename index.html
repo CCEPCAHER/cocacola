@@ -9,11 +9,15 @@
 <body>
   <h1>Tienda de Bebidas</h1>
   <div id="product-list"></div>
+
   <div id="cart">
     <h2>Carrito de Compras</h2>
     <div id="cart-items">No hay productos añadidos.</div>
+    <div id="order-total">Total: €0.00</div>
   </div>
+  
   <button id="submit-order" onclick="submitOrder()">Enviar Pedido</button>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     const sections = {
@@ -254,7 +258,7 @@
     };
 
     const PRODUCT_QUANTITIES = {
-      "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920":[2,4],
+      "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920": [2,4],
       "Coca Cola pack 6 2L": [8, 16, 36],
       "Coca Cola 1L": [9, 18],
       "Coca Cola 2L": [9, 18],
@@ -264,13 +268,14 @@
       "Coca Cola Zero 2L": [100, 18],
     };
 
+    // Crea cada sección de productos en formato carrusel
     function createSection(sectionName, products) {
       let sectionHTML = `<div class="section-title">${sectionName}</div><div class="carousel-container">`;
       products.forEach((product, index) => {
         const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
         const quantities = PRODUCT_QUANTITIES[product.name] || [9, 18];
         
-        // Generate image path using the index
+        // Genera el nombre de imagen según la sección y el índice
         let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
 
         sectionHTML += `
@@ -283,7 +288,7 @@
               ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
               <input type="number" placeholder="0" oninput="validateInput(this)">
             </div>
-            <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Añadir al carrito</button>
+            <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
           </div>
         `;
       });
@@ -302,6 +307,7 @@
       }
     }
 
+    // Agrega el producto al carrito y actualiza el total
     function addToCart(button, productName, productPrice) {
       let input = button.parentElement.querySelector('input');
       let quantity = parseInt(input.value);
@@ -321,14 +327,17 @@
       if (cartItems.innerHTML.includes('No hay productos añadidos.')) {
         cartItems.innerHTML = '';
       }
+      // Se añade el atributo data-price para facilitar el cálculo del total
       cartItems.innerHTML += `
-        <div class="cart-item">
+        <div class="cart-item" data-price="${(productPrice * quantity).toFixed(2)}">
           ${productName} - ${quantity} unidades - Precio: €${(productPrice * quantity).toFixed(2)}
           <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
         </div>
       `;
+      updateTotalPrice();
     }
 
+    // Elimina el producto del carrito y actualiza el total
     function removeFromCart(button, buttonId) {
       button.parentElement.remove();
       const addButton = document.getElementById(buttonId);
@@ -341,6 +350,19 @@
       if (cartItems.children.length === 0) {
         cartItems.innerHTML = 'No hay productos añadidos.';
       }
+      updateTotalPrice();
+    }
+
+    // Recalcula el total sumando los valores de cada producto en el carrito
+    function updateTotalPrice() {
+      let total = 0;
+      document.querySelectorAll('.cart-item').forEach(item => {
+        const itemPrice = parseFloat(item.getAttribute('data-price'));
+        if (!isNaN(itemPrice)) {
+          total += itemPrice;
+        }
+      });
+      document.getElementById('order-total').innerText = 'Total: €' + total.toFixed(2);
     }
 
     function collectCartData() {
@@ -352,22 +374,20 @@
 
       const order = [];
       for (const item of cartItems) {
+        // Se extrae la información a partir del contenido del div
         const [product, quantityText, priceText] = item.innerText.split(" - ");
         const quantity = parseInt(quantityText.replace(" unidades", ""));
         const price = parseFloat(priceText.replace(" Precio: €", ""));
         order.push({ product, quantity, price });
       }
-
       return order;
     }
 
     function exportToExcel(order) {
       if (!order) return;
-
       const worksheet = XLSX.utils.json_to_sheet(order);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Pedido");
-
       const filename = `pedido_${new Date().toISOString().slice(0, 10)}.xlsx`;
       XLSX.writeFile(workbook, filename);
     }
@@ -375,12 +395,12 @@
     function submitOrder() {
       const order = collectCartData();
       if (!order) return;
-
       if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
         alert("Pedido enviado con éxito. Gracias por tu compra.");
         exportToExcel(order);
         // Reiniciar carrito
         document.getElementById("cart-items").innerHTML = 'No hay productos añadidos.';
+        document.getElementById("order-total").innerText = 'Total: €0.00';
         document.querySelectorAll('.add-btn').forEach(btn => {
           btn.classList.remove('added');
           btn.style.backgroundColor = '#28a745';
@@ -389,9 +409,11 @@
       }
     }
 
+    // Genera la vista de productos agrupados por sección
     document.getElementById("product-list").innerHTML = Object.entries(sections)
       .map(([section, products]) => createSection(section, products))
       .join('');
   </script>
 </body>
 </html>
+
