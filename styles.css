@@ -42,8 +42,9 @@ h1 {
   padding: 20px;
   max-width: 1200px;
   margin: auto;
-  /* Opcional: scroll snap para una experiencia más pulida */
   scroll-snap-type: x mandatory;
+  /* Aumentar ancho para pruebas */
+  width: 1500px;
 }
 
 .carousel-container::-webkit-scrollbar {
