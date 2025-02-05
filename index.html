@@ -9,252 +9,253 @@
 <body>
   <h1>Tienda de Bebidas</h1>
   <div id="product-list"></div>
+
   <div id="cart">
     <h2>Carrito de Compras</h2>
-    <div id="cart-items">No hay productos añadidos.</div>
+    <div id="cart-items">
+      <p>No hay productos añadidos.</p>
+    </div>
+    <!-- Contenedor para el total del carrito -->
+    <div id="cart-total">Total: €0.00</div>
   </div>
+
   <button id="submit-order" onclick="submitOrder()">Enviar Pedido</button>
+
+  <!-- Librería para exportar a Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     const sections = {
-  "Coca Cola": [
+  "semi": [
+    { "name": "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920", "price": 1.00, "offer": false },
+    { "name": "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920", "price": 1.00, "offer": true },
     { "name": "SEMI PACK 12 lata CC (90x2)=180", "price": 12.00, "offer": false },
-    { "name": "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920", "price": 1.00, "offer": false },
-    { "name": "Coca Cola pack 6 2L", "price": 6.00, "offer": false },
-    { "name": "SEMI PACK 4 Coca-Cola 2 L.", "price": 8.00, "offer": false },
-    { "name": "Coca Cola pack 4 2L", "price": 4.00, "offer": false },
-    { "name": "SEMI BIPACK Coca Cola 2x2L", "price": 4.00, "offer": false },
-    { "name": "Coca Cola Bipack 2L", "price": 2.00, "offer": false },
-    { "name": "SEMI Coca Cola pet 2 L.", "price": 2.00, "offer": false },
-    { "name": "Coca Cola 2L", "price": 2.00, "offer": false },
-    { "name": "Coca Cola Bipack 1,25L", "price": 2.50, "offer": false },
+    { "name": "SEMI Coca-Cola Light Lata 33 P9 SD120", "price": 1.50, "offer": true },
+    { "name": "SEMI PACK 12 CC Zero (90x2)=180", "price": 12.00, "offer": false },
+    { "name": "SEMI PACK 12 CC Zero Zero (90x2)=180", "price": 12.00, "offer": false },
     { "name": "SEMI Coca Cola pet 1,25 L.", "price": 1.25, "offer": false },
+    { "name": "SEMI Coca Cola pet 2 L.", "price": 2.00, "offer": true },
+    { "name": "SEMI Coca Cola Zero Pet 2 L.", "price": 2.00, "offer": false },
+    { "name": "SEMI BIPACK Coca Cola Zero Pet 2x2 L.", "price": 4.00, "offer": false },
+    { "name": "SEMI BIPACK Coca Cola 2x2L", "price": 4.00, "offer": true },
+    { "name": "SEMI BIPACK CC Zero Zero Pet 2x2L", "price": 4.00, "offer": false },
+    { "name": "SEMI PACK 4 Coca-Cola 2 L.", "price": 8.00, "offer": true },
+    { "name": "SEMI PACK 4 Coca Zero 2 L.", "price": 8.00, "offer": false },
+    { "name": "SEMI PACK 4 Coca Zero Zero Regular 2 L.", "price": 8.00, "offer": false },
+    { "name": "SEMI Fanta Pet.2 L Naranja (150x2)=300", "price": 1.75, "offer": true },
+    { "name": "SEMI Fanta Pet.2 L Limón (150x2)=300", "price": 1.75, "offer": false },
+    { "name": "SEMI BIPACK Fanta Naranja 2X2L", "price": 3.50, "offer": false },
+    { "name": "SEMI BIPACK Fanta Limón 2X2L", "price": 3.50, "offer": true }
+  ],
+  "Coca Cola": [
+    { "name": "Coca Cola pack 6 2L", "price": 6.00, "offer": false },
+    { "name": "Coca Cola pack 4 2L", "price": 4.00, "offer": true },
+    { "name": "Coca Cola Bipack 2L", "price": 2.00, "offer": false },
+    { "name": "Coca Cola 2L", "price": 2.00, "offer": true },
+    { "name": "Coca Cola Bipack 1,25L", "price": 2.50, "offer": false },
     { "name": "Coca Cola 1,25L", "price": 1.25, "offer": false },
-    { "name": "Coca Cola P4 Pet500", "price": 2.00, "offer": false },
+    { "name": "Coca Cola P4 Pet500", "price": 2.00, "offer": true },
     { "name": "Coca Cola pet500", "price": 0.50, "offer": false },
-    { "name": "VNR 1L C6", "price": 1.00, "offer": false },
+    { "name": "VNR 1L C6", "price": 1.00, "offer": true },
     { "name": "VNR P4 C6", "price": 4.00, "offer": false },
     { "name": "Coca-Cola Lata 33", "price": 1.00, "offer": false },
-    { "name": "Bandeja Coca-Cola 33 cl. Pack 24", "price": 24.00, "offer": false },
+    { "name": "Bandeja Pack 24", "price": 24.00, "offer": true },
     { "name": "PACK 12 Lata 33", "price": 12.00, "offer": false },
     { "name": "Minicam PACK 6X20 CL.", "price": 6.00, "offer": false }
   ],
   "Coca Cola Zero": [
-    { "name": "SEMI PACK 12 CC Zero (90x2)=180", "price": 12.00, "offer": false },
-    { "name": "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920", "price": 912.00, "offer": true },
     { "name": "Coca Cola Zero pack 6 2L", "price": 6.00, "offer": false },
-    { "name": "SEMI PACK 4 Coca Zero 2 L.", "price": 8.00, "offer": false },
-    { "name": "Coca Cola Zero pack 4 2L", "price": 4.00, "offer": false },
-    { "name": "SEMI BIPACK Coca Cola Zero Pet 2x2 L.", "price": 4.00, "offer": false },
+    { "name": "Coca Cola Zero pack 4 2L", "price": 4.00, "offer": true },
     { "name": "Coca Cola Zero Bipack 2L", "price": 2.00, "offer": false },
-    { "name": "SEMI Coca Cola Zero Pet 2 L.", "price": 2.00, "offer": false },
-    { "name": "Coca Cola Zero 2L", "price": 2.00, "offer": false },
+    { "name": "Coca Cola Zero 2L", "price": 2.00, "offer": true },
     { "name": "Coca Cola Zero Bipack 1,25L", "price": 2.50, "offer": false },
-    { "name": "Coca Cola Zero 1,25L", "price": 1.25, "offer": false },
+    { "name": "Coca Cola Zero 1,25L", "price": 1.25, "offer": true },
     { "name": "Coca Cola Zero P4 Pet500", "price": 2.00, "offer": false },
     { "name": "Coca Cola Zero pet500", "price": 0.50, "offer": false },
     { "name": "VNR 1L zero C6", "price": 1.00, "offer": false },
-    { "name": "VNR zero P4 C6", "price": 4.00, "offer": false },
-    { "name": "zero Lata 33", "price": 0.95, "offer": false },
-    { "name": "Bandeja zero Pack 24", "price": 19.90, "offer": false },
-    { "name": "PACK 12 zero Lata 33", "price": 10.26, "offer": false },
-    { "name": "Minicam zero PACK 6X20 CL.", "price": 3.50, "offer": false }
+    { "name": "VNR zero P4 C6", "price": 4.00, "offer": true },
+    { "name": "zero Lata 33", "price": 1.00, "offer": false },
+    { "name": "Bandeja zero Pack 24", "price": 24.00, "offer": true },
+    { "name": "PACK 12 zero Lata 33", "price": 12.00, "offer": false },
+    { "name": "Minicam zero PACK 6X20 CL.", "price": 6.00, "offer": true }
   ],
   "coca cola light": [
-    { "name": "Coca-Cola Light pack 4 2L", "price": 4.00, "offer": false },
+    { "name": "Coca-Cola Light pack 4 2L", "price": 4.00, "offer": true },
     { "name": "Coca-Cola Light Bipack 2L", "price": 2.00, "offer": false },
-    { "name": "Coca-Cola Light 2L", "price": 2.00, "offer": false },
+    { "name": "Coca-Cola Light 2L", "price": 2.00, "offer": true },
     { "name": "Coca-Cola Light 1,25L", "price": 1.25, "offer": false },
     { "name": "Coca-Cola Light Pet500", "price": 0.50, "offer": false },
-    { "name": "Coca-Cola Light Lata 33", "price": 1.00, "offer": false },
+    { "name": "Coca-Cola Light Lata 33", "price": 1.00, "offer": true },
     { "name": "Bandeja Coca-Cola Light 33 cl Pack 24", "price": 24.00, "offer": false },
-    { "name": "SEMI Coca-Cola Light Lata 33 P9 SD120", "price": 1.50, "offer": false },
-    { "name": "PACK 9 Light Lata 33", "price": 9.00, "offer": false }
+    { "name": "PACK 9 Light Lata 33", "price": 9.00, "offer": true }
   ],
   "Coca Cola Zero Zero": [
-    { "name": "SEMI PACK 12 CC Zero Zero (90x2)=180", "price": 12.00, "offer": false },
     { "name": "Coca-Cola Zero Zero pack 6 2L", "price": 6.00, "offer": false },
-    { "name": "SEMI PACK 4 Coca Zero Zero Regular 2 L.", "price": 8.00, "offer": false },
-    { "name": "Coca-Cola Zero Zero pack 4 2L", "price": 4.00, "offer": false },
-    { "name": "SEMI BIPACK CC Zero Zero Pet 2x2L", "price": 4.00, "offer": false },
+    { "name": "Coca-Cola Zero Zero pack 4 2L", "price": 4.00, "offer": true },
     { "name": "Coca-Cola Zero Zero Bipack 2L", "price": 2.00, "offer": false },
-    { "name": "Coca-Cola Zero Zero 2L", "price": 2.00, "offer": false },
+    { "name": "Coca-Cola Zero Zero 2L", "price": 2.00, "offer": true },
     { "name": "Coca-Cola Zero Zero Bipack 1,25L", "price": 2.50, "offer": false },
-    { "name": "Coca-Cola Zero Zero 1,25L", "price": 1.25, "offer": false },
+    { "name": "Coca-Cola Zero Zero 1,25L", "price": 1.25, "offer": true },
     { "name": "Coca-Cola Zero Zero P4 Pet500", "price": 2.00, "offer": false },
     { "name": "Coca-Cola Zero Zero Pet500", "price": 0.50, "offer": false },
     { "name": "VNR 1L Coca-Cola Zero Zero C6", "price": 1.00, "offer": false },
-    { "name": "VNR Coca-Cola Zero Zero 20 cl P4 C6", "price": 4.00, "offer": false },
+    { "name": "VNR Coca-Cola Zero Zero 20 cl P4 C6", "price": 4.00, "offer": true },
     { "name": "Coca-Cola Zero Zero Lata 33", "price": 1.00, "offer": false },
-    { "name": "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "price": 24.00, "offer": false },
+    { "name": "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", "price": 24.00, "offer": true },
     { "name": "PACK 12 Coca-Cola Zero Zero Lata 33", "price": 12.00, "offer": false },
-    { "name": "COCA-COLA ZERO ZERO LATA PACK 6X20 CL.", "price": 6.00, "offer": false }
+    { "name": "COCA-COLA ZERO ZERO LATA PACK 6X20 CL.", "price": 6.00, "offer": true }
   ],
   "Coca Cola Sabores": [
-    { "name": "Coca-Cola Zero Limón Lata 33", "price": 1.00, "offer": false },
+    { "name": "Coca-Cola Zero Limón Lata 33", "price": 1.00, "offer": true },
     { "name": "Coca-Cola Zero Lima Lata 33 C24", "price": 24.00, "offer": false }
   ],
   "Fanta naranja": [
-    { "name": "SEMI BIPACK Fanta Naranja 2X2L", "price": 3.50, "offer": false },
     { "name": "BIPACK Fanta Naranja Pet 2 L.", "price": 3.50, "offer": false },
-    { "name": "SEMI Fanta Pet.2 L Naranja (150x2)=300", "price": 1.75, "offer": false },
-    { "name": "Fanta Naranja Pet 2 L.", "price": 1.75, "offer": false },
+    { "name": "Fanta Naranja Pet 2 L.", "price": 1.75, "offer": true },
     { "name": "Fanta Naranja Pet 1,25L", "price": 1.25, "offer": false },
     { "name": "Fanta Naranja Pet 500", "price": 0.50, "offer": false },
-    { "name": "SEMI  PACK 9 lata Fanta Naranja (120x2)=240", "price": 9.00, "offer": false },
-    { "name": "Pack x 9 Fanta Naranja Lata 33 cl.", "price": 9.00, "offer": false },
-    { "name": "SEMI  Fanta Naranja lata (960x2)=1920", "price": 1.00, "offer": false },
+    { "name": "Pack x 9 Fanta Naranja Lata 33 cl.", "price": 9.00, "offer": true },
     { "name": "Fanta Naranja Lata 33 cl.", "price": 1.00, "offer": false },
-    { "name": "MINI LATA Fanta Naranja pack 6X20 CL", "price": 6.00, "offer": false },
+    { "name": "MINI LATA Fanta Naranja pack 6X20 CL", "price": 6.00, "offer": true },
     { "name": "BIPACK Fanta Zero Nar 2 L.", "price": 3.50, "offer": false },
-    { "name": "Fanta Zero Nar 2 L.", "price": 1.75, "offer": false },
+    { "name": "Fanta Zero Nar 2 L.", "price": 1.75, "offer": true },
     { "name": "Pack x 6 Fanta Zero Naranja Lata 33", "price": 6.00, "offer": false },
-    { "name": "Fanta Zero Naranja Lata 33", "price": 1.00, "offer": false }
+    { "name": "Fanta Zero Naranja Lata 33", "price": 1.00, "offer": true }
   ],
   "Fanta limón": [
-    { "name": "SEMI BIPACK Fanta Limón 2X2L", "price": 3.50, "offer": false },
     { "name": "BIPACK Fanta limón Pet 2 L.", "price": 3.50, "offer": false },
-    { "name": "SEMI Fanta Pet.2 L Limón (150x2)=300", "price": 1.75, "offer": false },
-    { "name": "Fanta limón Pet 2 L.", "price": 1.75, "offer": false },
+    { "name": "Fanta limón Pet 2 L.", "price": 1.75, "offer": true },
     { "name": "Fanta limón Pet 1,25L", "price": 1.25, "offer": false },
     { "name": "Fanta limón Pet 500", "price": 0.50, "offer": false },
-    { "name": "SEMI  PACK 9 lata Fanta Limón (120x2)=240", "price": 9.00, "offer": false },
-    { "name": "Pack x 9 Fanta limón Lata 33 cl.", "price": 9.00, "offer": false },
-    { "name": "SEMI  Fanta Limón lata (960x2)=1920", "price": 1.00, "offer": false },
+    { "name": "Pack x 9 Fanta limón Lata 33 cl.", "price": 9.00, "offer": true },
     { "name": "Fanta limón Lata 33 cl.", "price": 1.00, "offer": false },
     { "name": "BIPACK Fanta Zero lim 2 L.", "price": 3.50, "offer": false },
-    { "name": "Fanta Zero lim 2 L.", "price": 1.75, "offer": false },
+    { "name": "Fanta Zero lim 2 L.", "price": 1.75, "offer": true },
     { "name": "Fanta Zero limón Lata 33", "price": 1.00, "offer": false }
   ],
   "Fanta sabores": [
-    { "name": "Fanta Sandía sin azúcar Pet 1.25L C6", "price": 1.25, "offer": false },
+    { "name": "Fanta Sandía sin azúcar Pet 1.25L C6", "price": 1.25, "offer": true },
     { "name": "Fanta Frambuesa sin azúcar Pet 1.25L C6", "price": 1.25, "offer": false },
-    { "name": "Fanta Sandía LATA 33", "price": 1.00, "offer": false },
+    { "name": "Fanta Sandía LATA 33", "price": 1.00, "offer": true },
     { "name": "Fanta Frambuesa LATA 33", "price": 1.00, "offer": false }
   ],
   "Sprite": [
-    { "name": "Sprite Lata Pack 6X20 CL.", "price": 6.00, "offer": false },
+    { "name": "Sprite Lata Pack 6X20 CL.", "price": 6.00, "offer": true },
     { "name": "Sprite Pet 2 L.", "price": 2.00, "offer": false },
-    { "name": "BIPACK Sprite Pet 2 L.", "price": 3.50, "offer": false },
+    { "name": "BIPACK Sprite Pet 2 L.", "price": 3.50, "offer": true },
     { "name": "Sprite Zero Pet 2 L", "price": 2.00, "offer": false },
-    { "name": "Sprite lata 33", "price": 1.00, "offer": false },
+    { "name": "Sprite lata 33", "price": 1.00, "offer": true },
     { "name": "Sprite Zero lata 33", "price": 1.00, "offer": false },
-    { "name": "Sprite lata 33 P9", "price": 9.00, "offer": false },
+    { "name": "Sprite lata 33 P9", "price": 9.00, "offer": true },
     { "name": "Sprite Pet 500", "price": 0.50, "offer": false }
   ],
   "Tónica": [
-    { "name": "Nordic Mist lata 250", "price": 0.50, "offer": false },
+    { "name": "Nordic Mist lata 250", "price": 0.50, "offer": true },
     { "name": "Nordic Blue Lata 25 cl.", "price": 0.75, "offer": false },
-    { "name": "Royal Bliss Bitter Roso Cesta VNR20 P4 C6", "price": 4.00, "offer": false },
+    { "name": "Royal Bliss Bitter Roso Cesta VNR20 P4 C6", "price": 4.00, "offer": true },
     { "name": "Nordic Zero Lata 25 cl.", "price": 0.75, "offer": false },
-    { "name": "Nordic Mist Tónica 1L", "price": 1.00, "offer": false },
-    { "name": "Limca PET1L C12", "price": 1.00, "offer": false },
-    { "name": "Royal Bliss Berry Lata 25 C12", "price": 12.00, "offer": false },
+    { "name": "Nordic Mist Tónica 1L", "price": 1.00, "offer": true },
+    { "name": "Gaseosa Schuss 1 L.", "price": 1.00, "offer": false },
+    { "name": "Royal Bliss Berry Lata 25 C12", "price": 12.00, "offer": true },
     { "name": "Royal Bliss Signature WTR Lata 25 C12", "price": 12.00, "offer": false },
-    { "name": "Royal Bliss Signature tónica Zero Lata 25 C12", "price": 12.00, "offer": false },
+    { "name": "Royal Bliss Signature tónica Zero Lata 25 C12", "price": 12.00, "offer": true },
     { "name": "Royal Bliss Lemon Mixer Lata 25 C12", "price": 12.00, "offer": false },
-    { "name": "Royal Bliss Berry CESTA VNR20 P4 C6", "price": 4.00, "offer": false },
+    { "name": "Royal Bliss Berry CESTA VNR20 P4 C6", "price": 4.00, "offer": true },
     { "name": "Royal Bliss Yuzu CESTA VNR20 P4 C6", "price": 4.00, "offer": false }
   ],
   "Burn": [
-    { "name": "Burn Regular 0,5L", "price": 0.50, "offer": false },
+    { "name": "Burn Regular 0,5L", "price": 0.50, "offer": true },
     { "name": "Burn Zero Peach Lata 50 C12", "price": 12.00, "offer": false },
-    { "name": "Burn Zero Raspberry LATA50 C12", "price": 12.00, "offer": false },
+    { "name": "Burn Zero Raspberry LATA50 C12", "price": 12.00, "offer": true },
     { "name": "Pack x 4 Burn Lata 50 C6", "price": 6.00, "offer": false }
   ],
   "Energéticas": [
     { "name": "Monster Green Lata 50 cl.", "price": 1.50, "offer": false },
-    { "name": "Monster Green Zero Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Green Zero Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Pack x 4 Monster Green x 500 ml", "price": 6.00, "offer": false },
-    { "name": "Monster LO - CARB 50 cl.", "price": 1.50, "offer": false },
+    { "name": "Monster LO - CARB 50 cl.", "price": 1.50, "offer": true },
     { "name": "Monster Rehab Lata 50 cl.", "price": 1.50, "offer": false },
-    { "name": "Monster Rio", "price": 1.50, "offer": false },
+    { "name": "Monster Rio", "price": 1.50, "offer": true },
     { "name": "Monster Ultra Paradise Lata 50 C24", "price": 24.00, "offer": false },
-    { "name": "Monster Ultra Red Lata 50 T24", "price": 24.00, "offer": false },
+    { "name": "Monster Ultra Red Lata 50 T24", "price": 24.00, "offer": true },
     { "name": "Monster Ultra White Lata 50 T24", "price": 24.00, "offer": false },
-    { "name": "Pack x 4 Monster Ultra White Zero Lata 50", "price": 6.00, "offer": false },
+    { "name": "Pack x 4 Monster Ultra White Zero Lata 50", "price": 6.00, "offer": true },
     { "name": "Monster Ultra Fiesta Lata 50 C24", "price": 24.00, "offer": false },
-    { "name": "Monster Ultra Rosá Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Ultra Rosá Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Monster Ultra Peachy Keen 50cl", "price": 1.50, "offer": false },
-    { "name": "Monster Bad Apple 50cl", "price": 1.50, "offer": false },
+    { "name": "Monster Bad Apple 50cl", "price": 1.50, "offer": true },
     { "name": "Monster Punch 50cl.", "price": 1.50, "offer": false },
-    { "name": "Monster Mango Loco Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Mango Loco Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Pack x 4 Monster Mango Loco Lata 50 C6", "price": 6.00, "offer": false },
-    { "name": "Monster Monarch Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Monarch Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Monster Nitro Super Dry Lata 50 C24", "price": 24.00, "offer": false },
-    { "name": "Monster Khaotic Juice Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Khaotic Juice Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Monster Ultra Watermelon Lata 50 C24", "price": 24.00, "offer": false },
-    { "name": "Monster Lewis Hamilton Zero Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Lewis Hamilton Zero Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Monster Ultra Gold Zero Lata 50 C24", "price": 24.00, "offer": false },
-    { "name": "Monster Aussie Style Lemonade Lata 50 C24", "price": 24.00, "offer": false },
+    { "name": "Monster Aussie Style Lemonade Lata 50 C24", "price": 24.00, "offer": true },
     { "name": "Monster Reserve Watermelon Lata 50 C24", "price": 24.00, "offer": false },
-    { "name": "Monster Reserve White Pineapple Lata 50 C24", "price": 24.00, "offer": false }
+    { "name": "Monster Reserve White Pineapple Lata 50 C24", "price": 24.00, "offer": true }
   ],
-  "M.Maid": [
-    { "name": "Limón&Nada Clásica 1 L.", "price": 1.00, "offer": false }
+  "Minute Maid": [
+    { "name": "Limón&Nada Clásica 1 L.", "price": 1.00, "offer": true }
   ],
   "FUZE": [
-    { "name": "Fuze Limón Lata 33", "price": 1.00, "offer": false },
+    { "name": "Fuze Limón Lata 33", "price": 1.00, "offer": true },
     { "name": "Fuze Limón sin azúcar Lata 33", "price": 1.00, "offer": false },
-    { "name": "Fuze Limón Pet 50", "price": 0.50, "offer": false },
+    { "name": "Fuze Limón Pet 50", "price": 0.50, "offer": true },
     { "name": "Fuze Limón Pet 1,5L", "price": 1.50, "offer": false },
-    { "name": "Fuze Limón sin azúcar Pet 1,5L", "price": 1.50, "offer": false },
+    { "name": "Fuze Limón sin azúcar Pet 1,5L", "price": 1.50, "offer": true },
     { "name": "Fuze Tea Peach Hibiscus PET1.5L", "price": 1.50, "offer": false },
     { "name": "Fuze Tea Peach Hibiscus PET50", "price": 0.50, "offer": false }
     ],
-    "Deportivas": [
-    { "name": "Powerade Ice Storm Pet 50", "price": 1.50, "offer": false },
+    "Isotónicas": [
+    { "name": "Powerade Ice Storm Pet 50", "price": 1.50, "offer": true },
     { "name": "Powerade Zero Ice Storm PET50 C12", "price": 12.00, "offer": false },
-    { "name": "Powerade Citrus Charge Pet 50", "price": 1.50, "offer": false },
-    { "name": "Powerade Blood Orange Charge Pet 50", "price": 1.50, "offer": false },
-    { "name": "Reign Melon manía Lata 50 C12", "price": 1.50, "offer": false },
-    { "name": "Reign Razzle Berry Lata 50 C12", "price": 1.50, "offer": false }
+    { "name": "Powerade Citrus Charge Pet 50", "price": 1.50, "offer": true },
+    { "name": "Powerade Blood Orange Charge Pet 50", "price": 1.50, "offer": false }
   ],
-  "Isotónicas": [
-    { "name": "SEMI  Aquarius limón lata (960x2)=1920", "price": 1.00, "offer": false },
-    { "name": "Aquarius limón Lata 33 cl.", "price": 1.00, "offer": false },
+  "Deportivas": [
+    { "name": "Aquarius limón Lata 33 cl.", "price": 1.00, "offer": true },
     { "name": "Aquarius Naranja Lata 33 cl.", "price": 1.00, "offer": false },
-    { "name": "Aquarius Sin Azúcar Limón Lata 33 cl.", "price": 1.00, "offer": false },
+    { "name": "Aquarius Sin Azúcar Limón Lata 33 cl.", "price": 1.00, "offer": true },
     { "name": "Aquarius Sin Azúcar Naranja Lata 33 cl.", "price": 1.00, "offer": false },
-    { "name": "Pack x 9 Aquarius Limón Lata 33 cl.", "price": 9.00, "offer": false },
+    { "name": "Pack x 9 Aquarius Limón Lata 33 cl.", "price": 9.00, "offer": true },
     { "name": "Pack x 9 Aquarius Naranja Lata 33 cl.", "price": 9.00, "offer": false },
-    { "name": "Aquarius limón Pet 500", "price": 0.50, "offer": false },
+    { "name": "Aquarius limón Pet 500", "price": 0.50, "offer": true },
     { "name": "Aquarius Naranja Pet 500", "price": 0.50, "offer": false },
-    { "name": "SEMI  Aquarius Limón Pet 1´5 l. (195x2)= 390", "price": 1.00, "offer": false },
-    { "name": "Aquarius limón Pet 1,5 L.", "price": 1.50, "offer": false },
-    { "name": "SEMI Aquarius naranja Pet 1,5 L.(195x2)=390", "price": 1.00, "offer": false },
+    { "name": "Aquarius limón Pet 1,5 L.", "price": 1.50, "offer": true },
     { "name": "Aquarius Naranja Pet 1,5 L.", "price": 1.50, "offer": false },
-    { "name": "Aquarius Limón Sin Azúcar Pet 1,5 L.", "price": 1.50, "offer": false },
+    { "name": "Aquarius Limón Sin Azúcar Pet 1,5 L.", "price": 1.50, "offer": true },
     { "name": "Aquarius Naranja Sin Azúcar Pet 1,5 L.", "price": 1.50, "offer": false },
-    { "name": "Aquarius Melocotón Rojo Pet 1.5L C6", "price": 1.50, "offer": false },
+    { "name": "Aquarius Melocotón Rojo Pet 1.5L C6", "price": 1.50, "offer": true },
     { "name": "Pack x 4 Aquarius Limón Pet 1,5 L.", "price": 6.00, "offer": false },
-    { "name": "Pack x 4 Aquarius Naranja Pet 1,5 L.", "price": 6.00, "offer": false },
+    { "name": "Pack x 4 Aquarius Naranja Pet 1,5 L.", "price": 6.00, "offer": true },
     { "name": "BIPACK Aquarius Limón Pet 1,5 L.", "price": 3.50, "offer": false },
-    { "name": "BIPACK Aquarius Naranja Pet 1,5 L.", "price": 3.50, "offer": false },
-    { "name": "Aquarius Melocotón Rojo Lata 33", "price": 1.00, "offer": false }
+    { "name": "BIPACK Aquarius Naranja Pet 1,5 L.", "price": 3.50, "offer": true },
+    { "name": "Nestea Limón Lata 33 cl.", "price": 1.00, "offer": false },
+    { "name": "Aquarius Melocotón Rojo Lata 33", "price": 1.00, "offer": true }
   ],
   "Appletiser": [
-    { "name": "Appletiser VNR75 C6", "price": 6.00, "offer": false },
+    { "name": "Appletiser VNR75 C6", "price": 6.00, "offer": true },
     { "name": "Appletiser VNR275 P6 C4", "price": 4.00, "offer": false },
-    { "name": "Appletiser LATA25 C12", "price": 12.00, "offer": false }
+    { "name": "Appletiser LATA25 C12", "price": 12.00, "offer": true }
   ],
   "Aquabona": [
     { "name": "Aquabona Pet 0,5 L", "price": 0.50, "offer": false },
-    { "name": "Aquabona 1.5L", "price": 1.50, "offer": false },
+    { "name": "Aquabona 1.5L", "price": 1.50, "offer": true },
     { "name": "Semi Aquabona 1,5 L (240x2)=480", "price": 1.50, "offer": false },
-    { "name": "Abuabona Singular PET50 C12", "price": 12.00, "offer": false },
+    { "name": "Abuabona Singular PET50 C12", "price": 12.00, "offer": true },
     { "name": "Agua Vilas del Turbón pet 1L", "price": 1.00, "offer": false }
   ],
   "Alcoholes": [
-    { "name": "Jack&Coke", "price": 3.00, "offer": false },
+    { "name": "Jack&Coke", "price": 3.00, "offer": true },
     { "name": "Jack&Coke zero", "price": 3.00, "offer": false },
-    { "name": "Adsolut Sprite", "price": 3.00, "offer": false }
+    { "name": "Adsolut Sprite", "price": 3.00, "offer": true }
   ]
 
     };
 
     const PRODUCT_QUANTITIES = {
-      "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920":[2,4],
       "Coca Cola pack 6 2L": [8, 16, 36],
       "Coca Cola 1L": [9, 18],
       "Coca Cola 2L": [9, 18],
@@ -265,25 +266,27 @@
     };
 
     function createSection(sectionName, products) {
-      let sectionHTML = `<div class="section-title">${sectionName}</div><div class="carousel-container">`;
+      let sectionHTML = `<div class="section-title">${sectionName}</div>
+                         <div class="carousel-container">`;
       products.forEach((product, index) => {
         const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
         const quantities = PRODUCT_QUANTITIES[product.name] || [9, 18];
-        
-        // Generate image path using the index
+        // Se asume que las imágenes están en la carpeta "images"
         let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
 
         sectionHTML += `
           <div class="product">
             ${product.offer ? '<div class="offer-tag">Oferta</div>' : ''}
-            <img src="images/${imageName}" alt="${product.name}" style="width: 100%; height: auto;">
+            <img src="images/${imageName}" alt="${product.name}">
             <h3>${product.name}</h3>
             <p>Precio: €${product.price.toFixed(2)}</p>
             <div class="quantity-buttons">
               ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
               <input type="number" placeholder="0" oninput="validateInput(this)">
             </div>
-            <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Añadir al carrito</button>
+            <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">
+              Añadir al carrito
+            </button>
           </div>
         `;
       });
@@ -291,20 +294,36 @@
       return sectionHTML;
     }
 
+    // Asigna la cantidad al input correspondiente
     function setQuantity(button, value) {
-      let input = button.parentElement.querySelector('input');
+      const input = button.parentElement.querySelector('input');
       input.value = value;
     }
 
+    // Valida que la cantidad no sea negativa
     function validateInput(input) {
       if (input.value < 0) {
         input.value = 0;
       }
     }
 
+    // Actualiza el total del carrito
+    function updateCartTotal() {
+      const cartItemsContainer = document.getElementById("cart-items");
+      const cartItems = cartItemsContainer.querySelectorAll('.cart-item');
+      let total = 0;
+      cartItems.forEach(item => {
+        const quantity = parseInt(item.getAttribute('data-quantity'));
+        const unitPrice = parseFloat(item.getAttribute('data-unit-price'));
+        total += quantity * unitPrice;
+      });
+      document.getElementById("cart-total").innerText = `Total: €${total.toFixed(2)}`;
+    }
+
+    // Agrega un producto al carrito
     function addToCart(button, productName, productPrice) {
-      let input = button.parentElement.querySelector('input');
-      let quantity = parseInt(input.value);
+      const input = button.parentElement.querySelector('input');
+      const quantity = parseInt(input.value);
       if (isNaN(quantity) || quantity <= 0) {
         alert("Por favor, ingresa una cantidad válida.");
         return;
@@ -314,81 +333,89 @@
         return;
       }
       button.classList.add('added');
-      button.style.backgroundColor = '#ffa500';
       button.innerText = 'Añadido';
 
-      let cartItems = document.getElementById("cart-items");
-      if (cartItems.innerHTML.includes('No hay productos añadidos.')) {
-        cartItems.innerHTML = '';
+      const cartItems = document.getElementById("cart-items");
+      // Si se muestra el mensaje de "No hay productos añadidos", se elimina
+      if (cartItems.innerText.trim() === "No hay productos añadidos.") {
+        cartItems.innerHTML = "";
       }
-      cartItems.innerHTML += `
-        <div class="cart-item">
+      const cartItemHTML = `
+        <div class="cart-item" data-quantity="${quantity}" data-unit-price="${productPrice}">
           ${productName} - ${quantity} unidades - Precio: €${(productPrice * quantity).toFixed(2)}
           <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
         </div>
       `;
+      cartItems.innerHTML += cartItemHTML;
+      updateCartTotal();
     }
 
+    // Elimina un producto del carrito y actualiza el botón correspondiente
     function removeFromCart(button, buttonId) {
       button.parentElement.remove();
       const addButton = document.getElementById(buttonId);
       if (addButton) {
         addButton.classList.remove('added');
-        addButton.style.backgroundColor = '#28a745';
-        addButton.innerText = 'Agregar';
+        addButton.innerText = 'Añadir al carrito';
       }
-      let cartItems = document.getElementById("cart-items");
-      if (cartItems.children.length === 0) {
-        cartItems.innerHTML = 'No hay productos añadidos.';
+      const cartItems = document.getElementById("cart-items");
+      if (!cartItems.children.length) {
+        cartItems.innerHTML = '<p>No hay productos añadidos.</p>';
       }
+      updateCartTotal();
     }
 
+    // Recopila la información del carrito para generar el pedido
     function collectCartData() {
-      const cartItems = document.getElementById("cart-items").children;
-      if (cartItems.length === 0 || cartItems[0].innerText === 'No hay productos añadidos.') {
+      const cartItemsContainer = document.getElementById("cart-items");
+      if (cartItemsContainer.innerText.trim() === "No hay productos añadidos.") {
         alert("El carrito está vacío. No puedes enviar un pedido sin productos.");
         return null;
       }
-
+      const cartItems = cartItemsContainer.querySelectorAll('.cart-item');
       const order = [];
-      for (const item of cartItems) {
-        const [product, quantityText, priceText] = item.innerText.split(" - ");
-        const quantity = parseInt(quantityText.replace(" unidades", ""));
-        const price = parseFloat(priceText.replace(" Precio: €", ""));
-        order.push({ product, quantity, price });
-      }
-
+      cartItems.forEach(item => {
+        const product = item.innerText.split(" - ")[0];
+        const quantity = parseInt(item.getAttribute('data-quantity'));
+        const unitPrice = parseFloat(item.getAttribute('data-unit-price'));
+        order.push({
+          product,
+          quantity,
+          unitPrice,
+          total: parseFloat((quantity * unitPrice).toFixed(2))
+        });
+      });
       return order;
     }
 
+    // Exporta el pedido a un archivo Excel
     function exportToExcel(order) {
       if (!order) return;
-
       const worksheet = XLSX.utils.json_to_sheet(order);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Pedido");
-
       const filename = `pedido_${new Date().toISOString().slice(0, 10)}.xlsx`;
       XLSX.writeFile(workbook, filename);
     }
 
+    // Función para enviar el pedido
     function submitOrder() {
       const order = collectCartData();
       if (!order) return;
-
       if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
         alert("Pedido enviado con éxito. Gracias por tu compra.");
         exportToExcel(order);
-        // Reiniciar carrito
-        document.getElementById("cart-items").innerHTML = 'No hay productos añadidos.';
+        // Reiniciar el carrito y actualizar botones
+        document.getElementById("cart-items").innerHTML = '<p>No hay productos añadidos.</p>';
+        document.getElementById("cart-total").innerText = 'Total: €0.00';
         document.querySelectorAll('.add-btn').forEach(btn => {
           btn.classList.remove('added');
-          btn.style.backgroundColor = '#28a745';
-          btn.innerText = 'Agregar';
+          btn.innerText = 'Añadir al carrito';
         });
       }
     }
 
+    // Renderiza los productos en la página
     document.getElementById("product-list").innerHTML = Object.entries(sections)
       .map(([section, products]) => createSection(section, products))
       .join('');
