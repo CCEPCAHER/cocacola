@@ -255,7 +255,7 @@ document.addEventListener("DOMContentLoaded", function() {
     products.forEach((product, index) => {
       const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
       const quantities = PRODUCT_QUANTITIES[product.name] || [1, 2, 3];
-      // Genera el nombre de imagen (puedes adaptar esta lógica o usar una imagen por defecto)
+      // Genera el nombre de imagen (ajusta según tu organización o usa imagen por defecto)
       let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
       sectionHTML += `
         <div class="product">
@@ -293,10 +293,6 @@ document.addEventListener("DOMContentLoaded", function() {
   // Agrega el producto al carrito, reproduce un sonido y actualiza el total
   function addToCart(button, productName, productPrice) {
     let input = button.parentElement.querySelector('input');
-    if (!input) {
-      console.error("No se encontró el input de cantidad.");
-      return;
-    }
     let quantity = parseInt(input.value);
     if (isNaN(quantity) || quantity <= 0) {
       alert("Por favor, ingresa una cantidad válida.");
@@ -313,11 +309,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Reproducir sonido
     const sound = document.getElementById("add-sound");
     if (sound) {
-      sound.play().catch(error => console.error("Error al reproducir el sonido:", error));
+      sound.play().catch(error => console.error("Error al reproducir sonido:", error));
     }
 
     let cartItemsContainer = document.getElementById("cart-items-modal");
-    // Limpia el contenido si contiene el mensaje inicial
     if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
       cartItemsContainer.innerHTML = '';
     }
@@ -328,7 +323,6 @@ document.addEventListener("DOMContentLoaded", function() {
       </div>
     `;
     updateTotalPrice();
-    // Opcional: Mostrar una notificación tipo "toast"
     showToast("Producto añadido: " + productName);
   }
 
@@ -443,12 +437,14 @@ document.addEventListener("DOMContentLoaded", function() {
     .map(([section, products]) => createSection(section, products))
     .join('');
 
-  // Funcionalidad para arrastrar (mover) el botón de carrito
+  // Funcionalidad para arrastrar (mover) el botón de carrito y distinguir entre click y drag
   const cartToggle = document.getElementById("cart-toggle");
   cartToggle.addEventListener('mousedown', function(e) {
     e.preventDefault();
+    let startX = e.clientX, startY = e.clientY;
     let shiftX = e.clientX - cartToggle.getBoundingClientRect().left;
     let shiftY = e.clientY - cartToggle.getBoundingClientRect().top;
+    let dragged = false;
     
     function moveAt(pageX, pageY) {
       cartToggle.style.left = pageX - shiftX + 'px';
@@ -457,20 +453,27 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     function onMouseMove(e) {
+      if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+        dragged = true;
+      }
       moveAt(e.pageX, e.pageY);
     }
     
     document.addEventListener('mousemove', onMouseMove);
     
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', function(e) {
       document.removeEventListener('mousemove', onMouseMove);
+      // Si no se arrastró (pequeño desplazamiento), tratamos como click
+      if (!dragged) {
+        toggleCart();
+      }
     }, {once: true});
   });
   cartToggle.ondragstart = function() {
     return false;
   };
 
-  // Exponer algunas funciones globalmente (opcional, para poder usarlas en inline handlers)
+  // Exponer funciones globalmente para inline handlers
   window.filterProducts = filterProducts;
   window.toggleCart = toggleCart;
   window.submitOrder = submitOrder;
