@@ -239,8 +239,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Opcional: Definir cantidades sugeridas para algunos productos.
   const PRODUCT_QUANTITIES = {
-    "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920": [2,4],
-      "Coca Cola pack 6 2L": [8, 16, 36],
+    "SEMI PACK 12 lata CC (90x2)=180",: [2,4],
+    "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920",: [2,4],
+    "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920",: [2,4],
+     "Coca Cola pack 6 2L": [8, 16, 36],
       "Coca Cola 1L": [9, 18],
       "Coca Cola 2L": [9, 18],
       "coca cola mini cam": [9, 18],
