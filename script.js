@@ -260,7 +260,8 @@ document.addEventListener("DOMContentLoaded", function() {
       sectionHTML += `
         <div class="product">
           ${product.offer ? '<div class="offer-tag">Oferta</div>' : ''}
-          <img src="images/${imageName}" alt="${product.name}" loading="lazy">
+          <!-- Se utiliza data-src y la clase "lazy" para implementar lazy loading -->
+          <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
           <h3>${product.name}</h3>
           <p>Precio: ${product.offer ? '<s>€' + product.price.toFixed(2) + '</s> <strong>€' + product.price.toFixed(2) + '</strong>' : '€' + product.price.toFixed(2)}</p>
           <div class="quantity-buttons">
@@ -432,10 +433,40 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 100);
   }
 
+  // Función que implementa lazy loading usando IntersectionObserver
+  function lazyLoadImages() {
+    const lazyImages = document.querySelectorAll('img.lazy');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            // Asigna la URL real desde data-src al atributo src
+            img.src = img.getAttribute('data-src');
+            img.classList.remove('lazy');
+            observer.unobserve(img);
+          }
+        });
+      });
+      lazyImages.forEach(img => {
+        observer.observe(img);
+      });
+    } else {
+      // Fallback para navegadores sin IntersectionObserver
+      lazyImages.forEach(img => {
+        img.src = img.getAttribute('data-src');
+        img.classList.remove('lazy');
+      });
+    }
+  }
+
   // Inicialización: genera y muestra todos los productos
   document.getElementById("product-list").innerHTML = Object.entries(sections)
     .map(([section, products]) => createSection(section, products))
     .join('');
+
+  // Llama a la función de lazy loading una vez que se han insertado las imágenes
+  lazyLoadImages();
 
   // Funcionalidad para arrastrar (mover) el botón de carrito y distinguir entre click y drag
   const cartToggle = document.getElementById("cart-toggle");
@@ -463,7 +494,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     document.addEventListener('mouseup', function(e) {
       document.removeEventListener('mousemove', onMouseMove);
-      // Si no se arrastró (pequeño desplazamiento), tratamos como click
+      // Si no se arrastró (pequeño desplazamiento), se trata como click
       if (!dragged) {
         toggleCart();
       }
