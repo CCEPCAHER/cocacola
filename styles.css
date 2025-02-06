@@ -396,4 +396,10 @@ header h1 {
   .search-container input {
     width: 90%;
   }
+  
+  /* Aumenta el tamaño del botón "Enviar Pedido" para móviles */
+  #submit-order {
+    padding: 20px 25px;
+    font-size: 2em;
+  }
 }
