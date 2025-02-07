@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Puedes inicializarlo con dos, tres o más secciones; luego se podrán agregar dinámicamente.
     const sections = {
       "Coca Cola": [
-      { "name": "SEMI PACK 12 lata CC (90x2)=180", "price": 12.00, "offer": false },
+      { "name": "SEMI PACK 12 lata CC (90x2)=180", "price": 12.00, "offer": true },
       { "name": "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920", "price": 720.00, "offer": false },
       { "name": "Coca Cola pack 6 2L", "price": 6.00, "offer": false },
       { "name": "SEMI PACK 4 Coca-Cola 2 L.", "price": 8.00, "offer": false },
