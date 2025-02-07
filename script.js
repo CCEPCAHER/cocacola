@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", function() {
             "VNR 1L Coca-Cola Zero Zero C6": [9, 18],
             "VNR Coca-Cola Zero Zero 20 cl P4 C6": [9, 18],
             "Coca-Cola Zero Zero Lata 33": [9, 18],
-            "Bandeja Coca-Cola Zero Zero 33 cl Pack 24": [9, 18],
+            "Bandeja Coca-Cola Zero Zero 33 cl Pack 24": [108, 216],
             "PACK 12 Coca-Cola Zero Zero Lata 33": [9, 18],
             "COCA-COLA ZERO ZERO LATA PACK 6X20 CL.": [9, 18],
             "Coca-Cola Zero Limón Lata 33": [9, 18],
