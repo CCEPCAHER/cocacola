@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // Objeto con secciones y productos (modifica o agrega según necesites)
+  // Objeto con secciones y productos enfocados a tecnología y móviles  
+  // Puedes inicializarlo con dos, tres o más secciones; luego se podrán agregar dinámicamente.
   const sections = {
     "Coca Cola": [
     { "name": "SEMI PACK 12 lata CC (90x2)=180", "price": 12.00, "offer": false },
@@ -237,52 +238,78 @@ document.addEventListener("DOMContentLoaded", function() {
 
     };
 
-  // Opcional: Definir cantidades sugeridas para algunos productos.
+  // Cantidades sugeridas para cada producto
   const PRODUCT_QUANTITIES = {
-    "SEMI PACK 12 lata CC (90x2)=180",: [2,4],
-    "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920",: [2,4],
-    "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920",: [2,4],
-     "Coca Cola pack 6 2L": [8, 16, 36],
-      "Coca Cola 1L": [9, 18],
-      "Coca Cola 2L": [9, 18],
-      "coca cola mini cam": [9, 18],
-      "Coca Cola Zero 500ml": [100, 18],
-      "Coca Cola Zero 1L": [100, 18],
-      "Coca Cola Zero 2L": [100, 18],
-    };
+  "SEMI PACK 12 lata CC (90x2)=180": [2, 4],
+  "SEMI Coca Cola Reg lata 33 cl. (960x2)=1920": [2, 4],
+  "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920": [2, 4],
+  "Coca Cola pack 6 2L": [8, 16, 36],
+  "Coca Cola 1L": [9, 18],
+  "Coca Cola 2L": [9, 18],
+  "coca cola mini cam": [9, 18],
+  "Coca Cola Zero 500ml": [100, 18],
+  "Coca Cola Zero 1L": [100, 18],
+  "Coca Cola Zero 2L": [100, 18]
+};
 
-  // Crea cada sección de productos en formato carrusel
+  // Función para crear cada sección en formato carrusel  
   function createSection(sectionName, products) {
-    let sectionHTML = `<div class="section-title">${sectionName}</div><div class="carousel-container">`;
-    products.forEach((product, index) => {
-      const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
-      const quantities = PRODUCT_QUANTITIES[product.name] || [1, 2, 3];
-      // Genera el nombre de imagen (ajusta según tu organización o usa imagen por defecto)
-      let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
-      sectionHTML += `
-        <div class="product">
-          ${product.offer ? '<div class="offer-tag">Oferta</div>' : ''}
-          <!-- Se utiliza data-src y la clase "lazy" para implementar lazy loading -->
-          <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
-          <h3>${product.name}</h3>
-          <p>Precio: ${product.offer ? '<s>€' + product.price.toFixed(2) + '</s> <strong>€' + product.price.toFixed(2) + '</strong>' : '€' + product.price.toFixed(2)}</p>
-          <div class="quantity-buttons">
-            ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-            <input type="number" placeholder="0" oninput="validateInput(this)">
-          </div>
-          <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
+  // Se utiliza un <h2> para el encabezado de la sección
+  let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
+  products.forEach((product, index) => {
+    const buttonId = `${sectionName}-${index}`.replace(/\s+/g, '-');
+    const quantities = PRODUCT_QUANTITIES[product.name] || [1, 2, 3];
+    // Genera el nombre de imagen (asegúrate de tener las imágenes en la carpeta "images")
+    let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
+    sectionHTML += `
+      <div class="product">
+        ${product.offer ? '<div class="offer-tag">Oferta</div>' : ''}
+        <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
+        <h3>${product.name}</h3>
+        <p>Precio: ${product.offer 
+          ? '<s>€' + product.price.toFixed(2) + '</s> <strong>€' + product.price.toFixed(2) + '</strong>' 
+          : '€' + product.price.toFixed(2)}</p>
+        <div class="quantity-buttons">
+          ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
+          <input type="number" placeholder="Otro" oninput="validateInput(this)">
         </div>
-      `;
-    });
-    sectionHTML += `</div>`;
-    return sectionHTML;
+        <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
+      </div>
+    `;
+  });
+  sectionHTML += `</div>`;
+  return sectionHTML;
+}
+
+  // Actualiza la lista de productos renderizando todas las secciones  
+  function updateProductList() {
+    const productListElem = document.getElementById("product-list");
+    productListElem.innerHTML = Object.entries(sections)
+      .map(([section, products]) => createSection(section, products))
+      .join('');
+    lazyLoadImages();
   }
 
+  // Función para agregar un producto a una sección (crea la sección si no existe)
+  function addProduct(sectionName, product) {
+    if (!sections[sectionName]) {
+      sections[sectionName] = [];
+    }
+    sections[sectionName].push(product);
+    // Si el producto no tiene sugerencias, asigna unas por defecto
+    if (!PRODUCT_QUANTITIES[product.name]) {
+      PRODUCT_QUANTITIES[product.name] = [1, 2, 3];
+    }
+    updateProductList();
+  }
+
+  // Función para asignar cantidad al input desde los botones rápidos
   function setQuantity(button, value) {
     let input = button.parentElement.querySelector('input');
     input.value = value;
   }
 
+  // Validar que la cantidad no sea negativa
   function validateInput(input) {
     if (input.value < 0) input.value = 0;
   }
@@ -293,7 +320,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('modal-total').innerText = 'Total: €' + total.toFixed(2);
   }
 
-  // Agrega el producto al carrito, reproduce un sonido y actualiza el total
+  // Agrega el producto al carrito, reproduce un sonido y actualiza el total  
   function addToCart(button, productName, productPrice) {
     let input = button.parentElement.querySelector('input');
     let quantity = parseInt(input.value);
@@ -309,7 +336,7 @@ document.addEventListener("DOMContentLoaded", function() {
     button.style.backgroundColor = '#ffa500';
     button.innerText = 'Añadido';
 
-    // Reproducir sonido
+    // Reproducir sonido (si está disponible)
     const sound = document.getElementById("add-sound");
     if (sound) {
       sound.play().catch(error => console.error("Error al reproducir sonido:", error));
@@ -335,7 +362,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const addButton = document.getElementById(buttonId);
     if (addButton) {
       addButton.classList.remove('added');
-      addButton.style.backgroundColor = '#28a745';
+      addButton.style.backgroundColor = '#2c7a7b';
       addButton.innerText = 'Agregar';
     }
     let cartItemsContainer = document.getElementById("cart-items-modal");
@@ -396,21 +423,10 @@ document.addEventListener("DOMContentLoaded", function() {
       updateTotalDisplay(0);
       document.querySelectorAll('.add-btn').forEach(btn => {
         btn.classList.remove('added');
-        btn.style.backgroundColor = '#28a745';
+        btn.style.backgroundColor = '#2c7a7b';
         btn.innerText = 'Agregar';
       });
     }
-  }
-
-  // Filtra los productos según lo que se escriba en el buscador
-  function filterProducts() {
-    const term = document.getElementById("search").value.toLowerCase();
-    document.querySelectorAll(".carousel-container").forEach(container => {
-      container.querySelectorAll(".product").forEach(product => {
-        const name = product.querySelector("h3").innerText.toLowerCase();
-        product.style.display = name.includes(term) ? "block" : "none";
-      });
-    });
   }
 
   // Muestra u oculta el modal del carrito
@@ -443,16 +459,13 @@ document.addEventListener("DOMContentLoaded", function() {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target;
-            // Asigna la URL real desde data-src al atributo src
             img.src = img.getAttribute('data-src');
             img.classList.remove('lazy');
             observer.unobserve(img);
           }
         });
       });
-      lazyImages.forEach(img => {
-        observer.observe(img);
-      });
+      lazyImages.forEach(img => observer.observe(img));
     } else {
       // Fallback para navegadores sin IntersectionObserver
       lazyImages.forEach(img => {
@@ -462,15 +475,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Inicialización: genera y muestra todos los productos
-  document.getElementById("product-list").innerHTML = Object.entries(sections)
-    .map(([section, products]) => createSection(section, products))
-    .join('');
+  // Inicialización: renderiza los productos y configura el lazy loading  
+  updateProductList();
 
-  // Llama a la función de lazy loading una vez que se han insertado las imágenes
-  lazyLoadImages();
-
-  // Funcionalidad para arrastrar (mover) el botón de carrito y distinguir entre click y drag
+  // Funcionalidad para arrastrar el botón del carrito y distinguir entre click y drag
   const cartToggle = document.getElementById("cart-toggle");
   cartToggle.addEventListener('mousedown', function(e) {
     e.preventDefault();
@@ -478,40 +486,39 @@ document.addEventListener("DOMContentLoaded", function() {
     let shiftX = e.clientX - cartToggle.getBoundingClientRect().left;
     let shiftY = e.clientY - cartToggle.getBoundingClientRect().top;
     let dragged = false;
-    
+
     function moveAt(pageX, pageY) {
       cartToggle.style.left = pageX - shiftX + 'px';
       cartToggle.style.top = pageY - shiftY + 'px';
       cartToggle.style.position = 'fixed';
     }
-    
+
     function onMouseMove(e) {
       if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
         dragged = true;
       }
       moveAt(e.pageX, e.pageY);
     }
-    
+
     document.addEventListener('mousemove', onMouseMove);
-    
+
     document.addEventListener('mouseup', function(e) {
       document.removeEventListener('mousemove', onMouseMove);
-      // Si no se arrastró (pequeño desplazamiento), se trata como click
+      // Si no se arrastró, se trata como click
       if (!dragged) {
         toggleCart();
       }
     }, {once: true});
   });
-  cartToggle.ondragstart = function() {
-    return false;
-  };
+  cartToggle.ondragstart = function() { return false; };
 
-  // Exponer funciones globalmente para inline handlers
-  window.filterProducts = filterProducts;
+  // Exponer funciones globalmente para usar en atributos inline
   window.toggleCart = toggleCart;
   window.submitOrder = submitOrder;
   window.addToCart = addToCart;
   window.removeFromCart = removeFromCart;
   window.setQuantity = setQuantity;
   window.validateInput = validateInput;
+  window.addProduct = addProduct; // Para agregar nuevos productos dinámicamente
+  window.updateProductList = updateProductList;
 });
