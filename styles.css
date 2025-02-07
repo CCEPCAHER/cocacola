@@ -2,72 +2,114 @@
    VARIABLES Y RESET
 ========================= */
 :root {
-  --color-principal: #2c7a7b;
-  --color-principal-hover: #285e61;
-  --color-alerta: #d69e2e;
+  --color-primary: #2c7a7b;
+  --color-primary-hover: #285e61;
+  --color-alert: #d69e2e;
   --color-error: #e53e3e;
-  --color-texto: #333;
-  --color-oferta: #e53e3e;
+  --color-text: #333;
+  --color-offer: #e53e3e;
   --transition: 0.3s ease;
-  --fondo-claro: #f7fafc;
+  --bg-light: #f7fafc;
+  --font: 'Arial', sans-serif;
 }
 
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font);
+  background: #f0fff4;
+  color: var(--color-text);
+  padding-bottom: 120px; /* Espacio para elementos fijos */
 }
 
 /* ========================
-   ESTILOS BASE
+   HEADER
 ========================= */
-body {
-  font-family: 'Arial', sans-serif;
-  background: linear-gradient(to right, #f0fff4, #bee3f8);
-  margin: 0;
-  padding: 0;
-  color: var(--color-texto);
-}
-
 header {
-  background: var(--color-principal);
-  padding: 15px;
+  background: var(--color-primary);
   text-align: center;
+  padding: 16px;
   color: #fff;
 }
 
 header h1 {
-  font-size: 2em;
+  font-size: 1.8em;
 }
 
 /* ========================
-   BARRA DE BÚSQUEDA
+   TOTAL VISIBLE FIJO
 ========================= */
-.search-container {
-  text-align: center;
-  margin: 20px 0;
-}
-
-.search-container input {
-  width: 80%;
-  max-width: 400px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+#total-display {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: var(--bg-light);
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 1.2em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 1000;
 }
 
 /* ========================
-   TÍTULOS DE SECCIÓN
+   CONTENEDOR DE PRODUCTOS
+========================= */
+#product-list {
+  padding: 10px;
+}
+
+/* ========================
+   SECCIONES Y TÍTULOS
 ========================= */
 .section-title {
-  font-size: 1.5em;
+  font-size: 1.6em;
+  background: var(--color-primary);
   color: #fff;
-  background: var(--color-principal);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 8px;
   text-align: center;
-  margin: 20px 0 10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin: 10px 0;
+}
+
+/* Asigna colores distintos a cada sección (según el orden en el DOM) */
+/* Encabezados de secciones (20 reglas) */
+.section-title:nth-of-type(1) { background: red; }
+.section-title:nth-of-type(2) { background: black; }
+.section-title:nth-of-type(3) { background: gray; }
+.section-title:nth-of-type(4) { background: brown; }
+/* Sección 5: “colorines” (fondo multicolor usando un degradado) */
+.section-title:nth-of-type(5) { 
+  background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet); 
+}
+.section-title:nth-of-type(6) { background: orange; }
+.section-title:nth-of-type(7) { background: yellow; }
+/* Sección 9: “colorines” (otro degradado distinto) */
+.section-title:nth-of-type(8) { 
+  background: linear-gradient(45deg, pink, violet, magenta); 
+}
+.section-title:nth-of-type(9) { background: green; }
+.section-title:nth-of-type(10) { background: lightgray; } /* grisáceo */
+.section-title:nth-of-type(11) { background: black; }
+.section-title:nth-of-type(12) { 
+  /* “colorines como arcoíris” */
+  background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet); 
+}
+.section-title:nth-of-type(13) { 
+  background: white; 
+  color: black; /* Para que el texto sea visible sobre fondo blanco */
+}
+.section-title:nth-of-type(14) { background: lightgreen; } /* verde claro */
+.section-title:nth-of-type(15) { background: blue; }
+.section-title:nth-of-type(16) { background: skyblue; } /* celeste */
+.section-title:nth-of-type(17) { background: #98FB98; } /* verde suave (pale green) */
+.section-title:nth-of-type(18) { background: skyblue; } /* celeste */
+.section-title:nth-of-type(19) { 
+  /* negro con rayas verdes */
+  background: repeating-linear-gradient(45deg, black, black 5px, green 5px, green 10px); 
 }
 
 /* ========================
@@ -76,85 +118,78 @@ header h1 {
 .carousel-container {
   display: flex;
   overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: 20px;
-  gap: 20px;
+  gap: 10px;
+  padding-bottom: 10px;
 }
 
 .carousel-container::-webkit-scrollbar {
-  height: 8px;
+  height: 6px;
 }
 
 .carousel-container::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.2);
-  border-radius: 4px;
+  background: var(--color-primary);
+  border-radius: 3px;
 }
 
 /* ========================
-   PRODUCTOS
+   TARJETAS DE PRODUCTO
 ========================= */
 .product {
-  flex: 0 0 auto;
-  width: 250px;
-  margin: 10px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
   background: #fff;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 8px;
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: relative;
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
 .product:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-}
-
-.offer-tag {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: var(--color-oferta);
-  color: #fff;
-  padding: 5px;
-  font-size: 0.8em;
-  border-radius: 0 0 5px 5px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .product img {
   width: 100%;
-  height: 200px;
+  height: 140px;
   object-fit: cover;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  transition: transform var(--transition), filter var(--transition);
-}
-
-.product:hover img {
-  transform: scale(1.1);
-  filter: brightness(0.9);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--bg-light);
+  transition: opacity 0.3s;
 }
 
 .product h3 {
+  font-size: 1.1em;
+  margin-bottom: 4px;
   text-align: center;
-  margin: 10px 0;
-  padding: 0 5px;
+  color: var(--color-primary);
 }
 
 .product p {
+  font-size: 1em;
+  margin-bottom: 8px;
   text-align: center;
-  margin: 5px 0;
-  font-size: 0.9em;
 }
 
 .product p s {
   color: #888;
+  margin-right: 4px;
 }
 
-.product p strong {
-  color: var(--color-oferta);
+/* Etiqueta de oferta */
+.offer-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--color-offer);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
 }
 
 /* ========================
@@ -162,75 +197,52 @@ header h1 {
 ========================= */
 .quantity-buttons {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 5px;
-  padding: 10px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .quantity-buttons button {
-  border: none;
-  background: var(--color-principal);
+  background: var(--color-primary);
   color: #fff;
-  padding: 5px 10px;
-  border-radius: 5px;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 1em;
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .quantity-buttons button:hover {
-  background: var(--color-principal-hover);
+  background: var(--color-primary-hover);
 }
 
-.quantity-buttons input[type="number"] {
+.quantity-buttons input {
   width: 50px;
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  padding: 8px;
   text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
 }
 
 /* ========================
-   BOTÓN DE AÑADIR AL CARRITO
+   BOTÓN AGREGAR
 ========================= */
 .add-btn {
-  display: block;
   width: 100%;
-  padding: 10px;
-  background: var(--color-principal);
+  background: var(--color-primary);
   color: #fff;
   border: none;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 1.1em;
   cursor: pointer;
-  transition: background var(--transition), transform var(--transition);
+  transition: background var(--transition);
 }
 
 .add-btn:hover {
-  background: var(--color-principal-hover);
-  transform: scale(1.05);
-}
-
-.add-btn.added {
-  background: var(--color-alerta);
-}
-
-/* ========================
-   TOTAL VISIBLE (Fijo)
-========================= */
-#total-display {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fff;
-  border: 2px solid #ddd;
-  padding: 10px 15px;
-  border-radius: 10px;
-  font-size: 1.2em;
-  font-weight: bold;
-  color: var(--color-oferta);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  z-index: 1100;
+  background: var(--color-primary-hover);
 }
 
 /* ========================
@@ -238,121 +250,125 @@ header h1 {
 ========================= */
 #cart-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #fff;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 20px;
+  z-index: 1100;
+  transition: transform 0.4s, opacity 0.4s;
+  opacity: 0;
+  pointer-events: none;
 }
 
 #cart-modal.active {
-  display: flex;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 #cart-modal-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80%;
-  overflow-y: auto;
   position: relative;
-  box-shadow: 0 8px 15px rgba(0,0,0,0.3);
-}
-
-#cart-modal-content h2 {
-  text-align: center;
-  margin-bottom: 10px;
-  color: #333;
-}
-
-#cart-modal-content .cart-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #ddd;
-  font-size: 0.9em;
-}
-
-#cart-modal-content .cart-item:last-child {
-  border-bottom: none;
-}
-
-#cart-modal-content .remove-btn {
-  border: none;
-  background: var(--color-error);
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-#cart-modal-content .remove-btn:hover {
-  background: #c82333;
-}
-
-#modal-total {
-  text-align: center;
-  font-size: 1.3em;
-  font-weight: bold;
-  color: var(--color-oferta);
-  padding: 10px;
-  background: #ffccbc;
-  border-radius: 10px;
-  margin: 10px 0;
 }
 
 #close-modal {
   position: absolute;
   top: 10px;
   right: 10px;
-  border: none;
   background: transparent;
+  border: none;
   font-size: 1.5em;
   cursor: pointer;
-  color: #333;
+  color: var(--color-text);
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 1em;
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+.remove-btn {
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.remove-btn:hover {
+  background: #c82333;
+}
+
+#modal-total {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--color-offer);
+  padding: 10px;
+  background: #ffccbc;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+/* Botón "Enviar Pedido" más grande */
+#submit-order {
+  display: block;
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 1.3em;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+
+#submit-order:hover {
+  background: var(--color-primary-hover);
+  transform: scale(1.02);
 }
 
 /* ========================
-   BOTÓN DE CARRITO (Redondo, movible)
+   BOTÓN DEL CARRITO (movible)
 ========================= */
 #cart-toggle {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 80px;
-  height: 80px;
+  bottom: 20px;
+  right: 20px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
-  color: white;
+  color: #fff;
   border: none;
-  cursor: pointer;
-  box-shadow: 0 8px 15px rgba(76, 175, 80, 0.4);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  z-index: 1100;
+  font-size: 2em;
   display: flex;
   align-items: center;
   justify-content: center;
-  user-select: none;
-  font-size: 2em;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  z-index: 1200;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 #cart-toggle:hover {
   transform: scale(1.05) translateY(-3px);
-  box-shadow: 0 12px 20px rgba(76, 175, 80, 0.5);
-  background: linear-gradient(135deg, #8BC34A 0%, #4CAF50 100%);
-}
-
-#cart-toggle:active {
-  transform: scale(0.95) translateY(2px);
-  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
 /* ========================
@@ -362,44 +378,35 @@ header h1 {
   position: fixed;
   bottom: 50px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(100%);
   background: rgba(0,0,0,0.8);
   color: #fff;
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 0.9em;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 1em;
   opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: 1200;
+  transition: opacity 0.5s, transform 0.5s;
+  z-index: 1300;
 }
 
 .toast.show {
   opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ========================
    MEDIA QUERIES
 ========================= */
 @media (max-width: 600px) {
+  header h1 {
+    font-size: 1.6em;
+  }
   .product {
-    width: 90%;
+    flex: 0 0 90%;
   }
-  
   #cart-toggle {
-    bottom: 20px;
-    right: 20px;
-    width: 70px;
-    height: 70px;
-    font-size: 1.5em;
-  }
-  
-  .search-container input {
-    width: 90%;
-  }
-  
-  /* Aumenta el tamaño del botón "Enviar Pedido" para móviles */
-  #submit-order {
-    padding: 20px 25px;
-    font-size: 2em;
+    width: 60px;
+    height: 60px;
+    font-size: 1.8em;
   }
 }
