@@ -393,20 +393,14 @@ header h1 {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
-
 /* ========================
    MEDIA QUERIES
 ========================= */
-@media (max-width: 600px) {
-  header h1 {
-    font-size: 1.6em;
-  }
-  .product {
-    flex: 0 0 90%;
-  }
-  #cart-toggle {
-    width: 60px;
-    height: 60px;
-    font-size: 1.8em;
+@media (orientation: portrait) {
+  .product img {
+    /* Permite que la imagen mantenga su proporción */
+    height: auto;
+    max-height: 190px;  /* Puedes ajustar este valor según lo que te convenga */
+    object-fit: contain;
   }
 }
