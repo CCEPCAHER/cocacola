@@ -208,7 +208,6 @@ document.addEventListener("DOMContentLoaded", function() {
     { "name": "Aquarius Naranja Pet 500", "price": 0.50, "offer": false },
     { "name": "SEMI  Aquarius Limón Pet 1´5 l. (195x2)= 390", "price": 1.00, "offer": false },
     { "name": "Aquarius limón Pet 1,5 L.", "price": 1.50, "offer": false },
-    { "name": "SEMI Aquarius naranja Pet 1,5 L.(195x2)=390", "price": 1.00, "offer": false },
     { "name": "Aquarius Naranja Pet 1,5 L.", "price": 1.50, "offer": false },
     { "name": "Aquarius Limón Sin Azúcar Pet 1,5 L.", "price": 1.50, "offer": false },
     { "name": "Aquarius Naranja Sin Azúcar Pet 1,5 L.", "price": 1.50, "offer": false },
