@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function() {
             "Coca-Cola Zero Zero Bipack 1,25L": [19, 38],
             "Coca-Cola Zero Zero 1,25L": [19, 38],
             "Coca-Cola Zero Zero P4 Pet500": [9, 18],
-            "Coca-Cola Zero Zero Pet500": [9, 18]
+            "Coca-Cola Zero Zero Pet500": [9, 18],
             "Coca-Cola Zero Zero Lata 33": [9, 18],
             "Bandeja Coca-Cola Zero Zero 33 cl Pack 24": [108, 216],
             "PACK 12 Coca-Cola Zero Zero Lata 33": [18, 36],
