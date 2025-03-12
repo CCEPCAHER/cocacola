@@ -1,6 +1,6 @@
 {
   "name": "Mi App de Supermercado",
-  "short_name": "SuperApp",
+  "short_name": "Consultas CCEP",
   "description": "Aplicación para gestionar productos, ofertas y pedidos en un supermercado.",
   "start_url": "/index.html",
   "display": "standalone",
