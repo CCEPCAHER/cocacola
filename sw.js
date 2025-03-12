@@ -13,10 +13,12 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cargando en caché los recursos');
+        console.log('Cargando en caché los recursos...');
         return cache.addAll(urlsToCache);
       })
+      .catch(error => console.error('Error al cachear archivos:', error))
   );
+  self.skipWaiting(); // Activa inmediatamente el nuevo Service Worker
 });
 
 // Evento fetch: intercepta las peticiones y sirve desde la caché si está disponible
@@ -24,13 +26,13 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Retorna el recurso en caché o, si no está, realiza la petición de red
-        return response || fetch(event.request);
+        return response || fetch(event.request)
+          .catch(() => console.error('Fallo en la red y no encontrado en caché:', event.request.url));
       })
   );
 });
 
-// Evento activate: limpia cachés antiguas si fuera necesario
+// Evento activate: limpia cachés antiguas y toma control de las páginas abiertas
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -45,4 +47,5 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  self.clients.claim(); // Toma el control inmediato de las pestañas abiertas
 });
