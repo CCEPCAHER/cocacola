@@ -5,6 +5,36 @@ document.addEventListener("DOMContentLoaded", function() {
   
   // Objeto con secciones y productos
   const sections = {
+    "FOCOS": [
+      { 
+  "name": "FOCO 1", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "FOCO 2", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "FOCO 3", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "FOCO ESTRATEGICO",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+}
+    ],
   "Coca Cola": [
     { 
       "name": "SEMI PACK 12 lata CC (90x2)=180", 
@@ -2588,7 +2618,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       }
     ],
- "IMPLANTACIONES EEFF": [
+ "IMPLANTACIONES": [
       { 
   "name": "EEFF COCA-COLA", 
   "price": 0.00, 
