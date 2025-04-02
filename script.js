@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "previousPrice": 3.99,
       "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -293,9 +293,9 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "SEMI Coca Cola pet 1,25 L.", 
        "price": 1.50,
       "previousPrice": 1.25,
-      "offer": true,
+      "offer":false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -323,9 +323,9 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "Coca Cola 1,25L", 
        "price": 3.00,
       "previousPrice": 3.99,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -374,10 +374,9 @@ document.addEventListener("DOMContentLoaded", function() {
     { 
       "name": "Coca Cola pet500", 
       "price": 0.50, 
-      "previousPrice": 0.55,
       "offer": false,
-      "focus1": false,
-      "focus2": false,
+      "focus1": false,  
+      "focus2": true,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -391,7 +390,15 @@ document.addEventListener("DOMContentLoaded", function() {
         "draw": false,
         "promoWeb": false 
       },
-      "offerLogos": {}
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
     },
     { 
       "name": "VNR 1L Coca-Cola C6 ",
@@ -546,7 +553,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "SEMI Coca Cola Zero lata 33 cl. (960x2)=1920", 
       "price": 912.00, 
       "offer": false,
-      "focus1": false,
+
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -666,9 +673,9 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "COCA-COLA ZERO PET1,25L P2 C3", 
        "price": 3.00,
       "previousPrice": 3.99,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -677,7 +684,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -696,9 +703,9 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "Coca Cola Zero 1,25L", 
        "price": 3.00,
       "previousPrice": 3.99,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -707,7 +714,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -726,30 +733,58 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "Coca Cola Zero P4 Pet500", 
       "price": 2.00, 
       "offer": false,
-      "focus1": false,
-      "focus2": false,
+      "focus1": false,  
+      "focus2": true,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
         "twoXone": false, 
         "threeXtwo": false, 
         "secondUnit70": false, 
-        "twentyPercent": false 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
       }
     },
     { 
       "name": "Coca Cola Zero pet500", 
       "price": 0.50, 
       "offer": false,
-      "focus1": false,
-      "focus2": false,
+      "focus1": false,  
+      "focus2": true,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
         "twoXone": false, 
         "threeXtwo": false, 
         "secondUnit70": false, 
-        "twentyPercent": false 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
       }
     },
     { 
@@ -786,7 +821,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "Coca-Cola Zero lata 33 cl.", 
       "price": 0.95, 
       "offer": false,
-      "focus1": false,
+      "focus1": true,
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -801,7 +836,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "Bandeja Coca-Cola Zero 33 cl. Pack 24", 
       "price": 19.90, 
       "offer": false,
-      "focus1": false,
+      "focus1": true,
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -816,7 +851,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "name": "PACK 12 Coca-Cola Zero Lata 33", 
       "price": 10.26, 
       "offer": false,
-      "focus1": false,
+      "focus1": true,
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -866,9 +901,9 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Coca-Cola Light 1,25L", 
          "price": 3.00,
       "previousPrice": 3.99,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -877,7 +912,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -896,13 +931,60 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Coca-Cola Light Pet500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Coca-Cola Light Lata 33", 
         "price": 1.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+        "previousPrice": 3.99,
+      "offer": false,
+      "focus1": true,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Bandeja Coca-Cola Light 33 cl Pack 24", 
@@ -970,9 +1052,9 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Coca-Cola Zero Zero Bipack 1,25L", 
          "price": 3.00,
       "previousPrice": 3.99,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -981,7 +1063,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -1000,9 +1082,9 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Coca-Cola Zero Zero 1,25L", 
          "price": 3.00,
       "previousPrice": 3.99,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
-      "focus2": true,
+      "focus2": false,
       "focus3": false,
       "focus4": false,
       "discountOptions": { 
@@ -1011,7 +1093,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -1030,13 +1112,60 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Coca-Cola Zero Zero Pet500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Coca Cola Zero Zero Lata 33cl", 
         "price": 1.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+        "previousPrice": 3.99,
+      "offer": false,
+      "focus1": true,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Bandeja Coca-Cola Zero Zero 33 cl Pack 24", 
@@ -1136,31 +1265,54 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fanta Naranja Pet 500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "SEMI  PACK 9 lata Fanta Naranja (120x2)=240", 
         "price": 9.00, 
-        "offer": true,
+        "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
       },
       { 
         "name": "Pack x 9 Fanta Naranja Lata 33 cl.", 
         "price": 9.00, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "SEMI  Fanta Naranja lata (960x2)=1920", 
         "price": 1.00, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "Fanta Naranja Lata 33 cl.", 
         "price": 1.00, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "MINI LATA Fanta Naranja pack 6X20 CL", 
@@ -1190,6 +1342,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fanta Zero Naranja Lata 33", 
         "price": 1.00, 
         "offer": false,
+        "focus1": true,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       }
     ],
@@ -1228,7 +1381,30 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fanta limón Pet 500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "SEMI  PACK 9 lata Fanta Limón (120x2)=240", 
@@ -1264,6 +1440,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fanta Zero limón Lata 33", 
         "price": 1.00, 
         "offer": false,
+        "focus1": true,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       }
     ],
@@ -1283,13 +1460,38 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
         "name": "Fanta Sandía LATA 33", 
         "price": 1.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+        "previousPrice": 1.00,
+      "offer": false,
+      "focus1": true,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Fanta Frambuesa LATA 33", 
         "price": 1.00, 
         "offer": false,
+        "focus1": true,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       }
     ],
@@ -1327,8 +1529,32 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
         "name": "Sprite Zero lata 33", 
         "price": 1.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+        "previousPrice": 1.00,
+      "offer": false,
+      "focus1": true,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Sprite lata 33 P9", 
@@ -1340,20 +1566,43 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Sprite Pet 500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       }
     ],
     "Tónica": [
       { 
         "name": "Nordic Mist lata 250", 
         "price": 0.50, 
-        "offer": true,
+        "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "Nordic Blue Lata 25 cl.", 
         "price": 0.75, 
-        "offer": true,
+        "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
@@ -1365,7 +1614,7 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
         "name": "Nordic Zero Lata 25 cl.", 
         "price": 0.75, 
-        "offer": true,
+        "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
@@ -1421,192 +1670,374 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
         "name": "Burn Regular 0,5L", 
         "price": 0.50, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "focus3": true,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "Burn Zero Peach Lata 50 C12", 
         "price": 12.00, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "focus3": true,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "Burn Zero Raspberry LATA50 C12", 
         "price": 12.00, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "focus3": true,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "Pack x 4 Burn Lata 50 C6", 
         "price": 6.00, 
-        "offer": true,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": true }
+        "offer": false,
+        "focus3": true,
+        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       }
     ],
     "Energéticas": [
-      { 
-        "name": "Monster Green Lata 50 cl.", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+    {
+      "name": "Monster Green Lata 50 cl.",
+      "price": 1.50,
+      "offer": false,
+      "focus1": false,
+      "focus2": false,
+      "focus3": true,
+      "focus4": false,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false
       },
-      { 
-        "name": "Monster Green Zero Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Pack x 4 Monster Green x 500 ml", 
-        "price": 6.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster LO - CARB 50 cl.", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Rehab Lata 50 cl.", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "MONSTER JUICED RIO PUNCH LATA50 C24", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Paradise Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Red Lata 50 T24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra White Lata 50 T24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Pack x 4 Monster Ultra White Zero Lata 50", 
-        "price": 6.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Fiesta Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Rosá Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Peachy Keen 50cl", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Bad Apple 50cl", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Punch 50cl.", 
-        "price": 1.50, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Mango Loco Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Pack x 4 Monster Mango Loco Lata 50 C6", 
-        "price": 6.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Monarch Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Nitro Super Dry Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Khaotic Juice Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Watermelon Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Lewis Hamilton Zero Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Ultra Gold Zero Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Aussie Style Lemonade Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Reserve Watermelon Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Monster Reserve White Pineapple Lata 50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "MONSTER ULTRA STRAWBERRY DREAMS LA50 C24", 
-        "price": 24.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "offerLogos": {
+        "alcampo": false,
+        "condis": false,
+        "carrefour": false,
+        "caprabo": false,
+        "consum": false,
+        "sorli": false
       }
-    ],
+    },
+    {
+      "name": "Monster Green Zero Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Pack x 4 Monster Green x 500 ml",
+      "price": 6.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster LO - CARB 50 cl.",
+      "price": 1.50,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Rehab Lata 50 cl.",
+      "price": 1.50,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "MONSTER JUICED RIO PUNCH LATA50 C24",
+      "price": 1.50,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Paradise Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Red Lata 50 T24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra White Lata 50 T24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Pack x 4 Monster Ultra White Zero Lata 50",
+      "price": 6.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Fiesta Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Rosá Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Peachy Keen 50cl",
+      "price": 1.50,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Bad Apple 50cl",
+      "price": 1.50,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Punch 50cl.",
+      "price": 1.50,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Mango Loco Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Pack x 4 Monster Mango Loco Lata 50 C6",
+      "price": 6.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Monarch Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Nitro Super Dry Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Khaotic Juice Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Watermelon Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Lewis Hamilton Zero Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Ultra Gold Zero Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Aussie Style Lemonade Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Reserve Watermelon Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "Monster Reserve White Pineapple Lata 50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    },
+    {
+      "name": "MONSTER ULTRA STRAWBERRY DREAMS LA50 C24",
+      "price": 24.00,
+      "offer": false,
+      "focus3": true,
+      "discountOptions": {
+        "twoXone": false,
+        "threeXtwo": false,
+        "secondUnit70": false,
+        "twentyPercent": false
+      }
+    }
+  ],
     "M.Maid": [
       { 
         "name": "Limón&Nada Clásica 1 L.", 
@@ -1632,16 +2063,9 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fuze Limón Pet 50", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Fuze Limón Pet 1,5L", 
-        "price": 1.50,
-      "previousPrice": 1.25,
-      "offer": true,
       "focus1": false,  
-      "focus2": false,
-      "focus3": true,
+      "focus2": true,
+      "focus3": false,
       "focus4": false,
       "discountOptions": { 
         "twoXone": false, 
@@ -1649,7 +2073,37 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
+      },
+      { 
+        "name": "Fuze Limón Pet 1,5L", 
+        "price": 1.50,
+      "previousPrice": 1.25,
+      "offer": false,
+      "focus1": false,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -1668,10 +2122,10 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fuze Limón sin azúcar Pet 1,5L", 
         "price": 1.50,
       "previousPrice": 1.25,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
       "focus2": false,
-      "focus3": true,
+      "focus3": false,
       "focus4": false,
       "discountOptions": { 
         "twoXone": false, 
@@ -1679,7 +2133,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -1698,10 +2152,10 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fuze Tea Peach Hibiscus PET1.5L", 
         "price": 1.50,
       "previousPrice": 1.25,
-      "offer": true,
+      "offer": false,
       "focus1": false,  
       "focus2": false,
-      "focus3": true,
+      "focus3": false,
       "focus4": false,
       "discountOptions": { 
         "twoXone": false, 
@@ -1709,7 +2163,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "secondUnit70": false, 
         "twentyPercent": false,
         "fiftyPercent": false,
-        "gift": true,
+        "gift": false,
         "travel": false,
         "draw": false,
         "promoWeb": false 
@@ -1728,7 +2182,30 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Fuze Tea Peach Hibiscus PET50", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       }
     ],
     "Deportivas": [
@@ -1736,8 +2213,8 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Powerade Ice Storm Pet 50", 
       "price": 1.00,
       "previousPrice": 1.20,
-      "offer": true,
-      "focus1": true,  
+      "offer": false,
+      "focus1": false,  
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -1753,7 +2230,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "promoWeb": false 
       },
       "offerLogos": {
-         "alcampo": true,
+         "alcampo": false,
          "condis": false,
          "carrefour": false,
          "caprabo": false,
@@ -1766,8 +2243,8 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Powerade Zero Ice Storm PET50 C12",  
       "price": 1.00,
       "previousPrice": 1.20,
-      "offer": true,
-      "focus1": true,  
+      "offer": false,
+      "focus1": false,  
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -1783,7 +2260,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "promoWeb": false 
       },
       "offerLogos": {
-         "alcampo": true,
+         "alcampo": false,
          "condis": false,
          "carrefour": false,
          "caprabo": false,
@@ -1796,8 +2273,8 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Powerade Citrus Charge Pet 50",        
       "price": 1.00,
       "previousPrice": 1.20,
-      "offer": true,
-      "focus1": true,  
+      "offer": false,
+      "focus1": false,  
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -1813,7 +2290,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "promoWeb": false 
       },
       "offerLogos": {
-         "alcampo": true,
+         "alcampo": false,
          "condis": false,
          "carrefour": false,
          "caprabo": false,
@@ -1826,8 +2303,8 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Powerade Blood Orange Charge Pet 50",         
       "price": 1.00,
       "previousPrice": 1.20,
-      "offer": true,
-      "focus1": true,  
+      "offer": false,
+      "focus1": false,  
       "focus2": false,
       "focus3": false,
       "focus4": false,
@@ -1843,7 +2320,7 @@ document.addEventListener("DOMContentLoaded", function() {
         "promoWeb": false 
       },
       "offerLogos": {
-         "alcampo": true,
+         "alcampo": false,
          "condis": false,
          "carrefour": false,
          "caprabo": false,
@@ -1887,13 +2364,13 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
         "name": "Aquarius Sin Azúcar Limón Lata 33 cl.", 
         "price": 1.00, 
-        "offer": true,
+        "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
         "name": "Aquarius Sin Azúcar Naranja Lata 33 cl.", 
         "price": 1.00, 
-        "offer": true,
+        "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
@@ -1912,13 +2389,59 @@ document.addEventListener("DOMContentLoaded", function() {
         "name": "Aquarius limón Pet 500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "Aquarius Naranja Pet 500", 
         "price": 0.50, 
         "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+      "focus1": false,  
+      "focus2": true,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
       },
       { 
         "name": "SEMI  Aquarius Limón Pet 1´5 l. (195x2)= 390", 
