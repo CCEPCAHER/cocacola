@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "FOCO 1", 
   "price": 0.00, 
+"startDate": "2024-04-01",
+      "endDate": "2024-04-15",
   "offer": false,
   "staticOffer": true,
   "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
@@ -29,6 +31,52 @@ document.addEventListener("DOMContentLoaded", function() {
 },
 { 
   "name": "FOCO ESTRATEGICO",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+}
+    ],
+"FEM CARREFOUR": [
+      { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2024-03-25",
+      "endDate": "2024-04-10",
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "",  
   "price": 0.00,
   "offer": false,
   "staticOffer": true,
@@ -2860,13 +2908,13 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   // Función para actualizar el listado de productos (secciones)
-  function updateProductList() {
-    const productListElem = document.getElementById("product-list");
-    productListElem.innerHTML = Object.entries(sections)
-      .map(([sectionName, products]) => `<div class="section" data-section="${sectionName}">${createSection(sectionName, products)}</div>`)
-      .join('');
-    lazyLoadImages();
-  }
+function updateProductList() {
+  const productListElem = document.getElementById("product-list");
+  productListElem.innerHTML = Object.entries(sections)
+    .map(([sectionName, products]) => `<div class="section" data-section="${sectionName}">${createSection(sectionName, products)}</div>`)
+    .join('');
+  lazyLoadImages();
+}
 
 function createSection(sectionName, products) {
   let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
@@ -2876,6 +2924,14 @@ function createSection(sectionName, products) {
     let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
 
     let offerHTML = product.offer ? '<div class="offer-tag">Oferta</div>' : '';
+
+    // Nueva etiqueta de rango de fechas
+    let dateRangeHTML = '';
+    if (product.startDate && product.endDate) {
+      const startDate = new Date(product.startDate).toLocaleDateString('es-ES');
+      const endDate = new Date(product.endDate).toLocaleDateString('es-ES');
+      dateRangeHTML = `<div class="date-range-tag">${startDate} - ${endDate}</div>`;
+    }
 
     let offerLogoHTML = '';
     if (product.offer && product.offerLogos) {
@@ -2958,6 +3014,7 @@ if (product.offer && product.previousPrice && product.price !== 0) {
         <div class="product static-offer">
           ${offerLogoHTML}
           ${offerHTML}
+          ${dateRangeHTML} <!-- Aquí se añade la etiqueta de fechas -->
           ${discountHTML}
           ${focusLogoHTML}
           <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
@@ -2966,25 +3023,25 @@ if (product.offer && product.previousPrice && product.price !== 0) {
         </div>
       `;
     } else {
-      // Producto normal: se muestran los controles para agregar al carrito.
       sectionHTML += `
-  <div class="product ${product.staticOffer ? 'static-offer' : ''}">
-    ${offerLogoHTML}
-    ${offerHTML}
-    ${discountHTML}
-    ${focusLogoHTML}
-    <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
-    <h3>${product.name}</h3>
-    ${priceHTML ? `<p>Precio: ${priceHTML}</p>` : ''}
-    ${!product.staticOffer ? `
-    <div class="quantity-buttons">
-      ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-      <input type="number" placeholder="Otro" oninput="validateInput(this)">
-    </div>
-    <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
-    ` : ''}
-  </div>
-`;
+        <div class="product ${product.staticOffer ? 'static-offer' : ''}">
+          ${offerLogoHTML}
+          ${offerHTML}
+          ${dateRangeHTML} <!-- Aquí se añade la etiqueta de fechas -->
+          ${discountHTML}
+          ${focusLogoHTML}
+          <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
+          <h3>${product.name}</h3>
+          ${priceHTML ? `<p>Precio: ${priceHTML}</p>` : ''}
+          ${!product.staticOffer ? `
+          <div class="quantity-buttons">
+            ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
+            <input type="number" placeholder="Otro" oninput="validateInput(this)">
+          </div>
+          <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
+          ` : ''}
+        </div>
+      `;
     }
   });
   sectionHTML += `</div>`;
