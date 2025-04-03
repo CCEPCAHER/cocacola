@@ -2907,7 +2907,7 @@ document.addEventListener("DOMContentLoaded", function() {
 "CABECERA":[0]
   };
 
-  // Función para actualizar el listado de productos (secciones)
+// Función para actualizar el listado de productos (secciones)
 function updateProductList() {
   const productListElem = document.getElementById("product-list");
   productListElem.innerHTML = Object.entries(sections)
@@ -2925,7 +2925,6 @@ function createSection(sectionName, products) {
 
     let offerHTML = product.offer ? '<div class="offer-tag">Oferta</div>' : '';
 
-    // Nueva etiqueta de rango de fechas
     let dateRangeHTML = '';
     if (product.startDate && product.endDate) {
       const startDate = new Date(product.startDate).toLocaleDateString('es-ES');
@@ -2988,14 +2987,12 @@ function createSection(sectionName, products) {
       }
     }
 
-    // Si el precio es 0, dejamos priceHTML vacío.
-let priceHTML = product.price === 0 ? "" : '€' + product.price.toFixed(2);
-
-// Si es un producto en oferta con precio anterior, se muestra la comparación (solo si el precio no es 0)
-if (product.offer && product.previousPrice && product.price !== 0) {
-  priceHTML =
-    `<s>€${product.previousPrice.toFixed(2)}</s> <strong>€${product.price.toFixed(2)}</strong>`;
-}
+    let priceHTML = "";
+    if (!product.staticOffer && product.price !== 0) {
+      priceHTML = product.offer && product.previousPrice 
+        ? `<s>€${product.previousPrice.toFixed(2)}</s> <strong>€${product.price.toFixed(2)}</strong>`
+        : `€${product.price.toFixed(2)}`;
+    }
 
     let focusLogoHTML = '';
     if (product.focus1) {
@@ -3008,38 +3005,34 @@ if (product.offer && product.previousPrice && product.price !== 0) {
       focusLogoHTML = `<div class="focus-logo foco4"><div class="focus-text">FOCO 4</div></div>`;
     }
 
-    // Si el producto es de solo oferta, no mostramos inputs ni botón de agregar.
     if (product.staticOffer) {
       sectionHTML += `
         <div class="product static-offer">
           ${offerLogoHTML}
           ${offerHTML}
-          ${dateRangeHTML} <!-- Aquí se añade la etiqueta de fechas -->
+          ${dateRangeHTML}
           ${discountHTML}
           ${focusLogoHTML}
           <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
           <h3>${product.name}</h3>
-          <p>Precio: ${priceHTML}</p>
         </div>
       `;
     } else {
       sectionHTML += `
-        <div class="product ${product.staticOffer ? 'static-offer' : ''}">
+        <div class="product">
           ${offerLogoHTML}
           ${offerHTML}
-          ${dateRangeHTML} <!-- Aquí se añade la etiqueta de fechas -->
+          ${dateRangeHTML}
           ${discountHTML}
           ${focusLogoHTML}
           <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
           <h3>${product.name}</h3>
-          ${priceHTML ? `<p>Precio: ${priceHTML}</p>` : ''}
-          ${!product.staticOffer ? `
+          ${priceHTML ? `<p class="price">${priceHTML}</p>` : ''}
           <div class="quantity-buttons">
             ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
             <input type="number" placeholder="Otro" oninput="validateInput(this)">
           </div>
           <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
-          ` : ''}
         </div>
       `;
     }
@@ -3047,7 +3040,6 @@ if (product.offer && product.previousPrice && product.price !== 0) {
   sectionHTML += `</div>`;
   return sectionHTML;
 }
-
   // Funciones de carrito, totales, etc. (se mantienen sin cambios)
   function setQuantity(button, value) {
     let input = button.parentElement.querySelector('input');
