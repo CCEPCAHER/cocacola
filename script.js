@@ -13,28 +13,24 @@ document.addEventListener("DOMContentLoaded", function() {
       "endDate": "2024-04-15",
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "FOCO 2", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "FOCO 3", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "FOCO ESTRATEGICO",  
   "price": 0.00,
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 }
     ],
 "ORDEN DE MARCAS": [
@@ -43,42 +39,114 @@ document.addEventListener("DOMContentLoaded", function() {
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 },
 { 
   "name": "", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
 },
 { 
   "name": "",  
   "price": 0.00,
   "offer": false,
   "staticOffer": true,
-  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 }
     ],
 "CARREFOUR": [
