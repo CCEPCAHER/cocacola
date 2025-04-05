@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "FOCO 1", 
   "price": 0.00, 
-"startDate": "2024-04-01",
-      "endDate": "2024-04-15",
+"startDate": "2024-04-11",
+      "endDate": "2024-04-23",
   "offer": false,
   "staticOffer": true,
 },
