@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CONSULTAS</title>
-
-  <!-- Metadatos -->
+  <link rel="manifest" href="manifest.json">
+  <title>PEDIDOS</title>
+  <!-- Llamada a la hoja de estilos externa -->
+  <link rel="stylesheet" href="style.css">
   <meta name="description" content="Compra en el mejor supermercado para teléfonos móviles.">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./style.css">
-  <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-
   <!-- Formulario de login -->
   <div id="login-container">
     <form id="login-form">
@@ -24,18 +22,30 @@
       <button type="submit">Iniciar Sesión</button>
     </form>
   </div>
-
-  <!-- Contenido después del login -->
+  
+  <!-- Contenido protegido: se mostrará una vez que el usuario inicie sesión -->
   <div id="contenido" style="display:none;">
     <header>
       <h1>CONSULTAS</h1>
     </header>
     <main>
-      <div id="filter-container"></div>
-      <section id="product-list"></section>
+      <!-- Contenedor para el dropdown de filtros centrado -->
+      <div class="dropdown-container">
+        <div id="filter-container"></div>
+      </div>
+      
+      <!-- Contenedor de productos generado dinámicamente (con etiquetas de oferta y descuento) -->
+      <section id="product-list">
+        <!-- Los productos se renderizan aquí desde script.js -->
+      </section>
+      
+      <!-- Total siempre visible -->
       <div id="total-display" aria-live="polite">Total: €0.00</div>
+      
+      <!-- Botón flotante del carrito (movible) -->
       <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
-
+      
+      <!-- Modal del carrito -->
       <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
         <div id="cart-modal-content">
           <button id="close-modal" aria-label="Cerrar carrito" onclick="toggleCart()">✖</button>
@@ -45,80 +55,136 @@
           <button id="submit-order" onclick="submitOrder()">Enviar Pedido</button>
         </div>
       </div>
-
-      <audio id="add-sound" src="./beep.mp3" preload="auto"></audio>
-
+      
+      <!-- Elemento de audio para notificar al agregar producto -->
+      <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
       <!-- Librería para exportar a Excel -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-      <script src="./script.js"></script>
+      <!-- Archivo de lógica de productos, carrito, descuentos, etc. -->
+      <script src="script.js"></script>
     </main>
   </div>
-
+  
+  <!-- Script de autenticación, gestión de credenciales y envío de pedido -->
   <script>
+    // Array de usuarios válidos (para este ejemplo, se gestiona localmente)
     const USERS = [
-      { username: "ccipbcnact21@grupocaher.com", store: "CAT21", password: "1234" },
-      { username: "ccipbcnact22@grupocaher.com", store: "CAT22", password: "1234" },
-      { username: "ccipbcnact23@grupocaher.com", store: "CAT23", password: "1234" },
-      { username: "ccipbcnact24@grupocaher.com", store: "CAT24", password: "1234" },
-      { username: "ccipbcnact25@grupocaher.com", store: "CAT25", password: "1234" },
-      { username: "ccipbcncrd8@grupocaher.com", store: "Alcampo Sant Boi", password: "1234" },
-      { username: "ccipbcncrd4@grupocaher.com", store: "Alcampo Sant Quirze", password: "1234" },
-      { username: "ccipbcncrd9@grupocaher.com", store: "Alcampo Esplugues", password: "1234" },
-      { username: "ccipbcncrd10@grupocaher.com", store: "Carrefour Sant Cugat", password: "1234" },
-      { username: "ccipbcncrd11@grupocaher.com", store: "Carrefour Barbera", password: "1234" }
+      { username: "ccipbcnact21@grupocaher.com", store: "CAT21",   password: "1234" },
+      { username: "ccipbcnact22@grupocaher.com", store: "CAT22",   password: "1234" },
+      { username: "ccipbcnact23@grupocaher.com", store: "CAT23",   password: "1234" },
+      { username: "ccipbcnact24@grupocaher.com", store: "CAT24",   password: "1234" },
+      { username: "ccipbcnact25@grupocaher.com", store: "CAT25",   password: "1234" },
+      { username: "ccipbcneje4@grupocaher.com", store: "EJE4",   password: "1234" },
+      { username: "ccipbcncrd4@grupocaher.com",  store: "Alcampo Sant Quirze",  password: "1234" },
+      { username: "ccipbcncrd4@grupocaher.com",  store: "Carrefour Sant Cugat", password: "1234" },
+      { username: "ccipbcncrd4@grupocaher.com",  store: "Carrefour Barbera",    password: "1234" }
     ];
 
+    // Al cargar la página, si existen credenciales guardadas, prellenamos los campos.
     document.addEventListener("DOMContentLoaded", function() {
+      // Rellenar el combo de supermercados con valores únicos de "store"
+      const stores = [...new Set(USERS.map(user => user.store))];
       const storeSelect = document.getElementById('store');
-      [...new Set(USERS.map(user => user.store))].forEach(store => {
+      stores.forEach(store => {
         const option = document.createElement('option');
         option.value = store;
         option.textContent = store;
         storeSelect.appendChild(option);
       });
 
+      // Cargar valores guardados
       const savedStore = localStorage.getItem("savedStore");
       const savedUsername = localStorage.getItem("savedUsername");
       const savedPassword = localStorage.getItem("savedPassword");
 
       if (savedStore && savedUsername && savedPassword) {
-        storeSelect.value = savedStore;
+        document.getElementById("store").value = savedStore;
         document.getElementById("username").value = savedUsername;
         document.getElementById("password").value = savedPassword;
       }
     });
 
+    // Evento para el formulario de login
     document.getElementById("login-form").addEventListener("submit", function(e) {
       e.preventDefault();
       const storeInput = document.getElementById("store").value;
       const usernameInput = document.getElementById("username").value.trim();
       const passwordInput = document.getElementById("password").value.trim();
-
-      const userFound = USERS.find(user => user.store === storeInput && user.username === usernameInput && user.password === passwordInput);
-
+      
+      // Buscar usuario que coincida con las credenciales
+      const userFound = USERS.find(user => 
+        user.store === storeInput &&
+        user.username === usernameInput &&
+        user.password === passwordInput
+      );
+      
       if (userFound) {
+        // Guardar las credenciales en localStorage
         localStorage.setItem("savedStore", storeInput);
         localStorage.setItem("savedUsername", usernameInput);
         localStorage.setItem("savedPassword", passwordInput);
+        // Guardar el nombre del centro (store) para enviarlo a Power Automate
         localStorage.setItem("userStore", userFound.store);
         localStorage.setItem("loggedInUser", userFound.username);
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("contenido").style.display = "block";
-        document.querySelector("header h1").textContent += " - " + userFound.store;
+
+        // Mostrar el contenido protegido
+        mostrarContenido();
       } else {
         alert("Credenciales incorrectas o supermercado no válido");
       }
     });
+
+    // Función para mostrar el contenido protegido tras el login
+    function mostrarContenido() {
+      document.getElementById("login-container").style.display = "none";
+      document.getElementById("contenido").style.display = "block";
+      // Mostrar el nombre del almacén en el header, si está almacenado
+      const storeName = localStorage.getItem("userStore");
+      if (storeName) {
+        const header = document.querySelector("header h1");
+        header.textContent += " - " + storeName;
+      }
+    }
+
+    // Función para enviar el pedido a Power Automate usando el nombre del centro
+    function enviarPedido() {
+      // Recupera los datos desde localStorage
+      const username = localStorage.getItem("savedUsername");
+      const password = localStorage.getItem("savedPassword");
+      const userStore = localStorage.getItem("userStore") || "";
+
+      console.log("Datos recuperados:", { username, password, userStore });
+
+      // Ejemplo de productos seleccionados (ajusta según tu lógica)
+      const products = [
+        { product: "Producto A", quantity: 2, price: 10.5 },
+        { product: "Producto B", quantity: 1, price: 5.75 }
+      ];
+
+      const pedido = {
+        username: username,
+        password: password,
+        userStore: userStore,
+        products: products
+      };
+
+      console.log("Objeto 'pedido' que se enviará:", JSON.stringify(pedido));
+
+      fetch("", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pedido)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Respuesta recibida del flujo:", data);
+        alert("Pedido enviado correctamente.");
+      })
+      .catch(error => {
+        console.error("Error al enviar el pedido:", error);
+        alert("Error al enviar el pedido.");
+      });
+    }
   </script>
-
-  <!-- Registro del Service Worker -->
-  <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/cocacola/service-worker.js')
-      .then(reg => console.log('Service Worker registrado:', reg))
-      .catch(err => console.error('Error al registrar el Service Worker:', err));
-  }
-</script>
-
 </body>
 </html>
