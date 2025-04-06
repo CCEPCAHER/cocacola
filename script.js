@@ -158,42 +158,7 @@ document.addEventListener("DOMContentLoaded", function() {
   "offer": false,
   "staticOffer": true,
 },
-{ 
-  "name": "", 
-  "price": 0.00, 
-  "offer": false,
-  "staticOffer": true,
-},
-{ 
-  "name": "", 
-  "price": 0.00, 
-  "offer": false,
-  "staticOffer": true,
-},
-{ 
-  "name": "", 
-  "price": 0.00, 
-  "offer": false,
-  "staticOffer": true,
-},
-{ 
-  "name": "", 
-  "price": 0.00, 
-  "offer": false,
-  "staticOffer": true,
-},
-{ 
-  "name": "", 
-  "price": 0.00, 
-  "offer": false,
-  "staticOffer": true,
-},
-{ 
-  "name": "", 
-  "price": 0.00, 
-  "offer": false,
-  "staticOffer": true,
-},
+
 { 
   "name": "", 
   "price": 0.00, 
