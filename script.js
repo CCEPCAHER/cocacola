@@ -448,6 +448,48 @@ document.addEventListener("DOMContentLoaded", function() {
 
 }
 ],
+"FEM CONSUM": [
+      { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2024-03-27",
+      "endDate": "2024-04-09",
+  "offer": false,
+  "staticOffer": true,
+},
+
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+}
+    ],
 "FEM CONDIS": [
       { 
   "name": "", 
