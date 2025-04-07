@@ -215,12 +215,65 @@ document.addEventListener("DOMContentLoaded", function() {
   "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
 }
     ],
+"FEM SUPECO": [
+      { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2024-03-27",
+      "endDate": "2024-04-28",
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+}
+    ],
 "FEM SORLI": [
       { 
   "name": "", 
   "price": 0.00, 
 "startDate": "2024-04-01",
       "endDate": "2024-04-08",
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
   "offer": false,
   "staticOffer": true,
 },
@@ -321,6 +374,16 @@ document.addEventListener("DOMContentLoaded", function() {
   "offer": false,
   "staticOffer": true,
 
+}
+],
+"FEM CONDIS": [
+      { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2024-04-02",
+      "endDate": "2024-04-22",
+  "offer": false,
+  "staticOffer": true,
 }
     ],
   "Coca Cola": [
