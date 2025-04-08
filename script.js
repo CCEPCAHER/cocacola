@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
   "staticOffer": true,
 }
     ],
-"EEAA Y PUNTUACIONES": [
+"EEAA Y PUNTUACION": [
       { 
   "name": "", 
   "price": 0.00, 
