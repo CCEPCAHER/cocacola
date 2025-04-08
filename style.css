@@ -12,7 +12,6 @@
   --bg-light: #f0f4f8;
   --font: 'Arial', sans-serif;
 }
-
 * {
   margin: 0;
   padding: 0;
@@ -944,4 +943,16 @@ body {
   0% { transform: translate(-50%, -15px); }
   50% { transform: translate(-50%, -5px); }
   100% { transform: translate(-50%, -15px); }
+}
+@media (orientation: landscape) {
+  .product img {
+    /* Puedes definir una altura mayor o dejar que ocupe el espacio disponible */
+    max-height: 250px; /* Aumenta este valor según lo que necesites */
+    object-fit: contain;
+  }
+  
+  /* Si el contenedor de la imagen debe ampliarse, por ejemplo: */
+  .product {
+    flex: 0 0 280px; /* Aumentamos el ancho base de cada tarjeta producto */
+  }
 }
