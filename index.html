@@ -52,7 +52,7 @@
           <h2 id="cart-modal-title">Tu Pedido</h2>
           <div id="cart-items-modal">No hay productos añadidos.</div>
           <div id="modal-total">Total: €0.00</div>
-          <button id="submit-order" onclick="submitOrder()">Enviar Pedido</button>
+          <button id="submit-order" onclick="enviarPedido()">Enviar Pedido</button>
         </div>
       </div>
       
@@ -65,80 +65,78 @@
     </main>
   </div>
   
-  <!-- Script de autenticación, gestión de credenciales y envío de pedido -->
-  <script>
-    // Array de usuarios válidos (para este ejemplo, se gestiona localmente)
-    const USERS = [
-      { username: "ccipbcnact21@grupocaher.com", store: "CAT21",   password: "1234" },
-      { username: "ccipbcnact22@grupocaher.com", store: "CAT22",   password: "1234" },
-      { username: "ccipbcnact23@grupocaher.com", store: "CAT23",   password: "1234" },
-      { username: "ccipbcnact24@grupocaher.com", store: "CAT24",   password: "1234" },
-      { username: "ccipbcnact25@grupocaher.com", store: "CAT25",   password: "1234" },
-      { username: "ccipbcneje4@grupocaher.com", store: "EJE4",   password: "1234" },
-      { username: "ccipbcncrd4@grupocaher.com",  store: "Alcampo Sant Quirze",  password: "1234" },
-      { username: "ccipbcncrd4@grupocaher.com",  store: "Carrefour Sant Cugat", password: "1234" },
-      { username: "ccipbcncrd4@grupocaher.com",  store: "Carrefour Barbera",    password: "1234" }
-    ];
+  <!-- Script para inicializar Firebase y gestionar la autenticación -->
+  <script type="module">
+    // Importamos los módulos necesarios desde Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    
+    // Configuración de Firebase (reemplaza con tus datos si es necesario)
+    const firebaseConfig = {
+      apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
+      authDomain: "cocacolaconsultas-20759.firebaseapp.com",
+      projectId: "cocacolaconsultas-20759",
+      storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
+      messagingSenderId: "274074684363",
+      appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
+      measurementId: "G-29GJZ22GMM"
+    };
 
-    // Al cargar la página, si existen credenciales guardadas, prellenamos los campos.
-    document.addEventListener("DOMContentLoaded", function() {
-      // Rellenar el combo de supermercados con valores únicos de "store"
-      const stores = [...new Set(USERS.map(user => user.store))];
-      const storeSelect = document.getElementById('store');
+    // Inicializamos Firebase y sus servicios
+    const appFirebase = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(appFirebase);
+    const auth = getAuth(appFirebase);
+
+    // Escuchamos los cambios en el estado de autenticación
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Si el usuario está autenticado, mostramos el contenido protegido y guardamos su email
+        mostrarContenido();
+        localStorage.setItem("loggedInUser", user.email);
+      } else {
+        // Si no está autenticado, mostramos el formulario de login
+        document.getElementById("login-container").style.display = "block";
+      }
+    });
+
+    // Al cargar la página, llenamos el combo de supermercados
+    document.addEventListener("DOMContentLoaded", () => {
+      // Lista de tiendas (puedes modificarla o extraerla desde otro origen)
+      const stores = ["CAT21", "CAT22", "CAT23", "CAT24", "CAT25", "EJE4", "Alcampo Sant Quirze", "Carrefour Sant Cugat", "Carrefour Barbera"];
+      const storeSelect = document.getElementById("store");
       stores.forEach(store => {
-        const option = document.createElement('option');
+        const option = document.createElement("option");
         option.value = store;
         option.textContent = store;
         storeSelect.appendChild(option);
       });
-
-      // Cargar valores guardados
-      const savedStore = localStorage.getItem("savedStore");
-      const savedUsername = localStorage.getItem("savedUsername");
-      const savedPassword = localStorage.getItem("savedPassword");
-
-      if (savedStore && savedUsername && savedPassword) {
-        document.getElementById("store").value = savedStore;
-        document.getElementById("username").value = savedUsername;
-        document.getElementById("password").value = savedPassword;
-      }
     });
 
-    // Evento para el formulario de login
-    document.getElementById("login-form").addEventListener("submit", function(e) {
+    // Evento para el formulario de login utilizando Firebase Authentication
+    document.getElementById("login-form").addEventListener("submit", (e) => {
       e.preventDefault();
       const storeInput = document.getElementById("store").value;
-      const usernameInput = document.getElementById("username").value.trim();
+      const emailInput = document.getElementById("username").value.trim();
       const passwordInput = document.getElementById("password").value.trim();
       
-      // Buscar usuario que coincida con las credenciales
-      const userFound = USERS.find(user => 
-        user.store === storeInput &&
-        user.username === usernameInput &&
-        user.password === passwordInput
-      );
-      
-      if (userFound) {
-        // Guardar las credenciales en localStorage
-        localStorage.setItem("savedStore", storeInput);
-        localStorage.setItem("savedUsername", usernameInput);
-        localStorage.setItem("savedPassword", passwordInput);
-        // Guardar el nombre del centro (store) para enviarlo a Power Automate
-        localStorage.setItem("userStore", userFound.store);
-        localStorage.setItem("loggedInUser", userFound.username);
-
-        // Mostrar el contenido protegido
-        mostrarContenido();
-      } else {
-        alert("Credenciales incorrectas o supermercado no válido");
-      }
+      // Usamos Firebase para autenticar al usuario con su email y contraseña
+      signInWithEmailAndPassword(auth, emailInput, passwordInput)
+        .then((userCredential) => {
+          // Login exitoso: guardamos la tienda seleccionada y mostramos el contenido protegido
+          localStorage.setItem("userStore", storeInput);
+          mostrarContenido();
+        })
+        .catch((error) => {
+          console.error("Error en el login:", error);
+          alert("Credenciales incorrectas o error en la autenticación.");
+        });
     });
 
     // Función para mostrar el contenido protegido tras el login
     function mostrarContenido() {
       document.getElementById("login-container").style.display = "none";
       document.getElementById("contenido").style.display = "block";
-      // Mostrar el nombre del almacén en el header, si está almacenado
       const storeName = localStorage.getItem("userStore");
       if (storeName) {
         const header = document.querySelector("header h1");
@@ -146,14 +144,11 @@
       }
     }
 
-    // Función para enviar el pedido a Power Automate usando el nombre del centro
+    // Función para enviar el pedido (no se envía la contraseña, solo se utiliza el email del usuario autenticado)
     function enviarPedido() {
-      // Recupera los datos desde localStorage
-      const username = localStorage.getItem("savedUsername");
-      const password = localStorage.getItem("savedPassword");
+      const user = auth.currentUser;
+      const email = user ? user.email : "";
       const userStore = localStorage.getItem("userStore") || "";
-
-      console.log("Datos recuperados:", { username, password, userStore });
 
       // Ejemplo de productos seleccionados (ajusta según tu lógica)
       const products = [
@@ -162,22 +157,22 @@
       ];
 
       const pedido = {
-        username: username,
-        password: password,
+        email: email,
         userStore: userStore,
         products: products
       };
 
       console.log("Objeto 'pedido' que se enviará:", JSON.stringify(pedido));
 
-      fetch("", {
+      // Ejemplo de envío a un endpoint seguro
+      fetch("https://TU-SERVIDOR.com/api/pedido", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido)
       })
       .then(response => response.json())
       .then(data => {
-        console.log("Respuesta recibida del flujo:", data);
+        console.log("Respuesta recibida:", data);
         alert("Pedido enviado correctamente.");
       })
       .catch(error => {
@@ -185,6 +180,10 @@
         alert("Error al enviar el pedido.");
       });
     }
+
+    // Exponemos las funciones para poder llamarlas desde otros scripts (por ejemplo, desde script.js)
+    window.enviarPedido = enviarPedido;
+    window.mostrarContenido = mostrarContenido;
   </script>
 </body>
 </html>
