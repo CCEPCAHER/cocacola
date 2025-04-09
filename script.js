@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
   "staticOffer": true,
 }
     ],
-"EEAA Y PUNTUACION": [
+"EEAA Y PUNTUACIONES": [
       { 
   "name": "", 
   "price": 0.00, 
@@ -3482,11 +3482,28 @@ document.addEventListener("DOMContentLoaded", function() {
 "CABECERA":[0]
   };
 
+
+
+
+// ======================================================================
+// Inicialización de la aplicación
+// ======================================================================
+function initializeApp() {
+  updateProductList();
+  createFilterDropdown();
+}
+
+// ======================================================================
 // Función para actualizar el listado de productos (secciones)
+// ======================================================================
 function updateProductList() {
   const productListElem = document.getElementById("product-list");
   productListElem.innerHTML = Object.entries(sections)
-    .map(([sectionName, products]) => `<div class="section" data-section="${sectionName}">${createSection(sectionName, products)}</div>`)
+    .map(([sectionName, products]) =>
+      `<div class="section" data-section="${sectionName}">
+         ${createSection(sectionName, products)}
+       </div>`
+    )
     .join('');
   lazyLoadImages();
 }
@@ -3615,200 +3632,203 @@ function createSection(sectionName, products) {
   sectionHTML += `</div>`;
   return sectionHTML;
 }
-  // Funciones de carrito, totales, etc. (se mantienen sin cambios)
-  function setQuantity(button, value) {
-    let input = button.parentElement.querySelector('input');
-    input.value = value;
-  }
 
-  function validateInput(input) {
-    if (input.value < 0) input.value = 0;
-  }
+// ======================================================================
+// Funciones de carrito, totales, etc.
+// ======================================================================
+function setQuantity(button, value) {
+  let input = button.parentElement.querySelector('input');
+  input.value = value;
+}
 
-  function updateTotalDisplay(total) {
-    document.getElementById('total-display').innerText = 'Total: €' + total.toFixed(2);
-    document.getElementById('modal-total').innerText = 'Total: €' + total.toFixed(2);
-  }
+function validateInput(input) {
+  if (input.value < 0) input.value = 0;
+}
 
-  function addToCart(button, productName, productPrice) {
-    let input = button.parentElement.querySelector('input');
-    let quantity = parseInt(input.value);
-    if (isNaN(quantity) || quantity <= 0) {
-      alert("Por favor, ingresa una cantidad válida.");
-      return;
+function updateTotalDisplay(total) {
+  document.getElementById('total-display').innerText = 'Total: €' + total.toFixed(2);
+  document.getElementById('modal-total').innerText = 'Total: €' + total.toFixed(2);
+}
+
+function addToCart(button, productName, productPrice) {
+  let input = button.parentElement.querySelector('input');
+  let quantity = parseInt(input.value);
+  if (isNaN(quantity) || quantity <= 0) {
+    alert("Por favor, ingresa una cantidad válida.");
+    return;
+  }
+  if (button.classList.contains('added')) {
+    alert("Este producto ya ha sido añadido.");
+    return;
+  }
+  button.classList.add('added');
+  button.style.backgroundColor = '#ffa500';
+  button.innerText = 'Añadido';
+  const sound = document.getElementById("add-sound");
+  if (sound) {
+    sound.play().catch(error => console.error("Error al reproducir sonido:", error));
+  }
+  let cartItemsContainer = document.getElementById("cart-items-modal");
+  if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
+    cartItemsContainer.innerHTML = '';
+  }
+  cartItemsContainer.innerHTML += `
+    <div class="cart-item" data-price="${(productPrice * quantity).toFixed(2)}">
+      <span class="cart-product-name">${productName}</span> - ${quantity} unidades - Precio: €${(productPrice * quantity).toFixed(2)}
+      <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
+    </div>
+  `;
+  updateTotalPrice();
+  showToast("Producto añadido: " + productName);
+}
+
+function removeFromCart(button, buttonId) {
+  button.parentElement.remove();
+  const addButton = document.getElementById(buttonId);
+  if (addButton) {
+    addButton.classList.remove('added');
+    addButton.style.backgroundColor = '#2c7a7b';
+    addButton.innerText = 'Agregar';
+    const input = addButton.parentElement.querySelector('input[type="number"]');
+    if (input) {
+      input.value = "";
     }
-    if (button.classList.contains('added')) {
-      alert("Este producto ya ha sido añadido.");
-      return;
+  }
+  let cartItemsContainer = document.getElementById("cart-items-modal");
+  if (cartItemsContainer.children.length === 0) {
+    cartItemsContainer.innerHTML = 'No hay productos añadidos.';
+  }
+  updateTotalPrice();
+}
+
+function updateTotalPrice() {
+  let total = 0;
+  document.querySelectorAll('#cart-items-modal .cart-item').forEach(item => {
+    const itemPrice = parseFloat(item.getAttribute('data-price'));
+    if (!isNaN(itemPrice)) {
+      total += itemPrice;
     }
-    button.classList.add('added');
-    button.style.backgroundColor = '#ffa500';
-    button.innerText = 'Añadido';
-    const sound = document.getElementById("add-sound");
-    if (sound) {
-      sound.play().catch(error => console.error("Error al reproducir sonido:", error));
+  });
+  updateTotalDisplay(total);
+}
+
+function collectCartData() {
+  const cartItems = document.querySelectorAll("#cart-items-modal .cart-item");
+  if (
+    cartItems.length === 0 ||
+    (cartItems[0].innerText && cartItems[0].innerText.includes('No hay productos'))
+  ) {
+    alert("El carrito está vacío. No puedes enviar un pedido sin productos.");
+    return null;
+  }
+  const order = [];
+  cartItems.forEach(item => {
+    const productElem = item.querySelector('.cart-product-name');
+    const product = productElem ? productElem.innerText.trim() : "";
+    const quantityMatch = item.innerText.match(/-\s*(\d+)\s*unidades/);
+    const priceMatch = item.innerText.match(/Precio:\s*€([\d\.]+)/);
+    if (product && quantityMatch && priceMatch) {
+      const quantity = parseInt(quantityMatch[1], 10);
+      const price = parseFloat(priceMatch[1]);
+      order.push({ product, quantity, price });
+    } else {
+      console.error("Error al parsear el item del carrito:", item.innerText);
     }
+  });
+  return order;
+}
+
+function exportToExcel(order) {
+  if (!order || order.length === 0) {
+    alert("No hay productos en el pedido.");
+    return;
+  }
+  console.log("Exportando orden:", order);
+  const header = ["Producto", "Unidades", "Precio", "Valor"];
+  const rows = order.map(item => {
+    const valor = item.quantity * item.price;
+    return [item.product, item.quantity, item.price, valor];
+  });
+  const totalGastado = rows.reduce((acc, row) => acc + row[3], 0);
+  rows.push(["Total gastado", "", "", totalGastado]);
+  const worksheetData = [header, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+  ws["!cols"] = [{ wch: 30 }, { wch: 10 }, { wch: 15 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Pedido");
+  try {
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "pedido.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }, 100);
+  } catch (error) {
+    console.error("Error al exportar a Excel:", error);
+    alert("Hubo un error al generar el archivo Excel.");
+  }
+}
+
+function checkPendingInputs() {
+  const productDivs = document.querySelectorAll('.product');
+  for (let div of productDivs) {
+    const input = div.querySelector('input[type="number"]');
+    const addButton = div.querySelector('.add-btn');
+    if (input && input.value.trim() !== "" && parseInt(input.value) > 0 && !addButton.classList.contains('added')) {
+      const productName = div.querySelector('h3') ? div.querySelector('h3').innerText : "Producto";
+      alert(`Ha olvidado añadir ${productName} al carrito. No puedo hacer envío hasta que no haya añadido o eliminado el número del contenedor.`);
+      return true;
+    }
+  }
+  return false;
+}
+
+function submitOrder() {
+  if (checkPendingInputs()) {
+    return;
+  }
+  // Si existe un input para pedidos especiales (opcional)
+  const pedidoInput = document.getElementById("pedido");
+  if (pedidoInput && pedidoInput.value.trim() !== "") {
+    let value = pedidoInput.value.trim();
     let cartItemsContainer = document.getElementById("cart-items-modal");
     if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
       cartItemsContainer.innerHTML = '';
     }
     cartItemsContainer.innerHTML += `
-      <div class="cart-item" data-price="${(productPrice * quantity).toFixed(2)}">
-        <span class="cart-product-name">${productName}</span> - ${quantity} unidades - Precio: €${(productPrice * quantity).toFixed(2)}
-        <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
+      <div class="cart-item" data-price="0.00">
+        <span class="cart-product-name">Pedido: ${value}</span> - 1 unidad - Precio: €0.00
+        <button class="remove-btn" onclick="removeFromCart(this, 'pedidoItem')">Eliminar</button>
       </div>
     `;
-    updateTotalPrice();
-    showToast("Producto añadido: " + productName);
-  }
-
-  function removeFromCart(button, buttonId) {
-    button.parentElement.remove();
-    const addButton = document.getElementById(buttonId);
-    if (addButton) {
-      addButton.classList.remove('added');
-      addButton.style.backgroundColor = '#2c7a7b';
-      addButton.innerText = 'Agregar';
-      const input = addButton.parentElement.querySelector('input[type="number"]');
-      if (input) {
-        input.value = "";
-      }
-    }
-    let cartItemsContainer = document.getElementById("cart-items-modal");
-    if (cartItemsContainer.children.length === 0) {
-      cartItemsContainer.innerHTML = 'No hay productos añadidos.';
-    }
+    pedidoAgregado = true;
+    pedidoInput.value = "";
     updateTotalPrice();
   }
+  const orderItems = collectCartData();
+  if (!orderItems) return;
 
-  function updateTotalPrice() {
-    let total = 0;
-    document.querySelectorAll('#cart-items-modal .cart-item').forEach(item => {
-      const itemPrice = parseFloat(item.getAttribute('data-price'));
-      if (!isNaN(itemPrice)) {
-        total += itemPrice;
-      }
-    });
-    updateTotalDisplay(total);
-  }
-
-  function collectCartData() {
-    const cartItems = document.querySelectorAll("#cart-items-modal .cart-item");
-    if (
-      cartItems.length === 0 ||
-      (cartItems[0].innerText && cartItems[0].innerText.includes('No hay productos'))
-    ) {
-      alert("El carrito está vacío. No puedes enviar un pedido sin productos.");
-      return null;
-    }
-    const order = [];
-    cartItems.forEach(item => {
-      const productElem = item.querySelector('.cart-product-name');
-      const product = productElem ? productElem.innerText.trim() : "";
-      const quantityMatch = item.innerText.match(/-\s*(\d+)\s*unidades/);
-      const priceMatch = item.innerText.match(/Precio:\s*€([\d\.]+)/);
-      if (product && quantityMatch && priceMatch) {
-        const quantity = parseInt(quantityMatch[1], 10);
-        const price = parseFloat(priceMatch[1]);
-        order.push({ product, quantity, price });
-      } else {
-        console.error("Error al parsear el item del carrito:", item.innerText);
-      }
-    });
-    return order;
-  }
-
-  function exportToExcel(order) {
-    if (!order || order.length === 0) {
-      alert("No hay productos en el pedido.");
-      return;
-    }
-    console.log("Exportando orden:", order);
-    const header = ["Producto", "Unidades", "Precio", "Valor"];
-    const rows = order.map(item => {
-      const valor = item.quantity * item.price;
-      return [item.product, item.quantity, item.price, valor];
-    });
-    const totalGastado = rows.reduce((acc, row) => acc + row[3], 0);
-    rows.push(["Total gastado", "", "", totalGastado]);
-    const worksheetData = [header, ...rows];
-    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-    ws["!cols"] = [{ wch: 30 }, { wch: 10 }, { wch: 15 }, { wch: 15 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedido");
-    try {
-      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      const blob = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "pedido.xlsx";
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      }, 100);
-    } catch (error) {
-      console.error("Error al exportar a Excel:", error);
-      alert("Hubo un error al generar el archivo Excel.");
-    }
-  }
-
-  function checkPendingInputs() {
-    const productDivs = document.querySelectorAll('.product');
-    for (let div of productDivs) {
-      const input = div.querySelector('input[type="number"]');
-      const addButton = div.querySelector('.add-btn');
-      if (input && input.value.trim() !== "" && parseInt(input.value) > 0 && !addButton.classList.contains('added')) {
-        const productName = div.querySelector('h3') ? div.querySelector('h3').innerText : "Producto";
-        alert(`Ha olvidado añadir ${productName} al carrito. No puedo hacer envío hasta que no haya añadido o eliminado el número del contenedor.`);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function submitOrder() {
-    if (checkPendingInputs()) {
-      return;
-    }
-    const pedidoInput = document.getElementById("pedido");
-    if (pedidoInput && pedidoInput.value.trim() !== "") {
-      let value = pedidoInput.value.trim();
-      let cartItemsContainer = document.getElementById("cart-items-modal");
-      if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
-        cartItemsContainer.innerHTML = '';
-      }
-      cartItemsContainer.innerHTML += `
-        <div class="cart-item" data-price="0.00">
-          <span class="cart-product-name">Pedido: ${value}</span> - 1 unidad - Precio: €0.00
-          <button class="remove-btn" onclick="removeFromCart(this, 'pedidoItem')">Eliminar</button>
-        </div>
-      `;
-      pedidoAgregado = true;
-      pedidoInput.value = "";
-      updateTotalPrice();
-    }
-    const orderItems = collectCartData();
-    if (!orderItems) return;
-    const loggedUser = localStorage.getItem("loggedInUser") || "Usuario no identificado";
-    const loggedPassword = localStorage.getItem("loggedInPassword") || "1234";
-    const storeName = localStorage.getItem("userStore") || "Supermercado desconocido";
-    const order = {
-      username: loggedUser,
-      password: loggedPassword,
-      userStore: storeName,
-      products: orderItems
-    };
-    console.log("Contenido del pedido antes de enviar:", JSON.stringify(order, null, 2));
-    if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
-      fetch("", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(order)
-      })
+  const loggedUser = localStorage.getItem("loggedInUser") || "Usuario no identificado";
+  const storeName = localStorage.getItem("userStore") || "Supermercado desconocido";
+  const order = {
+    email: loggedUser,
+    userStore: storeName,
+    products: orderItems
+  };
+  console.log("Contenido del pedido antes de enviar:", JSON.stringify(order, null, 2));
+  if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
+    fetch("https://TU-SERVIDOR.com/api/pedido", { // Reemplaza la URL por tu endpoint real
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order)
+    })
       .then(response => response.text())
       .then(data => {
         console.log("Pedido enviado a Power Automate:", data);
@@ -3826,164 +3846,160 @@ function createSection(sectionName, products) {
         console.error("Error al enviar el pedido:", error);
         alert("Error al enviar el pedido.");
       });
-    }
   }
+}
 
-  function toggleCart() {
-    document.getElementById("cart-modal").classList.toggle("active");
-  }
+function toggleCart() {
+  document.getElementById("cart-modal").classList.toggle("active");
+}
 
-  function showToast(message) {
-    let toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerText = message;
-    document.body.appendChild(toast);
+function showToast(message) {
+  let toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerText = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('show');
     setTimeout(() => {
-      toast.classList.add('show');
+      toast.classList.remove('show');
       setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-          document.body.removeChild(toast);
-        }, 500);
-      }, 2000);
-    }, 100);
-  }
+        document.body.removeChild(toast);
+      }, 500);
+    }, 2000);
+  }, 100);
+}
 
-  function lazyLoadImages() {
-    const lazyImages = document.querySelectorAll('img.lazy');
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            img.src = img.getAttribute('data-src');
-            img.classList.remove('lazy');
-            observer.unobserve(img);
-          }
-        });
+function lazyLoadImages() {
+  const lazyImages = document.querySelectorAll('img.lazy');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.getAttribute('data-src');
+          img.classList.remove('lazy');
+          observer.unobserve(img);
+        }
       });
-      lazyImages.forEach(img => observer.observe(img));
-    } else {
-      lazyImages.forEach(img => {
-        img.src = img.getAttribute('data-src');
-        img.classList.remove('lazy');
-      });
-    }
+    });
+    lazyImages.forEach(img => observer.observe(img));
+  } else {
+    lazyImages.forEach(img => {
+      img.src = img.getAttribute('data-src');
+      img.classList.remove('lazy');
+    });
   }
+}
 
-  // Funcionalidad para arrastrar el botón del carrito (sin cambios)
-  const cartToggle = document.getElementById("cart-toggle");
-  cartToggle.addEventListener('mousedown', function(e) {
-    e.preventDefault();
-    let startX = e.clientX, startY = e.clientY;
-    let shiftX = e.clientX - cartToggle.getBoundingClientRect().left;
-    let shiftY = e.clientY - cartToggle.getBoundingClientRect().top;
-    let dragged = false;
-    function moveAt(pageX, pageY) {
-      cartToggle.style.left = pageX - shiftX + 'px';
-      cartToggle.style.top = pageY - shiftY + 'px';
-      cartToggle.style.position = 'fixed';
+// ======================================================================
+// Funcionalidad para arrastrar el botón del carrito
+// ======================================================================
+const cartToggle = document.getElementById("cart-toggle");
+cartToggle.addEventListener('mousedown', function(e) {
+  e.preventDefault();
+  let startX = e.clientX, startY = e.clientY;
+  let shiftX = e.clientX - cartToggle.getBoundingClientRect().left;
+  let shiftY = e.clientY - cartToggle.getBoundingClientRect().top;
+  let dragged = false;
+  function moveAt(pageX, pageY) {
+    cartToggle.style.left = pageX - shiftX + 'px';
+    cartToggle.style.top = pageY - shiftY + 'px';
+    cartToggle.style.position = 'fixed';
+  }
+  function onMouseMove(e) {
+    if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+      dragged = true;
     }
-    function onMouseMove(e) {
-      if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
-        dragged = true;
-      }
-      moveAt(e.pageX, e.pageY);
+    moveAt(e.pageX, e.pageY);
+  }
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', function(e) {
+    document.removeEventListener('mousemove', onMouseMove);
+    if (!dragged) {
+      toggleCart();
     }
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', function(e) {
-      document.removeEventListener('mousemove', onMouseMove);
-      if (!dragged) {
-        toggleCart();
-      }
-    }, {once: true});
+  }, {once: true});
+});
+cartToggle.ondragstart = function() { return false; };
+
+// ======================================================================
+// NUEVA FUNCIONALIDAD: Dropdown de Filtros
+// ======================================================================
+function createFilterDropdown() {
+  const filterContainer = document.getElementById("filter-container");
+  filterContainer.innerHTML = "";
+  const dropdownWrapper = document.createElement("div");
+  dropdownWrapper.classList.add("dropdown");
+  const dropdownButton = document.createElement("button");
+  dropdownButton.classList.add("filter-dropdown-btn");
+  dropdownButton.textContent = "Filtrar por sección ▼";
+  dropdownButton.addEventListener("click", () => {
+    dropdownContent.classList.toggle("show");
   });
-  cartToggle.ondragstart = function() { return false; };
-
-  // ============================================
-  // NUEVA FUNCIONALIDAD: Dropdown de Filtros
-  // ============================================
-  function createFilterDropdown() {
-    const filterContainer = document.getElementById("filter-container");
-    // Se limpia el contenedor (en caso de recarga)
-    filterContainer.innerHTML = "";
-    
-    // Se crea el contenedor del dropdown
-    const dropdownWrapper = document.createElement("div");
-    dropdownWrapper.classList.add("dropdown");
-    
-    // Botón que despliega el menú
-    const dropdownButton = document.createElement("button");
-    dropdownButton.classList.add("filter-dropdown-btn");
-    dropdownButton.textContent = "Filtrar por sección ▼";
-    dropdownButton.addEventListener("click", () => {
-      dropdownContent.classList.toggle("show");
-    });
-    dropdownWrapper.appendChild(dropdownButton);
-    
-    // Contenedor para las opciones
-    const dropdownContent = document.createElement("div");
-    dropdownContent.classList.add("dropdown-content");
-    
-    // Opción "Todos"
-    const allOption = document.createElement("a");
-    allOption.href = "#";
-    allOption.textContent = "Todos";
-    allOption.addEventListener("click", (e) => {
+  dropdownWrapper.appendChild(dropdownButton);
+  const dropdownContent = document.createElement("div");
+  dropdownContent.classList.add("dropdown-content");
+  const allOption = document.createElement("a");
+  allOption.href = "#";
+  allOption.textContent = "Todos";
+  allOption.addEventListener("click", (e) => {
+    e.preventDefault();
+    filterSections("Todos");
+    dropdownContent.classList.remove("show");
+    dropdownButton.textContent = "Filtrar: Todos ▼";
+  });
+  dropdownContent.appendChild(allOption);
+  Object.keys(sections).forEach(sectionName => {
+    const option = document.createElement("a");
+    option.href = "#";
+    option.textContent = sectionName;
+    option.addEventListener("click", (e) => {
       e.preventDefault();
-      filterSections("Todos");
+      filterSections(sectionName);
       dropdownContent.classList.remove("show");
-      dropdownButton.textContent = "Filtrar: Todos ▼";
+      dropdownButton.textContent = `Filtrar: ${sectionName} ▼`;
     });
-    dropdownContent.appendChild(allOption);
-    
-    // Opción para cada sección
-    Object.keys(sections).forEach(sectionName => {
-      const option = document.createElement("a");
-      option.href = "#";
-      option.textContent = sectionName;
-      option.addEventListener("click", (e) => {
-        e.preventDefault();
-        filterSections(sectionName);
-        dropdownContent.classList.remove("show");
-        dropdownButton.textContent = `Filtrar: ${sectionName} ▼`;
-      });
-      dropdownContent.appendChild(option);
-    });
-    
-    dropdownWrapper.appendChild(dropdownContent);
-    filterContainer.appendChild(dropdownWrapper);
-  }
+    dropdownContent.appendChild(option);
+  });
+  dropdownWrapper.appendChild(dropdownContent);
+  filterContainer.appendChild(dropdownWrapper);
+}
 
-  // Función que filtra las secciones mostradas según la opción seleccionada
-  function filterSections(selectedSection) {
-    const sectionElements = document.querySelectorAll('.section');
-    sectionElements.forEach(elem => {
-      if (selectedSection === "Todos" || elem.getAttribute("data-section") === selectedSection) {
-        elem.style.display = "";
-      } else {
-        elem.style.display = "none";
-      }
-    });
-  }
+function filterSections(selectedSection) {
+  const sectionElements = document.querySelectorAll('.section');
+  sectionElements.forEach(elem => {
+    if (selectedSection === "Todos" || elem.getAttribute("data-section") === selectedSection) {
+      elem.style.display = "";
+    } else {
+      elem.style.display = "none";
+    }
+  });
+}
 
-  // ============================================
-  // Inicialización: renderizar productos y crear dropdown de filtros
-  // ============================================
-  updateProductList();
-  createFilterDropdown();
+// ======================================================================
+// Inicialización: renderizar productos y crear dropdown de filtros
+// ======================================================================
+window.addEventListener('DOMContentLoaded', initializeApp);
 
-  // ============================================
-  // Exponer funciones globalmente (sin cambios)
-  // ============================================
-  window.toggleCart = toggleCart;
-  window.submitOrder = submitOrder;
-  window.addToCart = addToCart;
-  window.removeFromCart = removeFromCart;
-  window.setQuantity = setQuantity;
-  window.validateInput = validateInput;
-  window.addProduct = addProduct;
-  window.updateProductList = updateProductList;
+// ======================================================================
+// Registro del Service Worker
+// ======================================================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(() => console.log("Service Worker registrado"))
+    .catch(err => console.log("Error en Service Worker:", err));
+}
+
+// ======================================================================
+// Exponer funciones globalmente
+// ======================================================================
+window.toggleCart = toggleCart;
+window.submitOrder = submitOrder;
+window.addToCart = addToCart;
+window.removeFromCart = removeFromCart;
+window.setQuantity = setQuantity;
+window.validateInput = validateInput;
+window.updateProductList = updateProductList;
 });
 // Inicia la aplicación al cargar el DOM
 window.addEventListener('DOMContentLoaded', initializeApp);
