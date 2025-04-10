@@ -3739,33 +3739,53 @@ function collectCartData() {
 }
 
 function exportToExcel(order) {
+  // Verificamos que exista algún producto en el pedido
   if (!order || order.length === 0) {
     alert("No hay productos en el pedido.");
     return;
   }
-  console.log("Exportando orden:", order);
+  
+  // Definimos la cabecera de las columnas para el archivo Excel
   const header = ["Producto", "Unidades", "Precio", "Valor"];
+
+  // Creamos las filas a partir de cada producto en el pedido.
+  // "Valor" es el resultado de la multiplicación de cantidad por precio.
   const rows = order.map(item => {
     const valor = item.quantity * item.price;
     return [item.product, item.quantity, item.price, valor];
   });
+
+  // Calculamos el total gastado sumando los valores de cada producto.
   const totalGastado = rows.reduce((acc, row) => acc + row[3], 0);
+  // Agregamos una fila final para mostrar el total gastado.
   rows.push(["Total gastado", "", "", totalGastado]);
+
+  // Combina la cabecera y las filas en un array de arrays que representa la hoja
   const worksheetData = [header, ...rows];
+
+  // Convierte el array de arrays en una hoja de cálculo usando XLSX
   const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+  // Opcional: Establece el ancho de algunas columnas para mejorar el formato
   ws["!cols"] = [{ wch: 30 }, { wch: 10 }, { wch: 15 }, { wch: 15 }];
+
+  // Crea un nuevo libro de trabajo y agrega la hoja creada
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pedido");
+
+  // Intentamos escribir el libro en un buffer en formato xlsx
   try {
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    // Creamos un Blob a partir del buffer con el tipo MIME correspondiente
     const blob = new Blob([excelBuffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
+    // Creamos un elemento <a> temporal para forzar la descarga del archivo
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "pedido.xlsx";
     document.body.appendChild(link);
     link.click();
+    // Eliminamos el enlace después de unos instantes y liberamos la URL creada
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
@@ -3794,24 +3814,7 @@ function submitOrder() {
   if (checkPendingInputs()) {
     return;
   }
-  // Si existe un input para pedidos especiales (opcional)
-  const pedidoInput = document.getElementById("pedido");
-  if (pedidoInput && pedidoInput.value.trim() !== "") {
-    let value = pedidoInput.value.trim();
-    let cartItemsContainer = document.getElementById("cart-items-modal");
-    if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
-      cartItemsContainer.innerHTML = '';
-    }
-    cartItemsContainer.innerHTML += `
-      <div class="cart-item" data-price="0.00">
-        <span class="cart-product-name">Pedido: ${value}</span> - 1 unidad - Precio: €0.00
-        <button class="remove-btn" onclick="removeFromCart(this, 'pedidoItem')">Eliminar</button>
-      </div>
-    `;
-    pedidoAgregado = true;
-    pedidoInput.value = "";
-    updateTotalPrice();
-  }
+  
   const orderItems = collectCartData();
   if (!orderItems) return;
 
@@ -3822,33 +3825,43 @@ function submitOrder() {
     userStore: storeName,
     products: orderItems
   };
-  console.log("Contenido del pedido antes de enviar:", JSON.stringify(order, null, 2));
+
+  console.log("Contenido del pedido:", JSON.stringify(order, null, 2));
+  
   if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
-    fetch("https://TU-SERVIDOR.com/api/pedido", { // Reemplaza la URL por tu endpoint real
+    // Descarga el Excel sin enviar datos al servidor
+    exportToExcel(order.products);
+
+    // Reinicia el carrito
+    document.getElementById("cart-items-modal").innerHTML = 'No hay productos añadidos.';
+    updateTotalDisplay(0);
+    document.querySelectorAll('.add-btn').forEach(btn => {
+      btn.classList.remove('added');
+      btn.style.backgroundColor = '#2c7a7b';
+      btn.innerText = 'Agregar';
+    });
+
+    alert("Pedido descargado exitosamente.");
+    
+    /*
+    // Si en el futuro necesitas enviar el pedido, se puede activar este bloque:
+    fetch("https://TU-SERVIDOR.com/api/pedido", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order)
     })
-      .then(response => response.text())
-      .then(data => {
-        console.log("Pedido enviado a Power Automate:", data);
-        alert("Pedido enviado con éxito. Gracias por tu compra.");
-        document.getElementById("cart-items-modal").innerHTML = 'No hay productos añadidos.';
-        updateTotalDisplay(0);
-        document.querySelectorAll('.add-btn').forEach(btn => {
-          btn.classList.remove('added');
-          btn.style.backgroundColor = '#2c7a7b';
-          btn.innerText = 'Agregar';
-        });
-        exportToExcel(order.products);
-      })
-      .catch(error => {
-        console.error("Error al enviar el pedido:", error);
-        alert("Error al enviar el pedido.");
-      });
+    .then(response => response.text())
+    .then(data => console.log("Pedido enviado:", data))
+    .catch(error => {
+      console.error("Error al enviar el pedido:", error);
+      alert("Error al enviar el pedido.");
+    });
+    */
   }
 }
 
+// Exponer la función para que sea accesible desde el HTML
+window.submitOrder = submitOrder;
 function toggleCart() {
   document.getElementById("cart-modal").classList.toggle("active");
 }
