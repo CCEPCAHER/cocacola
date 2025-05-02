@@ -7,19 +7,20 @@ document.addEventListener("DOMContentLoaded", function() {
   const sections = {
     "FOCOS": [
       { 
-  "name": "FOCO 1", 
+  "name": "", 
   "price": 0.00, 
-"startDate": "2024-04-01",
-      "endDate": "2024-04-30",
+"startDate": "2024-05-01",
+      "endDate": "2024-05-31",
   "offer": false,
   "staticOffer": true,
 },
 { 
-  "name": "FOCO 2", 
+  "name": "", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
 },
+
 { 
   "name": "", 
   "price": 0.00, 
@@ -69,13 +70,51 @@ document.addEventListener("DOMContentLoaded", function() {
   "staticOffer": true,
 },
 { 
-  "name": "FOCO 3", 
+  "name": "", 
   "price": 0.00, 
   "offer": false,
   "staticOffer": true,
 },
 { 
-  "name": "FOCO ESTRATEGICO",  
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "",  
   "price": 0.00,
   "offer": false,
   "staticOffer": true,
