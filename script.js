@@ -800,8 +800,8 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-04-10",
-      "endDate": "2024-04-29",
+"startDate": "2024-04-30",
+      "endDate": "2024-05-28",
   "offer": false,
   "staticOffer": true,
 },
