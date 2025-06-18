@@ -715,12 +715,47 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-05-13",
-      "endDate": "2024-05-26",
+"startDate": "2024-06-10",
+      "endDate": "2024-08-25",
   "offer": false,
   "staticOffer": true,
 },
 { 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+  { 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+  { 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+  { 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+  { 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+  { 
   "name": "",  
   "price": 0.00,
   "offer": false,
