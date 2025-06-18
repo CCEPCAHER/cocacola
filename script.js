@@ -733,8 +733,8 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-05-29",
-      "endDate": "2024-06-11",
+"startDate": "2024-06-12",
+      "endDate": "2024-07-02",
   "offer": false,
   "staticOffer": true,
 },
