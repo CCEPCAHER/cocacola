@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-05-01",
-      "endDate": "2024-05-31",
+"startDate": "2024-07-01",
+      "endDate": "2024-07-31",
   "offer": false,
   "staticOffer": true,
 },
