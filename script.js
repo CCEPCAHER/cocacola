@@ -3728,45 +3728,56 @@ document.addEventListener("DOMContentLoaded", function() {
     lazyLoadImages();
   }
 
-  function createSection(sectionName, products) {
-    let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
-    products.forEach((product, index) => {
-      const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
-      const quantities = PRODUCT_QUANTITIES[product.name] || [];
-      let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
-      
-      // ATENCIÓN: Esta línea es VITAL. Añade el atributo 'data-section-name'
-      // que es necesario para que la exportación a Excel funcione correctamente.
-      const productDivAttributes = `class="product" data-section-name="${sectionName}"`;
+// =====================================================================
+// FUNCIÓN createSection (CORREGIDA)
+// =====================================================================
+function createSection(sectionName, products) {
+  // Helper para escapar comillas y evitar errores en atributos HTML
+  const escapeHTML = (str) => str.replace(/"/g, '&quot;');
 
-      let priceHTML = "";
-      if (product.staticOffer !== true && typeof product.price === 'number') {
-        priceHTML = `€${product.price.toFixed(2)}`;
-      }
+  let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
+  products.forEach((product, index) => {
+    const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
+    const quantities = PRODUCT_QUANTITIES[product.name] || [];
+    let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
+    
+    const productDivAttributes = `class="product" data-section-name="${sectionName}"`;
 
-      if (product.staticOffer) {
-        sectionHTML += `
-          <div class="product static-offer" data-section-name="${sectionName}">
-              <img data-src="images/${imageName}" alt="${product.name || ''}" class="lazy">
-              <h3>${product.name || ''}</h3>
-          </div>`;
-      } else {
-        sectionHTML += `
-          <div ${productDivAttributes}>
-              <img data-src="images/${imageName}" alt="${product.name}" class="lazy">
-              <h3>${product.name}</h3>
-              ${priceHTML ? `<p class="price">${priceHTML}</p>` : ''}
-              <div class="quantity-buttons">
-                  ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-                  <input type="number" placeholder="Otro" oninput="validateInput(this)">
-              </div>
-              <button id="${buttonId}" class="add-btn" onclick="addToCart(this, '${product.name}', ${product.price})">Agregar</button>
-          </div>`;
-      }
-    });
-    sectionHTML += `</div>`;
-    return sectionHTML;
-  }
+    let priceHTML = "";
+    if (product.staticOffer !== true && typeof product.price === 'number') {
+      priceHTML = `€${product.price.toFixed(2)}`;
+    }
+
+    if (product.staticOffer) {
+      sectionHTML += `
+        <div class="product static-offer" data-section-name="${sectionName}">
+            <img data-src="images/${imageName}" alt="${escapeHTML(product.name || '')}" class="lazy">
+            <h3>${product.name || ''}</h3>
+        </div>`;
+    } else {
+      sectionHTML += `
+        <div ${productDivAttributes}>
+            <img data-src="images/${imageName}" alt="${escapeHTML(product.name)}" class="lazy">
+            <h3>${product.name}</h3>
+            ${priceHTML ? `<p class="price">${priceHTML}</p>` : ''}
+            <div class="quantity-buttons">
+                ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
+                <input type="number" placeholder="Otro" oninput="validateInput(this)">
+            </div>
+            
+            <button id="${buttonId}"
+                    class="add-btn"
+                    data-product-name="${escapeHTML(product.name)}"
+                    data-product-price="${product.price}"
+                    onclick="addToCart(this)">
+                Agregar
+            </button>
+        </div>`;
+    }
+  });
+  sectionHTML += `</div>`;
+  return sectionHTML;
+}
 
   // =====================================================================
   // LÓGICA DEL CARRITO (FUNCIONES CORREGIDAS Y VERIFICADAS)
@@ -3798,44 +3809,52 @@ document.addEventListener("DOMContentLoaded", function() {
     updateTotalDisplay(total);
   }
 
-  function addToCart(button, productName, productPrice) {
-      let input = button.parentElement.querySelector('input');
-      let quantity = parseInt(input.value);
-      if (isNaN(quantity) || quantity <= 0) {
-          alert("Por favor, ingresa una cantidad válida.");
-          return;
-      }
-      if (button.classList.contains('added')) {
-          alert("Este producto ya ha sido añadido.");
-          return;
-      }
-      
-      const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
+  // =====================================================================
+// FUNCIÓN addToCart (CORREGIDA)
+// =====================================================================
+function addToCart(button) {
+    // Lee los datos desde los atributos data-* del botón
+    const productName = button.dataset.productName;
+    const productPrice = parseFloat(button.dataset.productPrice);
 
-      button.classList.add('added');
-      button.style.backgroundColor = '#ffa500';
-      button.innerText = 'Añadido';
+    let input = button.parentElement.querySelector('input[type="number"]');
+    let quantity = parseInt(input.value);
 
-      let cartItemsContainer = document.getElementById("cart-items-modal");
-      if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
-          cartItemsContainer.innerHTML = '';
-      }
+    if (isNaN(quantity) || quantity <= 0) {
+        alert("Por favor, ingresa una cantidad válida.");
+        return;
+    }
+    if (button.classList.contains('added')) {
+        alert("Este producto ya ha sido añadido.");
+        return;
+    }
+    
+    const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
 
-      const totalPrice = productPrice * quantity;
+    button.classList.add('added');
+    button.style.backgroundColor = '#ffa500';
+    button.innerText = 'Añadido';
 
-      // Se añaden todos los datos necesarios a los atributos 'data-*'
-      cartItemsContainer.innerHTML += `
-        <div class="cart-item"
-             data-price="${totalPrice.toFixed(2)}"
-             data-section="${sectionName}"
-             data-quantity="${quantity}"
-             data-product-name="${productName}">
-          <span class="cart-product-name">${productName}</span> - ${quantity} unidades - Precio: €${totalPrice.toFixed(2)}
-          <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
-        </div>`;
-      updateTotalPrice();
-      showToast("Producto añadido: " + productName);
-  }
+    let cartItemsContainer = document.getElementById("cart-items-modal");
+    if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
+        cartItemsContainer.innerHTML = '';
+    }
+
+    const totalPrice = productPrice * quantity;
+
+    // El resto de la lógica sigue igual, pero ahora se basa en datos fiables
+    cartItemsContainer.innerHTML += `
+      <div class="cart-item"
+           data-price="${totalPrice.toFixed(2)}"
+           data-section="${sectionName}"
+           data-quantity="${quantity}"
+           data-product-name="${productName}">
+        <span class="cart-product-name">${productName}</span> - ${quantity} unidades - Precio: €${totalPrice.toFixed(2)}
+        <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
+      </div>`;
+    updateTotalPrice();
+    showToast("Producto añadido: " + productName);
+}
 
   function removeFromCart(button, buttonId) {
     button.parentElement.remove();
