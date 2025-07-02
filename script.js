@@ -3946,70 +3946,95 @@ offerUntil: '2025-07-31',
     }
   }
 
-  // --- FIX B: FUNCIÓN DE EXCEL CON DEFENSA FINAL ---
-  function exportToExcel(order) {
-      if (!order || order.length === 0) return;
-      const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
-      const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
-      const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
-      const groupedOrder = order.reduce((acc, item) => {
-          (acc[item.section] = acc[item.section] || []).push(item);
-          return acc;
-      }, {});
-      let excelData = [];
-      let grandTotal = 0;
-      excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
-      const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
-      for (const sectionName in groupedOrder) {
-          excelData.push([sectionName.toUpperCase()], tableHeader);
-          let sectionSubtotal = 0;
-          groupedOrder[sectionName].forEach(item => {
-              // Verificación final para evitar división por cero y valores nulos
-              const isValidQuantity = typeof item.quantity === 'number' && !isNaN(item.quantity) && item.quantity > 0;
-              const safeUnitPrice = isValidQuantity ? item.totalPrice / item.quantity : 0;
-              
-              excelData.push([
-                  item.product,
-                  isValidQuantity ? item.quantity : 0, // Escribe la cantidad o 0
-                  { t: 'n', v: safeUnitPrice, z: '€#,##0.00' },
-                  { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
-              ]);
-              sectionSubtotal += item.totalPrice || 0;
-          });
-          excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
-          grandTotal += sectionSubtotal;
-      }
-      excelData.push([]);
-      excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
-      const ws = XLSX.utils.aoa_to_sheet(excelData);
-      ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
-      const merges = [];
-      let currentRow = 0;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-      currentRow++;
-      for (const sectionName in groupedOrder) {
-          merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } });
-          currentRow += groupedOrder[sectionName].length + 1;
-          merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
-          currentRow += 2;
-      }
-      currentRow++;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
-      ws['!merges'] = merges;
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
-      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => { document.body.removeChild(link); }, 100);
-  }
+// --- FIX B: FUNCIÓN DE EXCEL CON DEFENSA FINAL (VERSIÓN CORREGIDA) ---
+function exportToExcel(order) {
+    if (!order || order.length === 0) return;
+
+    // --- Datos del encabezado ---
+    const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
+    const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
+    const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
+
+    // --- Agrupar productos por sección ---
+    const groupedOrder = order.reduce((acc, item) => {
+        (acc[item.section] = acc[item.section] || []).push(item);
+        return acc;
+    }, {});
+
+    let excelData = [];
+    let grandTotal = 0;
+
+    // --- Cabecera del archivo Excel ---
+    excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
+    const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
+
+    // --- Procesar cada sección de productos ---
+    for (const sectionName in groupedOrder) {
+        excelData.push([sectionName.toUpperCase()], tableHeader);
+        let sectionSubtotal = 0;
+
+        // --- BUCLE MEJORADO PARA AÑADIR PRODUCTOS ---
+        groupedOrder[sectionName].forEach(item => {
+            // Se asegura de que la cantidad y el precio sean números válidos. Si no, usa 0.
+            const quantity = (typeof item.quantity === 'number' && !isNaN(item.quantity)) ? item.quantity : 0;
+            const totalPrice = (typeof item.totalPrice === 'number' && !isNaN(item.totalPrice)) ? item.totalPrice : 0;
+            
+            // Calcula el precio unitario de forma segura, evitando la división por cero.
+            const unitPrice = (quantity > 0) ? (totalPrice / quantity) : 0;
+
+            excelData.push([
+                item.product,
+                quantity, // Usa la cantidad validada
+                { t: 'n', v: unitPrice, z: '€#,##0.00' }, // Usa el precio unitario seguro
+                { t: 'n', v: totalPrice, z: '€#,##0.00' }  // Usa el precio total validado
+            ]);
+            sectionSubtotal += totalPrice;
+        });
+        // --- FIN DEL BUCLE MEJORADO ---
+
+        excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
+        grandTotal += sectionSubtotal;
+    }
+
+    // --- Pie de página y total general ---
+    excelData.push([]);
+    excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
+
+    // --- Configuración de la hoja de cálculo (columnas y celdas combinadas) ---
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
+    
+    const merges = [];
+    let currentRow = 0;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+    currentRow++;
+
+    for (const sectionName in groupedOrder) {
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); // Combina el título de la sección
+        currentRow += groupedOrder[sectionName].length + 1;
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Combina el subtotal de la sección
+        currentRow += 2;
+    }
+    
+    currentRow++;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Combina el total general
+    ws['!merges'] = merges;
+
+    // --- Creación y descarga del archivo ---
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => { document.body.removeChild(link); }, 100);
+}
 
   // =====================================================================
   // FUNCIONES DE UI Y FILTROS
