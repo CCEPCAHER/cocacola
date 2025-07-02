@@ -4004,7 +4004,7 @@ offerUntil: '2025-07-31',
 
     for (const sectionName in groupedOrder) {
         merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } });
-        currentRow += groupedOrder[sectionName].length + 1;
+        currentRow += groupedOrder[sectionName].length + 2;
         merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
         currentRow += 2;
     }
