@@ -9,8 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-07-01",
-      "endDate": "2024-07-31",
+offerUntil: '2025-07-31',// <-- Añade una propiedad como est
   "offer": false,
   "staticOffer": true,
 },
@@ -3713,6 +3712,7 @@ document.addEventListener("DOMContentLoaded", function() {
   function initializeApp() {
     updateProductList();
     createFilterDropdown();
+    addEventListeners(); // Centralizamos los event listeners
   }
 
   function updateProductList() {
@@ -3728,59 +3728,93 @@ document.addEventListener("DOMContentLoaded", function() {
     lazyLoadImages();
   }
 
-// =====================================================================
-// FUNCIÓN createSection (CORREGIDA)
-// =====================================================================
-function createSection(sectionName, products) {
-  // Helper para escapar comillas y evitar errores en atributos HTML
-  const escapeHTML = (str) => str.replace(/"/g, '&quot;');
+  // =====================================================================
+  // FUNCIÓN createSection (CON ESTADO DE OFERTA AVANZADO)
+  // =====================================================================
+  function createSection(sectionName, products) {
+    // Helper para escapar comillas y evitar errores en atributos HTML
+    const escapeHTML = (str) => str.replace(/"/g, '&quot;');
 
-  let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
-  products.forEach((product, index) => {
-    const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
-    const quantities = PRODUCT_QUANTITIES[product.name] || [];
-    let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
-    
-    const productDivAttributes = `class="product" data-section-name="${sectionName}"`;
+    let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
+    products.forEach((product, index) => {
+      const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
+      const quantities = PRODUCT_QUANTITIES[product.name] || [];
+      let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
+      
+      const productDivAttributes = `class="product" data-section-name="${sectionName}"`;
 
-    let priceHTML = "";
-    if (product.staticOffer !== true && typeof product.price === 'number') {
-      priceHTML = `€${product.price.toFixed(2)}`;
-    }
+      let priceHTML = "";
+      if (product.staticOffer !== true && typeof product.price === 'number') {
+        priceHTML = `€${product.price.toFixed(2)}`;
+      }
 
-    if (product.staticOffer) {
-      sectionHTML += `
-        <div class="product static-offer" data-section-name="${sectionName}">
-            <img data-src="images/${imageName}" alt="${escapeHTML(product.name || '')}" class="lazy">
-            <h3>${product.name || ''}</h3>
-        </div>`;
-    } else {
-      sectionHTML += `
-        <div ${productDivAttributes}>
-            <img data-src="images/${imageName}" alt="${escapeHTML(product.name)}" class="lazy">
-            <h3>${product.name}</h3>
-            ${priceHTML ? `<p class="price">${priceHTML}</p>` : ''}
-            <div class="quantity-buttons">
-                ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-                <input type="number" placeholder="Otro" oninput="validateInput(this)">
-            </div>
-            
-            <button id="${buttonId}"
-                    class="add-btn"
-                    data-product-name="${escapeHTML(product.name)}"
-                    data-product-price="${product.price}"
-                    onclick="addToCart(this)">
-                Agregar
-            </button>
-        </div>`;
-    }
-  });
-  sectionHTML += `</div>`;
-  return sectionHTML;
-}
+      // Lógica para mostrar el estado de la oferta (Activa, Caducada, Próxima)
+      let offerStatusHTML = '';
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const offerEndDateStr = product.endDate || product.offerUntil;
+
+      if (offerEndDateStr) {
+          const offerEndDate = new Date(offerEndDateStr);
+          const offerStartDate = product.startDate ? new Date(product.startDate) : null;
+
+          let statusText = '';
+          let statusClass = '';
+
+          if (offerEndDate < today) {
+              statusText = 'Oferta caducada';
+              statusClass = 'offer-expired';
+          } else if (offerStartDate && offerStartDate > today) {
+              const startDateFormatted = offerStartDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+              const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+              statusText = `Próxima: ${startDateFormatted} - ${endDateFormatted}`;
+              statusClass = 'offer-upcoming';
+          } else {
+              const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+              statusText = `Activa hasta: ${endDateFormatted}`;
+              statusClass = 'offer-active';
+          }
+          
+          // ✅ CORRECCIÓN APLICADA AQUÍ: Se añade la clase "offer-tag"
+          offerStatusHTML = `<p class="offer-tag offer-status ${statusClass}">${statusText}</p>`;
+      }
+
+      if (product.staticOffer) {
+        sectionHTML += `
+          <div class="product static-offer" data-section-name="${sectionName}">
+              <img data-src="images/${imageName}" alt="${escapeHTML(product.name || '')}" class="lazy">
+              <h3>${product.name || ''}</h3>
+              ${offerStatusHTML} 
+          </div>`;
+      } else {
+        sectionHTML += `
+          <div ${productDivAttributes}>
+              <img data-src="images/${imageName}" alt="${escapeHTML(product.name)}" class="lazy">
+              <h3>${product.name}</h3>
+              ${priceHTML ? `<p class="price">${priceHTML}</p>` : ''}
+              ${offerStatusHTML} 
+              <div class="quantity-buttons">
+                  ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
+                  <input type="number" placeholder="Otro" oninput="validateInput(this)">
+              </div>
+              
+              <button id="${buttonId}"
+                      class="add-btn"
+                      data-product-name="${escapeHTML(product.name)}"
+                      data-product-price="${product.price}"
+                      onclick="addToCart(this)">
+                  Agregar
+              </button>
+          </div>`;
+      }
+    });
+    sectionHTML += `</div>`;
+    return sectionHTML;
+  }
 
   // =====================================================================
-  // LÓGICA DEL CARRITO (FUNCIONES CORREGIDAS Y VERIFICADAS)
+  // LÓGICA DEL CARRITO
   // =====================================================================
   function setQuantity(button, value) {
     let input = button.parentElement.querySelector('input');
@@ -3809,52 +3843,46 @@ function createSection(sectionName, products) {
     updateTotalDisplay(total);
   }
 
-  // =====================================================================
-// FUNCIÓN addToCart (CORREGIDA)
-// =====================================================================
-function addToCart(button) {
-    // Lee los datos desde los atributos data-* del botón
-    const productName = button.dataset.productName;
-    const productPrice = parseFloat(button.dataset.productPrice);
+  function addToCart(button) {
+      const productName = button.dataset.productName;
+      const productPrice = parseFloat(button.dataset.productPrice);
+      let input = button.parentElement.querySelector('input[type="number"]');
+      let quantity = parseInt(input.value);
 
-    let input = button.parentElement.querySelector('input[type="number"]');
-    let quantity = parseInt(input.value);
+      if (isNaN(quantity) || quantity <= 0) {
+          alert("Por favor, ingresa una cantidad válida.");
+          return;
+      }
+      if (button.classList.contains('added')) {
+          alert("Este producto ya ha sido añadido.");
+          return;
+      }
+      
+      const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
 
-    if (isNaN(quantity) || quantity <= 0) {
-        alert("Por favor, ingresa una cantidad válida.");
-        return;
-    }
-    if (button.classList.contains('added')) {
-        alert("Este producto ya ha sido añadido.");
-        return;
-    }
-    
-    const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
+      button.classList.add('added');
+      button.style.backgroundColor = '#ffa500';
+      button.innerText = 'Añadido';
 
-    button.classList.add('added');
-    button.style.backgroundColor = '#ffa500';
-    button.innerText = 'Añadido';
+      let cartItemsContainer = document.getElementById("cart-items-modal");
+      if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
+          cartItemsContainer.innerHTML = '';
+      }
 
-    let cartItemsContainer = document.getElementById("cart-items-modal");
-    if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
-        cartItemsContainer.innerHTML = '';
-    }
+      const totalPrice = productPrice * quantity;
 
-    const totalPrice = productPrice * quantity;
-
-    // El resto de la lógica sigue igual, pero ahora se basa en datos fiables
-    cartItemsContainer.innerHTML += `
-      <div class="cart-item"
-           data-price="${totalPrice.toFixed(2)}"
-           data-section="${sectionName}"
-           data-quantity="${quantity}"
-           data-product-name="${productName}">
-        <span class="cart-product-name">${productName}</span> - ${quantity} unidades - Precio: €${totalPrice.toFixed(2)}
-        <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
-      </div>`;
-    updateTotalPrice();
-    showToast("Producto añadido: " + productName);
-}
+      cartItemsContainer.innerHTML += `
+        <div class="cart-item"
+             data-price="${totalPrice.toFixed(2)}"
+             data-section="${sectionName}"
+             data-quantity="${quantity}"
+             data-product-name="${productName}">
+          <span class="cart-product-name">${productName}</span> - ${quantity} uds - €${totalPrice.toFixed(2)}
+          <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
+        </div>`;
+      updateTotalPrice();
+      showToast("Producto añadido: " + productName);
+  }
 
   function removeFromCart(button, buttonId) {
     button.parentElement.remove();
@@ -3872,92 +3900,21 @@ function addToCart(button) {
     }
     updateTotalPrice();
   }
-
-// =====================================================================
-// EXPORTACIÓN A EXCEL (FUNCIÓN CORREGIDA)
-// =====================================================================
-function exportToExcel(order) {
-    if (!order || order.length === 0) return;
-
-    const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
-    const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
-    const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
-
-    const groupedOrder = order.reduce((acc, item) => {
-        (acc[item.section] = acc[item.section] || []).push(item);
-        return acc;
-    }, {});
-
-    let excelData = [];
-    let grandTotal = 0;
-
-    // Encabezados del documento
-    excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
-    const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
-
-    for (const sectionName in groupedOrder) {
-        excelData.push([sectionName.toUpperCase()], tableHeader);
-        let sectionSubtotal = 0;
-
-        groupedOrder[sectionName].forEach(item => {
-            const unitPrice = item.totalPrice / item.quantity;
-            excelData.push([
-                item.product,
-                item.quantity,
-                { t: 'n', v: unitPrice, z: '€#,##0.00' },
-                { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
-            ]);
-            sectionSubtotal += item.totalPrice;
-        });
-
-        // =================================================================
-        // LÍNEA CORREGIDA 1: Mover el texto del subtotal a la primera celda
-        // =================================================================
-        excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
-        grandTotal += sectionSubtotal;
+  
+  // ✅ FUNCIÓN AÑADIDA QUE FALTABA
+  function collectCartData() {
+    const cartItems = document.querySelectorAll('#cart-items-modal .cart-item');
+    if (cartItems.length === 0) {
+      return null;
     }
-
-    excelData.push([]);
-
-    // =====================================================================
-    // LÍNEA CORREGIDA 2: Mover el texto del total general a la primera celda
-    // =====================================================================
-    excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
-
-    const ws = XLSX.utils.aoa_to_sheet(excelData);
-    ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
-
-    // La lógica de combinación de celdas ('merges') es ahora correcta
-    const merges = [];
-    let currentRow = 0;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-    currentRow++; // Salto de línea
-
-    for (const sectionName in groupedOrder) {
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); // Título de la sección
-        currentRow += groupedOrder[sectionName].length + 1; // +1 por la cabecera de la tabla
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Subtotal de la sección
-        currentRow += 2; // +1 por el subtotal, +1 por el salto de línea
-    }
-    
-    currentRow++; // Salto de línea antes del total general
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Total general
-    ws['!merges'] = merges;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => { document.body.removeChild(link); }, 100);
-}
+    const orderData = Array.from(cartItems).map(item => ({
+      product: item.dataset.productName,
+      quantity: parseInt(item.dataset.quantity, 10),
+      totalPrice: parseFloat(item.dataset.price),
+      section: item.dataset.section
+    }));
+    return orderData;
+  }
 
   function checkPendingInputs() {
     for (const div of document.querySelectorAll('.product')) {
@@ -3993,15 +3950,78 @@ function exportToExcel(order) {
        document.querySelectorAll('.product input[type="number"]').forEach(input => {
         input.value = '';
       });
+      toggleCart(); // Cierra el modal después de enviar
       alert("Pedido descargado exitosamente.");
     }
   }
 
-  /**
-   * =====================================================================
-   * FUNCIONES DE UI (INTERFAZ DE USUARIO) Y FILTROS
-   * =====================================================================
-   */
+  // =====================================================================
+  // EXPORTACIÓN A EXCEL
+  // =====================================================================
+  function exportToExcel(order) {
+      if (!order || order.length === 0) return;
+      const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
+      const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
+      const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
+      const groupedOrder = order.reduce((acc, item) => {
+          (acc[item.section] = acc[item.section] || []).push(item);
+          return acc;
+      }, {});
+      let excelData = [];
+      let grandTotal = 0;
+      excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
+      const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
+      for (const sectionName in groupedOrder) {
+          excelData.push([sectionName.toUpperCase()], tableHeader);
+          let sectionSubtotal = 0;
+          groupedOrder[sectionName].forEach(item => {
+              const unitPrice = item.totalPrice / item.quantity;
+              excelData.push([
+                  item.product,
+                  item.quantity,
+                  { t: 'n', v: unitPrice, z: '€#,##0.00' },
+                  { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
+              ]);
+              sectionSubtotal += item.totalPrice;
+          });
+          excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
+          grandTotal += sectionSubtotal;
+      }
+      excelData.push([]);
+      excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
+      const ws = XLSX.utils.aoa_to_sheet(excelData);
+      ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
+      const merges = [];
+      let currentRow = 0;
+      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+      currentRow++;
+      for (const sectionName in groupedOrder) {
+          merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } });
+          currentRow += groupedOrder[sectionName].length + 1;
+          merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
+          currentRow += 2;
+      }
+      currentRow++;
+      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
+      ws['!merges'] = merges;
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { document.body.removeChild(link); }, 100);
+  }
+
+  // =====================================================================
+  // FUNCIONES DE UI Y FILTROS
+  // =====================================================================
   function toggleCart() {
     document.getElementById("cart-modal")?.classList.toggle("active");
   }
@@ -4042,20 +4062,6 @@ function exportToExcel(order) {
     }
   }
 
-  const cartToggle = document.getElementById("cart-toggle");
-  if (cartToggle) {
-      cartToggle.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        let dragged = false;
-        const onMouseMove = () => { dragged = true; };
-        document.addEventListener('mousemove', onMouseMove, { once: true });
-        document.addEventListener('mouseup', () => {
-          document.removeEventListener('mousemove', onMouseMove);
-          if (!dragged) toggleCart();
-        }, { once: true });
-      });
-  }
-
   function createFilterDropdown() {
       const filterContainer = document.getElementById("filter-container");
       if (!filterContainer) return;
@@ -4067,9 +4073,7 @@ function exportToExcel(order) {
       dropdownButton.textContent = "Filtrar por sección ▼";
       const dropdownContent = document.createElement("div");
       dropdownContent.className = "dropdown-content";
-
       dropdownButton.onclick = () => dropdownContent.classList.toggle("show");
-      
       const createOption = (text, section) => {
           const option = document.createElement("a");
           option.href = "#";
@@ -4082,12 +4086,10 @@ function exportToExcel(order) {
           };
           return option;
       };
-
       dropdownContent.appendChild(createOption("Todos", "Todos"));
       Object.keys(sections).forEach(sectionName => {
           dropdownContent.appendChild(createOption(sectionName, sectionName));
       });
-      
       dropdownWrapper.append(dropdownButton, dropdownContent);
       filterContainer.appendChild(dropdownWrapper);
   }
@@ -4099,10 +4101,22 @@ function exportToExcel(order) {
   }
   
   // =====================================================================
-  // EXPOSICIÓN DE FUNCIONES GLOBALES Y ARRANQUE
+  // ASIGNACIÓN DE EVENTOS Y ARRANQUE
   // =====================================================================
+  function addEventListeners() {
+    const cartToggle = document.getElementById("cart-toggle");
+    if (cartToggle) {
+      cartToggle.addEventListener('click', toggleCart);
+    }
+    // ✅ EVENT LISTENER AÑADIDO
+    const submitBtn = document.getElementById('submit-order');
+    if(submitBtn) {
+        submitBtn.addEventListener('click', submitOrder);
+    }
+  }
+
   Object.assign(window, {
-      setQuantity, validateInput, addToCart, removeFromCart, submitOrder, toggleCart
+      setQuantity, validateInput, addToCart, removeFromCart, toggleCart
   });
 
   if ('serviceWorker' in navigator) {
