@@ -1762,12 +1762,12 @@ offerUntil: '2025-07-31',
       },
       { 
         "name": "BIPACK Coca-Cola Light 2 L.", 
-        "price": 2.00, 
+        "price": 4.00, 
         "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
-        "name": "Coca-Cola Light Pet 2 L.", 
+        "name": "Coca-Cola Light Pet 2 L", 
         "price": 2.00, 
         "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
