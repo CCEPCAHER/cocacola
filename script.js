@@ -1768,7 +1768,7 @@ offerUntil: '2025-07-31',
       },
       { 
         "name": "Coca-Cola Light Pet 2 L", 
-        "price": 2.00, 
+        "price": 2.01, 
         "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
