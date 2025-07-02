@@ -1080,7 +1080,7 @@ offerUntil: '2025-07-31',
     },
     { 
       "name": "SEMI Coca Cola pet 2 L.", 
-      "price": 370.50, 
+      "price": 370.00, 
       "previousPrice": 400.00,
       "offer": false,
       "focus1": false,
