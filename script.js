@@ -1080,7 +1080,7 @@ offerUntil: '2025-07-31',
     },
     { 
       "name": "SEMI Coca Cola pet 2 L.", 
-      "price": 370.00, 
+      "price": 370.50, 
       "previousPrice": 400.00,
       "offer": false,
       "focus1": false,
@@ -3703,6 +3703,7 @@ offerUntil: '2025-07-31',
 "EEFF MONSTER": [0],
 "CABECERA":[0]
   };
+
   // =====================================================================
   // INICIALIZACIÓN Y RENDERIZADO DE LA APP
   // =====================================================================
@@ -3726,73 +3727,76 @@ offerUntil: '2025-07-31',
   }
 
   // =====================================================================
-  // FUNCIÓN createSection (CON ESTADO DE OFERTA AVANZADO)
+  // FUNCIÓN createSection (VERSIÓN CORREGIDA Y ROBUSTA)
   // =====================================================================
   function createSection(sectionName, products) {
-    const escapeHTML = (str) => str.replace(/"/g, '&quot;');
+    const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
     let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
+
     products.forEach((product, index) => {
-      const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
-      const quantities = PRODUCT_QUANTITIES[product.name] || [];
-      let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
-      const productDivAttributes = `class="product" data-section-name="${sectionName}"`;
-      let priceHTML = "";
-      if (product.staticOffer !== true && typeof product.price === 'number') {
-        priceHTML = `€${product.price.toFixed(2)}`;
-      }
-      let offerStatusHTML = '';
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const offerEndDateStr = product.endDate || product.offerUntil;
-      if (offerEndDateStr) {
-          const offerEndDate = new Date(offerEndDateStr);
-          const offerStartDate = product.startDate ? new Date(product.startDate) : null;
-          let statusText = '';
-          let statusClass = '';
-          if (offerEndDate < today) {
-              statusText = 'Oferta caducada';
-              statusClass = 'offer-expired';
-          } else if (offerStartDate && offerStartDate > today) {
-              const startDateFormatted = offerStartDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-              const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-              statusText = `Próxima: ${startDateFormatted} - ${endDateFormatted}`;
-              statusClass = 'offer-upcoming';
-          } else {
-              const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-              statusText = `Activa hasta: ${endDateFormatted}`;
-              statusClass = 'offer-active';
-          }
-          offerStatusHTML = `<p class="offer-tag offer-status ${statusClass}">${statusText}</p>`;
-      }
-      if (product.staticOffer) {
-        sectionHTML += `
-          <div class="product static-offer" data-section-name="${sectionName}">
-              <img data-src="images/${imageName}" alt="${escapeHTML(product.name || '')}" class="lazy">
-              <h3>${product.name || ''}</h3>
-              ${offerStatusHTML} 
-          </div>`;
-      } else {
-        sectionHTML += `
-          <div ${productDivAttributes}>
-              <img data-src="images/${imageName}" alt="${escapeHTML(product.name)}" class="lazy">
-              <h3>${product.name}</h3>
-              ${priceHTML ? `<p class="price">${priceHTML}</p>` : ''}
-              ${offerStatusHTML} 
-              <div class="quantity-buttons">
-                  ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-                  <input type="number" placeholder="Otro" oninput="validateInput(this)">
-              </div>
-              <button id="${buttonId}"
-                      class="add-btn"
-                      data-product-name="${escapeHTML(product.name)}"
-                      data-product-price="${product.price}"
-                      onclick="addToCart(this)">
-                  Agregar
-              </button>
-          </div>`;
-      }
+        const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
+        const imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
+        
+        // --- INICIO DE LA LÓGICA DE CORRECCIÓN ---
+
+        // 1. Verificamos si el producto se puede pedir (tiene un precio válido)
+        const isOrderable = typeof product.price === 'number';
+        const isStatic = product.staticOffer === true;
+
+        sectionHTML += `<div class="product" data-section-name="${sectionName}">`;
+        sectionHTML += `<img data-src="images/${imageName}" alt="${escapeHTML(product.name)}" class="lazy">`;
+        sectionHTML += `<h3>${product.name || 'Producto sin nombre'}</h3>`;
+
+        // 2. Lógica para mostrar estado de la oferta (sin cambios)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const offerEndDateStr = product.endDate || product.offerUntil;
+        if (offerEndDateStr) {
+            const offerEndDate = new Date(offerEndDateStr);
+            const offerStartDate = product.startDate ? new Date(product.startDate) : null;
+            let statusText = '', statusClass = '';
+            if (offerEndDate < today) {
+                statusText = 'Oferta caducada';
+                statusClass = 'offer-expired';
+            } else if (offerStartDate && offerStartDate > today) {
+                const startDateFormatted = offerStartDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                statusText = `Próxima: ${startDateFormatted} - ${endDateFormatted}`;
+                statusClass = 'offer-upcoming';
+            } else {
+                const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                statusText = `Activa hasta: ${endDateFormatted}`;
+                statusClass = 'offer-active';
+            }
+            sectionHTML += `<p class="offer-tag offer-status ${statusClass}">${statusText}</p>`;
+        }
+        
+        // 3. Si el producto SÍ se puede pedir, mostramos precio y botones
+        if (isOrderable && !isStatic) {
+            const quantities = PRODUCT_QUANTITIES[product.name] || [];
+            
+            sectionHTML += `<p class="price">€${product.price.toFixed(2)}</p>`;
+            sectionHTML += `
+                <div class="quantity-buttons">
+                    ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
+                    <input type="number" placeholder="Otro" oninput="validateInput(this)">
+                </div>
+                <button id="${buttonId}"
+                        class="add-btn"
+                        data-product-name="${escapeHTML(product.name)}"
+                        data-product-price="${product.price}"
+                        onclick="addToCart(this)">
+                    Agregar
+                </button>`;
+        } else if (!isOrderable && !isStatic) {
+            // Opcional: Mostrar un mensaje si un producto no estático no tiene precio
+            sectionHTML += `<p class="price-unavailable">Precio no disponible</p>`;
+        }
+        
+        sectionHTML += `</div>`; // Cierre de div.product
     });
-    sectionHTML += `</div>`;
+
+    sectionHTML += `</div>`; // Cierre de div.carousel-container
     return sectionHTML;
   }
 
@@ -3826,13 +3830,11 @@ offerUntil: '2025-07-31',
     updateTotalDisplay(total);
   }
 
-  // --- FIX A: LÓGICA DE AÑADIR AL CARRITO REFORZADA ---
   function addToCart(button) {
       const productName = button.dataset.productName;
       const productPrice = parseFloat(button.dataset.productPrice);
       let input = button.parentElement.querySelector('input[type="number"]');
       
-      // Verificación más robusta de la cantidad
       if (!input || input.value.trim() === '') {
           alert("Por favor, ingresa una cantidad.");
           return;
@@ -3901,7 +3903,7 @@ offerUntil: '2025-07-31',
         const qty = parseInt(item.dataset.quantity, 10);
         return {
             product: item.dataset.productName,
-            quantity: isNaN(qty) ? 0 : qty, // Asegura que la cantidad sea un número
+            quantity: isNaN(qty) ? 0 : qty,
             totalPrice: parseFloat(item.dataset.price),
             section: item.dataset.section
         };
@@ -3946,17 +3948,14 @@ offerUntil: '2025-07-31',
     }
   }
 
-// --- FIX B: FUNCIÓN DE EXCEL CON DEFENSA FINAL (VERSIÓN CORREGIDA) ---
-function exportToExcel(order) {
+  function exportToExcel(order) {
     if (!order || order.length === 0) return;
 
-    // --- Datos del encabezado ---
     const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
     const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
     const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
 
-    // --- Agrupar productos por sección ---
     const groupedOrder = order.reduce((acc, item) => {
         (acc[item.section] = acc[item.section] || []).push(item);
         return acc;
@@ -3965,43 +3964,34 @@ function exportToExcel(order) {
     let excelData = [];
     let grandTotal = 0;
 
-    // --- Cabecera del archivo Excel ---
     excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
     const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
 
-    // --- Procesar cada sección de productos ---
     for (const sectionName in groupedOrder) {
         excelData.push([sectionName.toUpperCase()], tableHeader);
         let sectionSubtotal = 0;
 
-        // --- BUCLE MEJORADO PARA AÑADIR PRODUCTOS ---
         groupedOrder[sectionName].forEach(item => {
-            // Se asegura de que la cantidad y el precio sean números válidos. Si no, usa 0.
             const quantity = (typeof item.quantity === 'number' && !isNaN(item.quantity)) ? item.quantity : 0;
             const totalPrice = (typeof item.totalPrice === 'number' && !isNaN(item.totalPrice)) ? item.totalPrice : 0;
-            
-            // Calcula el precio unitario de forma segura, evitando la división por cero.
             const unitPrice = (quantity > 0) ? (totalPrice / quantity) : 0;
 
             excelData.push([
                 item.product,
-                quantity, // Usa la cantidad validada
-                { t: 'n', v: unitPrice, z: '€#,##0.00' }, // Usa el precio unitario seguro
-                { t: 'n', v: totalPrice, z: '€#,##0.00' }  // Usa el precio total validado
+                quantity,
+                { t: 'n', v: unitPrice, z: '€#,##0.00' },
+                { t: 'n', v: totalPrice, z: '€#,##0.00' }
             ]);
             sectionSubtotal += totalPrice;
         });
-        // --- FIN DEL BUCLE MEJORADO ---
 
         excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
         grandTotal += sectionSubtotal;
     }
 
-    // --- Pie de página y total general ---
     excelData.push([]);
     excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
 
-    // --- Configuración de la hoja de cálculo (columnas y celdas combinadas) ---
     const ws = XLSX.utils.aoa_to_sheet(excelData);
     ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
     
@@ -4013,17 +4003,16 @@ function exportToExcel(order) {
     currentRow++;
 
     for (const sectionName in groupedOrder) {
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); // Combina el título de la sección
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } });
         currentRow += groupedOrder[sectionName].length + 1;
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Combina el subtotal de la sección
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
         currentRow += 2;
     }
     
     currentRow++;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Combina el total general
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
     ws['!merges'] = merges;
 
-    // --- Creación y descarga del archivo ---
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -4034,7 +4023,7 @@ function exportToExcel(order) {
     document.body.appendChild(link);
     link.click();
     setTimeout(() => { document.body.removeChild(link); }, 100);
-}
+  }
 
   // =====================================================================
   // FUNCIONES DE UI Y FILTROS
@@ -4137,5 +4126,7 @@ function exportToExcel(order) {
   }
   
   // ¡Inicia la aplicación!
+  // NOTA: Asegúrate de que las variables `sections` y `PRODUCT_QUANTITIES`
+  // estén definidas y cargadas antes de llamar a initializeApp().
   initializeApp();
 });
