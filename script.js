@@ -4,14 +4,15 @@ document.addEventListener("DOMContentLoaded", function() {
   // ============================================
   
   // Objeto con secciones y productos
-  const sections = {
+const sections = {
     "FOCOS": [
       { 
-  "name": "", 
-  "price": 0.00, 
-offerUntil: '2025-07-31',// <-- Añade una propiedad como est
-  "offer": false,
-  "staticOffer": true,
+        "name": "", 
+        "price": 0.00,
+        "startDate": "2025-07-01", 
+        "endDate": "2025-07-31",   
+        "offer": false,
+        "staticOffer": true,
 },
 { 
   "name": "", 
@@ -397,8 +398,7 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-06-17",
-      "endDate": "2024-06-30",
+offerUntil: '2025-07-15',
   "offer": false,
   "staticOffer": true,
 },
@@ -500,8 +500,7 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-06-26",
-      "endDate": "2024-07-10",
+offerUntil: '2025-07-10',
   "offer": false,
   "staticOffer": true,
 },
@@ -767,8 +766,7 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-06-12",
-      "endDate": "2024-07-02",
+offerUntil: '2025-07-31',
   "offer": false,
   "staticOffer": true,
 },
@@ -3732,36 +3730,26 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
   // FUNCIÓN createSection (CON ESTADO DE OFERTA AVANZADO)
   // =====================================================================
   function createSection(sectionName, products) {
-    // Helper para escapar comillas y evitar errores en atributos HTML
     const escapeHTML = (str) => str.replace(/"/g, '&quot;');
-
     let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
     products.forEach((product, index) => {
       const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
       const quantities = PRODUCT_QUANTITIES[product.name] || [];
       let imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
-      
       const productDivAttributes = `class="product" data-section-name="${sectionName}"`;
-
       let priceHTML = "";
       if (product.staticOffer !== true && typeof product.price === 'number') {
         priceHTML = `€${product.price.toFixed(2)}`;
       }
-
-      // Lógica para mostrar el estado de la oferta (Activa, Caducada, Próxima)
       let offerStatusHTML = '';
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       const offerEndDateStr = product.endDate || product.offerUntil;
-
       if (offerEndDateStr) {
           const offerEndDate = new Date(offerEndDateStr);
           const offerStartDate = product.startDate ? new Date(product.startDate) : null;
-
           let statusText = '';
           let statusClass = '';
-
           if (offerEndDate < today) {
               statusText = 'Oferta caducada';
               statusClass = 'offer-expired';
@@ -3775,11 +3763,8 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
               statusText = `Activa hasta: ${endDateFormatted}`;
               statusClass = 'offer-active';
           }
-          
-          // ✅ CORRECCIÓN APLICADA AQUÍ: Se añade la clase "offer-tag"
           offerStatusHTML = `<p class="offer-tag offer-status ${statusClass}">${statusText}</p>`;
       }
-
       if (product.staticOffer) {
         sectionHTML += `
           <div class="product static-offer" data-section-name="${sectionName}">
@@ -3798,7 +3783,6 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
                   ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
                   <input type="number" placeholder="Otro" oninput="validateInput(this)">
               </div>
-              
               <button id="${buttonId}"
                       class="add-btn"
                       data-product-name="${escapeHTML(product.name)}"
@@ -3848,7 +3832,6 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
       const productPrice = parseFloat(button.dataset.productPrice);
       let input = button.parentElement.querySelector('input[type="number"]');
       let quantity = parseInt(input.value);
-
       if (isNaN(quantity) || quantity <= 0) {
           alert("Por favor, ingresa una cantidad válida.");
           return;
@@ -3857,20 +3840,15 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
           alert("Este producto ya ha sido añadido.");
           return;
       }
-      
       const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
-
       button.classList.add('added');
       button.style.backgroundColor = '#ffa500';
       button.innerText = 'Añadido';
-
       let cartItemsContainer = document.getElementById("cart-items-modal");
       if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
           cartItemsContainer.innerHTML = '';
       }
-
       const totalPrice = productPrice * quantity;
-
       cartItemsContainer.innerHTML += `
         <div class="cart-item"
              data-price="${totalPrice.toFixed(2)}"
@@ -3901,7 +3879,6 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
     updateTotalPrice();
   }
   
-  // ✅ FUNCIÓN AÑADIDA QUE FALTABA
   function collectCartData() {
     const cartItems = document.querySelectorAll('#cart-items-modal .cart-item');
     if (cartItems.length === 0) {
@@ -3931,13 +3908,11 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
 
   function submitOrder() {
     if (checkPendingInputs()) return;
-    
     const orderItems = collectCartData();
     if (!orderItems) {
       alert("El carrito está vacío. Añade productos para continuar.");
       return;
     }
-
     if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
       exportToExcel(orderItems);
       document.getElementById("cart-items-modal").innerHTML = 'No hay productos añadidos.';
@@ -3950,15 +3925,18 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
        document.querySelectorAll('.product input[type="number"]').forEach(input => {
         input.value = '';
       });
-      toggleCart(); // Cierra el modal después de enviar
+      toggleCart();
       alert("Pedido descargado exitosamente.");
     }
   }
 
   // =====================================================================
-  // EXPORTACIÓN A EXCEL
+  // EXPORTACIÓN A EXCEL (FUNCIÓN CON CORRECCIÓN FINAL)
   // =====================================================================
   function exportToExcel(order) {
+      // Para depurar: muestra en la consola los datos justo antes de crear el Excel
+      console.log("Datos para exportar a Excel:", JSON.stringify(order, null, 2));
+
       if (!order || order.length === 0) return;
       const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
       const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
@@ -3976,11 +3954,16 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
           excelData.push([sectionName.toUpperCase()], tableHeader);
           let sectionSubtotal = 0;
           groupedOrder[sectionName].forEach(item => {
-              const unitPrice = item.totalPrice / item.quantity;
+              // ✅ INICIO DE LA CORRECCIÓN
+              // Verificación para evitar división por cero o por valores no válidos.
+              const isValidQuantity = item.quantity && !isNaN(item.quantity) && item.quantity > 0;
+              const safeUnitPrice = isValidQuantity ? item.totalPrice / item.quantity : 0;
+              // ✅ FIN DE LA CORRECCIÓN
+
               excelData.push([
                   item.product,
-                  item.quantity,
-                  { t: 'n', v: unitPrice, z: '€#,##0.00' },
+                  item.quantity || 0, // Asegura que se escriba 0 si la cantidad no es válida
+                  { t: 'n', v: safeUnitPrice, z: '€#,##0.00' },
                   { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
               ]);
               sectionSubtotal += item.totalPrice;
@@ -4104,15 +4087,9 @@ offerUntil: '2025-07-31',// <-- Añade una propiedad como est
   // ASIGNACIÓN DE EVENTOS Y ARRANQUE
   // =====================================================================
   function addEventListeners() {
-    const cartToggle = document.getElementById("cart-toggle");
-    if (cartToggle) {
-      cartToggle.addEventListener('click', toggleCart);
-    }
-    // ✅ EVENT LISTENER AÑADIDO
-    const submitBtn = document.getElementById('submit-order');
-    if(submitBtn) {
-        submitBtn.addEventListener('click', submitOrder);
-    }
+    document.getElementById("cart-toggle")?.addEventListener('click', toggleCart);
+    document.getElementById('submit-order')?.addEventListener('click', submitOrder);
+    document.getElementById('close-modal')?.addEventListener('click', toggleCart);
   }
 
   Object.assign(window, {
