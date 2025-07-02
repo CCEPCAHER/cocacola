@@ -1762,13 +1762,13 @@ offerUntil: '2025-07-31',
       },
       { 
         "name": "BIPACK Coca-Cola Light 2 L.", 
-        "price": 4.00, 
+        "price": 2.00, 
         "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
       { 
-        "name": "Coca-Cola Light Pet 2 L", 
-        "price": 2.01, 
+        "name": "Coca-Cola Light Pet 2 L.", 
+        "price": 2.00, 
         "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       },
@@ -3538,7 +3538,7 @@ offerUntil: '2025-07-31',
     "COCA-COLA ZERO LATA PACK 6X20 CL.": [54, 108],
     "Coca-Cola Light pack 4 2L": [24, 48],
     "BIPACK Coca-Cola Light 2 L.": [16, 32],
-    "Coca-Cola Light Pet 2 L": [9, 18],
+    "Coca-Cola Light Pet 2 L.": [9, 18],
     "Coca-Cola Light 1,25L": [19, 38],
     "Coca-Cola Light Pet500": [9, 18],
     "Coca-Cola Light Lata 33": [9, 18],
@@ -3703,14 +3703,13 @@ offerUntil: '2025-07-31',
 "EEFF MONSTER": [0],
 "CABECERA":[0]
   };
-
   // =====================================================================
   // INICIALIZACIÓN Y RENDERIZADO DE LA APP
   // =====================================================================
   function initializeApp() {
     updateProductList();
     createFilterDropdown();
-    addEventListeners(); // Centralizamos los event listeners
+    addEventListeners();
   }
 
   function updateProductList() {
@@ -3827,28 +3826,42 @@ offerUntil: '2025-07-31',
     updateTotalDisplay(total);
   }
 
+  // --- FIX A: LÓGICA DE AÑADIR AL CARRITO REFORZADA ---
   function addToCart(button) {
       const productName = button.dataset.productName;
       const productPrice = parseFloat(button.dataset.productPrice);
       let input = button.parentElement.querySelector('input[type="number"]');
-      let quantity = parseInt(input.value);
+      
+      // Verificación más robusta de la cantidad
+      if (!input || input.value.trim() === '') {
+          alert("Por favor, ingresa una cantidad.");
+          return;
+      }
+      
+      let quantity = parseInt(input.value, 10);
+
       if (isNaN(quantity) || quantity <= 0) {
-          alert("Por favor, ingresa una cantidad válida.");
+          alert("Por favor, ingresa una cantidad numérica válida y mayor que cero.");
           return;
       }
       if (button.classList.contains('added')) {
           alert("Este producto ya ha sido añadido.");
           return;
       }
+      
       const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
+
       button.classList.add('added');
       button.style.backgroundColor = '#ffa500';
       button.innerText = 'Añadido';
+
       let cartItemsContainer = document.getElementById("cart-items-modal");
       if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
           cartItemsContainer.innerHTML = '';
       }
+
       const totalPrice = productPrice * quantity;
+
       cartItemsContainer.innerHTML += `
         <div class="cart-item"
              data-price="${totalPrice.toFixed(2)}"
@@ -3884,12 +3897,15 @@ offerUntil: '2025-07-31',
     if (cartItems.length === 0) {
       return null;
     }
-    const orderData = Array.from(cartItems).map(item => ({
-      product: item.dataset.productName,
-      quantity: parseInt(item.dataset.quantity, 10),
-      totalPrice: parseFloat(item.dataset.price),
-      section: item.dataset.section
-    }));
+    const orderData = Array.from(cartItems).map(item => {
+        const qty = parseInt(item.dataset.quantity, 10);
+        return {
+            product: item.dataset.productName,
+            quantity: isNaN(qty) ? 0 : qty, // Asegura que la cantidad sea un número
+            totalPrice: parseFloat(item.dataset.price),
+            section: item.dataset.section
+        };
+    });
     return orderData;
   }
 
@@ -3930,13 +3946,8 @@ offerUntil: '2025-07-31',
     }
   }
 
-  // =====================================================================
-  // EXPORTACIÓN A EXCEL (FUNCIÓN CON CORRECCIÓN FINAL)
-  // =====================================================================
+  // --- FIX B: FUNCIÓN DE EXCEL CON DEFENSA FINAL ---
   function exportToExcel(order) {
-      // Para depurar: muestra en la consola los datos justo antes de crear el Excel
-      console.log("Datos para exportar a Excel:", JSON.stringify(order, null, 2));
-
       if (!order || order.length === 0) return;
       const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
       const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
@@ -3954,19 +3965,17 @@ offerUntil: '2025-07-31',
           excelData.push([sectionName.toUpperCase()], tableHeader);
           let sectionSubtotal = 0;
           groupedOrder[sectionName].forEach(item => {
-              // ✅ INICIO DE LA CORRECCIÓN
-              // Verificación para evitar división por cero o por valores no válidos.
-              const isValidQuantity = item.quantity && !isNaN(item.quantity) && item.quantity > 0;
+              // Verificación final para evitar división por cero y valores nulos
+              const isValidQuantity = typeof item.quantity === 'number' && !isNaN(item.quantity) && item.quantity > 0;
               const safeUnitPrice = isValidQuantity ? item.totalPrice / item.quantity : 0;
-              // ✅ FIN DE LA CORRECCIÓN
-
+              
               excelData.push([
                   item.product,
-                  item.quantity || 0, // Asegura que se escriba 0 si la cantidad no es válida
+                  isValidQuantity ? item.quantity : 0, // Escribe la cantidad o 0
                   { t: 'n', v: safeUnitPrice, z: '€#,##0.00' },
                   { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
               ]);
-              sectionSubtotal += item.totalPrice;
+              sectionSubtotal += item.totalPrice || 0;
           });
           excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
           grandTotal += sectionSubtotal;
