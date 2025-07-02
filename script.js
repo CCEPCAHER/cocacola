@@ -3873,99 +3873,91 @@ function addToCart(button) {
     updateTotalPrice();
   }
 
-  // =====================================================================
-  // EXPORTACIÓN A EXCEL (LÓGICA CORREGIDA Y ROBUSTA)
-  // =====================================================================
-  function collectCartData() {
-      const order = [];
-      document.querySelectorAll("#cart-items-modal .cart-item").forEach(item => {
-          const data = item.dataset;
-          const quantity = Number(data.quantity);
-          const totalPrice = Number(data.price);
-          
-          // Se valida que todos los datos numéricos sean correctos antes de añadirlos.
-          if (data.productName && !isNaN(quantity) && quantity > 0 && !isNaN(totalPrice)) {
-              order.push({
-                  product: data.productName,
-                  section: data.section,
-                  quantity: quantity,
-                  totalPrice: totalPrice
-              });
-          }
-      });
-      return order.length > 0 ? order : null;
-  }
+// =====================================================================
+// EXPORTACIÓN A EXCEL (FUNCIÓN CORREGIDA)
+// =====================================================================
+function exportToExcel(order) {
+    if (!order || order.length === 0) return;
 
-  function exportToExcel(order) {
-      if (!order || order.length === 0) return;
+    const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
+    const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
+    const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
 
-      const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
-      const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
-      const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
+    const groupedOrder = order.reduce((acc, item) => {
+        (acc[item.section] = acc[item.section] || []).push(item);
+        return acc;
+    }, {});
 
-      const groupedOrder = order.reduce((acc, item) => {
-          (acc[item.section] = acc[item.section] || []).push(item);
-          return acc;
-      }, {});
+    let excelData = [];
+    let grandTotal = 0;
 
-      let excelData = [];
-      let grandTotal = 0;
+    // Encabezados del documento
+    excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
+    const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
 
-      excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
-      const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
+    for (const sectionName in groupedOrder) {
+        excelData.push([sectionName.toUpperCase()], tableHeader);
+        let sectionSubtotal = 0;
 
-      for (const sectionName in groupedOrder) {
-          excelData.push([sectionName.toUpperCase()], tableHeader);
-          let sectionSubtotal = 0;
-          groupedOrder[sectionName].forEach(item => {
-              const unitPrice = item.totalPrice / item.quantity;
-              // Aquí se insertan los datos en la fila del Excel.
-              // La 'quantity' viene directamente del objeto 'item'.
-              excelData.push([
-                  item.product,
-                  item.quantity,
-                  { t: 'n', v: unitPrice, z: '€#,##0.00' },
-                  { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
-              ]);
-              sectionSubtotal += item.totalPrice;
-          });
-          excelData.push(["", "", `Subtotal ${sectionName}`, { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
-          grandTotal += sectionSubtotal;
-      }
+        groupedOrder[sectionName].forEach(item => {
+            const unitPrice = item.totalPrice / item.quantity;
+            excelData.push([
+                item.product,
+                item.quantity,
+                { t: 'n', v: unitPrice, z: '€#,##0.00' },
+                { t: 'n', v: item.totalPrice, z: '€#,##0.00' }
+            ]);
+            sectionSubtotal += item.totalPrice;
+        });
 
-      excelData.push([], ["", "", "TOTAL GENERAL", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
+        // =================================================================
+        // LÍNEA CORREGIDA 1: Mover el texto del subtotal a la primera celda
+        // =================================================================
+        excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
+        grandTotal += sectionSubtotal;
+    }
 
-      const ws = XLSX.utils.aoa_to_sheet(excelData);
-      ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
+    excelData.push([]);
 
-      const merges = [];
-      let currentRow = 0;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-      merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-      currentRow++;
+    // =====================================================================
+    // LÍNEA CORREGIDA 2: Mover el texto del total general a la primera celda
+    // =====================================================================
+    excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
 
-      for (const sectionName in groupedOrder) {
-          merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } });
-          currentRow += groupedOrder[sectionName].length + 1;
-          merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
-          currentRow += 2;
-      }
-      merges.push({ s: { r: currentRow + 1, c: 0 }, e: { r: currentRow + 1, c: 2 } });
-      ws['!merges'] = merges;
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
 
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
-      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => { document.body.removeChild(link); }, 100);
-  }
+    // La lógica de combinación de celdas ('merges') es ahora correcta
+    const merges = [];
+    let currentRow = 0;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
+    currentRow++; // Salto de línea
+
+    for (const sectionName in groupedOrder) {
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); // Título de la sección
+        currentRow += groupedOrder[sectionName].length + 1; // +1 por la cabecera de la tabla
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Subtotal de la sección
+        currentRow += 2; // +1 por el subtotal, +1 por el salto de línea
+    }
+    
+    currentRow++; // Salto de línea antes del total general
+    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } }); // Total general
+    ws['!merges'] = merges;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => { document.body.removeChild(link); }, 100);
+}
 
   function checkPendingInputs() {
     for (const div of document.querySelectorAll('.product')) {
