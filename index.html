@@ -1,189 +1,158 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <title>PEDIDOS</title>
-  <!-- Llamada a la hoja de estilos externa -->
-  <link rel="stylesheet" href="style.css">
-  <meta name="description" content="Compra en el mejor supermercado para teléfonos móviles.">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEDIDOS</title>
+    <meta name="description" content="Compra en el mejor supermercado para teléfonos móviles.">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Formulario de login -->
-  <div id="login-container">
-    <form id="login-form">
-      <select id="store" required>
-        <option value="" disabled selected>Selecciona tu supermercado</option>
-      </select>
-      <input type="text" id="username" placeholder="Usuario" required>
-      <input type="password" id="password" placeholder="Contraseña" required>
-      <button type="submit">Iniciar Sesión</button>
-    </form>
-  </div>
-  
-  <!-- Contenido protegido: se mostrará una vez que el usuario inicie sesión -->
-  <div id="contenido" style="display:none;">
-    <header>
-      <h1>CONSULTAS</h1>
-    </header>
-    <main>
-      <!-- Contenedor para el dropdown de filtros centrado -->
-      <div class="dropdown-container">
-        <div id="filter-container"></div>
-      </div>
-      
-      <!-- Contenedor de productos generado dinámicamente (con etiquetas de oferta y descuento) -->
-      <section id="product-list">
-        <!-- Los productos se renderizan aquí desde script.js -->
-      </section>
-      
-      <!-- Total siempre visible -->
-      <div id="total-display" aria-live="polite">Total: €0.00</div>
-      
-      <!-- Botón flotante del carrito (movible) -->
-      <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
-      
-      <!-- Modal del carrito -->
-      <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
-        <div id="cart-modal-content">
-          <button id="close-modal" aria-label="Cerrar carrito" onclick="toggleCart()">✖</button>
-          <h2 id="cart-modal-title">Tu Pedido</h2>
-          <div id="cart-items-modal">No hay productos añadidos.</div>
-          <div id="modal-total">Total: €0.00</div>
-         <button id="submit-order" onclick="submitOrder()">Enviar Pedido</button>
+
+    <div id="app-container">
+
+        <div id="login-container">
+            <form id="login-form">
+                <h2>Iniciar Sesión</h2>
+                <select id="store" name="store" required>
+                    <option value="" disabled selected>Selecciona tu supermercado</option>
+                </select>
+                <input type="text" id="username" name="username" placeholder="Usuario (email)" autocomplete="username" required>
+                <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
+                <button type="submit">Entrar</button>
+            </form>
         </div>
-      </div>
       
-      <!-- Elemento de audio para notificar al agregar producto -->
-      <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
-      <!-- Librería para exportar a Excel -->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-      <!-- Archivo de lógica de productos, carrito, descuentos, etc. -->
-      <script src="script.js"></script>
-    </main>
-  </div>
-  
-  <!-- Script para inicializar Firebase y gestionar la autenticación -->
-  <script type="module">
-    // Importamos los módulos necesarios desde Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+        <div id="contenido" style="display:none;">
+            <header>
+                <h1>CONSULTAS</h1>
+            </header>
+            
+            <main>
+                <div class="dropdown-container">
+                    <div id="filter-container">
+                        </div>
+                </div>
+              
+                <section id="product-list" aria-live="polite">
+                    </section>
+              
+                <div id="total-display" aria-live="polite">Total: €0.00</div>
+              
+                <button id="cart-toggle" aria-label="Ver carrito">
+                    🛒
+                    </button>
+              
+                <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title" class="hidden">
+                    <div id="cart-modal-content">
+                        <h2 id="cart-modal-title">Tu Pedido</h2>
+                        <button id="close-modal" aria-label="Cerrar carrito">✖</button>
+                        <div id="cart-items-modal">No hay productos añadidos.</div>
+                        <div id="modal-total">Total: €0.00</div>
+                        <button id="submit-order">Enviar Pedido</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+    </div> <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
     
-    // Configuración de Firebase (reemplaza con tus datos si es necesario)
-    const firebaseConfig = {
-      apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
-      authDomain: "cocacolaconsultas-20759.firebaseapp.com",
-      projectId: "cocacolaconsultas-20759",
-      storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
-      messagingSenderId: "274074684363",
-      appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
-      measurementId: "G-29GJZ22GMM"
-    };
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script src="script.js"></script>
+    
+    <script type="module">
+        // Importamos los módulos necesarios desde Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        
+        // Configuración de Firebase (tus datos están bien)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM", // NOTA: Considera usar variables de entorno para la API Key
+            authDomain: "cocacolaconsultas-20759.firebaseapp.com",
+            projectId: "cocacolaconsultas-20759",
+            storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
+            messagingSenderId: "274074684363",
+            appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
+            measurementId: "G-29GJZ22GMM"
+        };
 
-    // Inicializamos Firebase y sus servicios
-    const appFirebase = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(appFirebase);
-    const auth = getAuth(appFirebase);
+        // Inicializamos Firebase y su servicio de autenticación
+        const appFirebase = initializeApp(firebaseConfig);
+        const auth = getAuth(appFirebase);
 
-    // Escuchamos los cambios en el estado de autenticación
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Si el usuario está autenticado, mostramos el contenido protegido y guardamos su email
-        mostrarContenido();
-        localStorage.setItem("loggedInUser", user.email);
-      } else {
-        // Si no está autenticado, mostramos el formulario de login
-        document.getElementById("login-container").style.display = "block";
-      }
-    });
+        // Referencias a elementos del DOM
+        const loginContainer = document.getElementById("login-container");
+        const contenidoDiv = document.getElementById("contenido");
+        const loginForm = document.getElementById("login-form");
+        const storeSelect = document.getElementById("store");
+        const headerH1 = document.querySelector("#contenido header h1");
 
-    // Al cargar la página, llenamos el combo de supermercados
-    document.addEventListener("DOMContentLoaded", () => {
-      // Lista de tiendas (puedes modificarla o extraerla desde otro origen)
-      const stores = ["CAT21", "CAT22", "CAT23", "CAT24", "CAT25", "EJE4", "Alcampo Sant Quirze", "Carrefour Sant Cugat", "Carrefour Barbera"];
-      const storeSelect = document.getElementById("store");
-      stores.forEach(store => {
-        const option = document.createElement("option");
-        option.value = store;
-        option.textContent = store;
-        storeSelect.appendChild(option);
-      });
-    });
+        // Función para mostrar el contenido protegido
+        function mostrarContenido(storeName) {
+            loginContainer.style.display = "none";
+            contenidoDiv.style.display = "block";
+            // Actualiza el título del header con el nombre de la tienda
+            if (storeName && !headerH1.textContent.includes(storeName)) {
+                headerH1.textContent += ` - ${storeName}`;
+            }
+        }
 
-    // Evento para el formulario de login utilizando Firebase Authentication
-    document.getElementById("login-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const storeInput = document.getElementById("store").value;
-      const emailInput = document.getElementById("username").value.trim();
-      const passwordInput = document.getElementById("password").value.trim();
-      
-      // Usamos Firebase para autenticar al usuario con su email y contraseña
-      signInWithEmailAndPassword(auth, emailInput, passwordInput)
-        .then((userCredential) => {
-          // Login exitoso: guardamos la tienda seleccionada y mostramos el contenido protegido
-          localStorage.setItem("userStore", storeInput);
-          mostrarContenido();
-        })
-        .catch((error) => {
-          console.error("Error en el login:", error);
-          alert("Credenciales incorrectas o error en la autenticación.");
+        // Escuchamos los cambios en el estado de autenticación
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Si el usuario ya está logueado, muestra el contenido
+                const userStore = localStorage.getItem("userStore");
+                mostrarContenido(userStore);
+                localStorage.setItem("loggedInUser", user.email);
+            } else {
+                // Si no, asegura que se muestre el login
+                loginContainer.style.display = "flex"; // Usar flex para centrar
+                contenidoDiv.style.display = "none";
+            }
         });
-    });
 
-    // Función para mostrar el contenido protegido tras el login
-    function mostrarContenido() {
-      document.getElementById("login-container").style.display = "none";
-      document.getElementById("contenido").style.display = "block";
-      const storeName = localStorage.getItem("userStore");
-      if (storeName) {
-        const header = document.querySelector("header h1");
-        header.textContent += " - " + storeName;
-      }
-    }
+        // Al cargar la página, llenamos el desplegable de supermercados
+        document.addEventListener("DOMContentLoaded", () => {
+            const stores = ["CAT21", "CAT22", "CAT23", "CAT24", "CAT25", "EJE4", "Alcampo Sant Quirze", "Carrefour Sant Cugat", "Carrefour Barbera"];
+            stores.forEach(store => {
+                const option = document.createElement("option");
+                option.value = store;
+                option.textContent = store;
+                storeSelect.appendChild(option);
+            });
+        });
 
-    // Función para enviar el pedido (no se envía la contraseña, solo se utiliza el email del usuario autenticado)
-    function enviarPedido() {
-      const user = auth.currentUser;
-      const email = user ? user.email : "";
-      const userStore = localStorage.getItem("userStore") || "";
+        // Evento para el formulario de login
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const storeInput = storeSelect.value;
+            const emailInput = document.getElementById("username").value.trim();
+            const passwordInput = document.getElementById("password").value.trim();
 
-      // Ejemplo de productos seleccionados (ajusta según tu lógica)
-      const products = [
-        { product: "Producto A", quantity: 2, price: 10.5 },
-        { product: "Producto B", quantity: 1, price: 5.75 }
-      ];
+            if (!storeInput) {
+                alert("Por favor, selecciona un supermercado.");
+                return;
+            }
+            
+            signInWithEmailAndPassword(auth, emailInput, passwordInput)
+                .then((userCredential) => {
+                    localStorage.setItem("userStore", storeInput);
+                    mostrarContenido(storeInput);
+                })
+                .catch((error) => {
+                    console.error("Error en el login:", error.code, error.message);
+                    alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+                });
+        });
+        
+        // Hacemos `auth` accesible globalmente para que `script.js` pueda usarlo si es necesario
+        window.auth = auth;
 
-      const pedido = {
-        email: email,
-        userStore: userStore,
-        products: products
-      };
-
-      console.log("Objeto 'pedido' que se enviará:", JSON.stringify(pedido));
-
-      // Ejemplo de envío a un endpoint seguro
-      fetch("https://TU-SERVIDOR.com/api/pedido", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pedido)
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log("Respuesta recibida:", data);
-        alert("Pedido enviado correctamente.");
-      })
-      .catch(error => {
-        console.error("Error al enviar el pedido:", error);
-        alert("Error al enviar el pedido.");
-      });
-    }
-
-    // Exponemos las funciones para poder llamarlas desde otros scripts (por ejemplo, desde script.js)
-    window.enviarPedido = enviarPedido;
-    window.mostrarContenido = mostrarContenido;
-  </script>
+    </script>
 </body>
 </html>
