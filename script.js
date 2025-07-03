@@ -874,8 +874,8 @@ offerUntil: '2025-07-31',
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2024-05-21",
-      "endDate": "2024-06-03",
+"startDate": "2024-07-02",
+      "endDate": "2024-07-15",
   "offer": false,
   "staticOffer": true,
 }
