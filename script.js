@@ -881,6 +881,16 @@ offerUntil: '2025-07-31',
   "staticOffer": true,
 }
     ],
+    "COVIRAN": [
+      { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2025-07-02",
+      "endDate": "2025-07-15",
+  "offer": false,
+  "staticOffer": true,
+}
+    ],
   "Coca Cola": [
     { 
       "name": "SEMI PACK 12 lata CC (90x2)=180", 
