@@ -767,7 +767,7 @@ offerUntil: '2025-07-15',
       { 
   "name": "", 
   "price": 0.00, 
-offerUntil: '2025-08-13',
+offerUntil: '2025-07-30',
   "offer": false,
   "staticOffer": true,
 },
