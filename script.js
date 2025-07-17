@@ -881,12 +881,47 @@ offerUntil: '2025-08-13',
   "staticOffer": true,
 }
     ],
-    "COVIRAN": [
+    "FEM COVIRAN": [
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2025-07-02",
-      "endDate": "2025-07-15",
+"startDate": "2025-07-16",
+      "endDate": "2025-07-26",
+  "offer": false,
+  "staticOffer": true,
+},
+     
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+      
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+      
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+      
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+      
+{ 
+  "name": "", 
+  "price": 0.00, 
   "offer": false,
   "staticOffer": true,
 }
