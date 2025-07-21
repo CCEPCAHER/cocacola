@@ -45,7 +45,7 @@
               
                 <button id="cart-toggle" aria-label="Ver carrito">
                     🛒
-                    </button>
+                </button>
               
                 <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title" class="hidden">
                     <div id="cart-modal-content">
@@ -59,7 +59,15 @@
             </main>
         </div>
 
-    </div> <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
+    </div> 
+    
+    <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
+    
+    <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
+      <span class="close-fullscreen-modal">&times;</span>
+      <div class="fullscreen-modal-content">
+        </div>
+    </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -72,7 +80,7 @@
         
         // Configuración de Firebase (tus datos están bien)
         const firebaseConfig = {
-            apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM", // NOTA: Considera usar variables de entorno para la API Key
+            apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
             authDomain: "cocacolaconsultas-20759.firebaseapp.com",
             projectId: "cocacolaconsultas-20759",
             storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
@@ -116,14 +124,80 @@
             }
         });
 
-        // Al cargar la página, llenamos el desplegable de supermercados
+        // Al cargar la página, llenamos el desplegable y configuramos los modals
         document.addEventListener("DOMContentLoaded", () => {
+            // Llenar el desplegable de supermercados
             const stores = ["CAT21", "CAT22", "CAT23", "CAT24", "CAT25", "EJE4", "Alcampo Sant Quirze", "Carrefour Sant Cugat", "Carrefour Barbera"];
             stores.forEach(store => {
                 const option = document.createElement("option");
                 option.value = store;
                 option.textContent = store;
                 storeSelect.appendChild(option);
+            });
+
+            // ===============================================
+            // JAVASCRIPT DEL MODAL A PANTALLA COMPLETA
+            // ===============================================
+            const productList = document.getElementById('product-list');
+            const modal = document.getElementById('fullscreen-modal');
+            const modalContent = modal.querySelector('.fullscreen-modal-content');
+            const closeModalBtn = modal.querySelector('.close-fullscreen-modal');
+
+            // Función para abrir el modal
+            function openModal(element) {
+                const source = element.dataset.fullviewSrc;
+                if (!source) {
+                    console.warn("Este producto no tiene 'data-fullview-src' para expandir.");
+                    return;
+                }
+                modalContent.innerHTML = '';
+
+                if (source.toLowerCase().endsWith('.pdf')) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = source;
+                    modalContent.appendChild(iframe);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = source;
+                    modalContent.appendChild(img);
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; 
+            }
+
+            // Función para cerrar el modal
+            function closeModal() {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modalContent.innerHTML = '';
+                }, 400);
+                document.body.style.overflow = 'auto';
+            }
+
+            // Event Listener en la lista de productos (delegación de eventos)
+            productList.addEventListener('click', function(e) {
+                const productCard = e.target.closest('.product');
+                // Se activa si se hace clic en la tarjeta, pero no en un botón, input o enlace dentro de ella
+                if (productCard && !e.target.closest('button, input, a')) {
+                    openModal(productCard);
+                }
+            });
+
+            closeModalBtn.addEventListener('click', closeModal);
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeModal();
+                }
             });
         });
 
