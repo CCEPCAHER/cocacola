@@ -505,7 +505,6 @@ offerUntil: '2025-07-15',
   "offer": false,
   "staticOffer": true,
 },
-
 { 
   "name": "", 
   "price": 0.00, 
