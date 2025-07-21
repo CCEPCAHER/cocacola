@@ -152,6 +152,7 @@ header h2 {
   position: relative;
   transition: transform var(--transition), box-shadow var(--transition);
   overflow: visible; /* Para que la etiqueta no se corte */
+  cursor: pointer; /* AÑADIDO: Indica que la tarjeta es clicable */
 }
 
 .product:hover {
@@ -167,6 +168,7 @@ header h2 {
   margin-bottom: 8px;
   background: var(--bg-light);
   transition: opacity 0.3s;
+  pointer-events: none; /* Evita que la imagen intercepte el clic de la tarjeta */
 }
 
 .product h3 {
@@ -197,6 +199,69 @@ header h2 {
 .product p s {
   color: #888;
   margin-right: 4px;
+}
+/* =======================================
+   MODAL DE VISUALIZACIÓN A PANTALLA COMPLETA
+   ======================================= */
+
+.fullscreen-modal-overlay {
+  position: fixed; /* Se queda fijo en la pantalla */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85); /* Fondo negro semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Debe estar por encima de todo lo demás */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.fullscreen-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.close-fullscreen-modal {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 3rem;
+  color: #fff;
+  cursor: pointer;
+  z-index: 2001;
+  transition: transform 0.3s;
+}
+
+.close-fullscreen-modal:hover {
+  transform: scale(1.2);
+}
+
+.fullscreen-modal-content {
+  position: relative;
+  width: 90%; /* Ancho máximo del contenido */
+  height: 90%; /* Altura máxima del contenido */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fullscreen-modal-content img,
+.fullscreen-modal-content iframe {
+  max-width: 100%;
+  max-height: 100%;
+  border: 3px solid white; /* Opcional: un borde para la imagen/PDF */
+  border-radius: 5px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.5);
+}
+
+/* Para los iframes (PDFs) */
+.fullscreen-modal-content iframe {
+  width: 100%;
+  height: 100%;
 }
 
 /* ========================
@@ -988,3 +1053,44 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 25px #ff00de, 0 0 35px #ff00de;
   }
 }
+/* ========================
+   ESTILOS PARA NAVEGACIÓN POR PESTAÑAS
+========================= */
+#tab-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background-color: #f0f4f8; /* Fondo claro para la barra de navegación */
+  border-bottom: 2px solid #ddd;
+}
+
+.tab-button {
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  background-color: #fff;
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  background-color: var(--color-primary-hover);
+  color: #fff;
+}
+
+.tab-button.active {
+  background-color: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+/* Clase para ocultar las páginas que no están activas */
+.hidden {
+  display: none !important;
+}
+
