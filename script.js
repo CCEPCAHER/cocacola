@@ -500,8 +500,8 @@ offerUntil: '2025-07-15',
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2025-07-24",
-      "endDate": "2025-08-07",
+"startDate": "2025-07-11",
+      "endDate": "2025-07-24",
   "offer": false,
   "staticOffer": true,
 },
@@ -3750,6 +3750,7 @@ offerUntil: '2025-07-30',
 "CABECERA":[0]
   };
 
+
   // =====================================================================
   // INICIALIZACIÓN Y RENDERIZADO DE LA APP
   // =====================================================================
@@ -3781,19 +3782,23 @@ offerUntil: '2025-07-30',
 
     products.forEach((product, index) => {
         const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
-        const imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
         
         // --- INICIO DE LA LÓGICA DE CORRECCIÓN ---
+        const imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
+        const imagePath = `images/${imageName}`; // Ruta de la imagen
+        // --- FIN DE LA LÓGICA DE CORRECCIÓN ---
 
-        // 1. Verificamos si el producto se puede pedir (tiene un precio válido)
         const isOrderable = typeof product.price === 'number';
         const isStatic = product.staticOffer === true;
 
-        sectionHTML += `<div class="product" data-section-name="${sectionName}">`;
-        sectionHTML += `<img data-src="images/${imageName}" alt="${escapeHTML(product.name)}" class="lazy">`;
+        // CORRECCIÓN: Se añade el atributo 'data-fullview-src' con la ruta de la imagen
+        // para que el modal sepa qué imagen mostrar.
+        sectionHTML += `<div class="product" data-section-name="${escapeHTML(sectionName)}" data-fullview-src="${imagePath}">`;
+        
+        sectionHTML += `<img data-src="${imagePath}" alt="${escapeHTML(product.name)}" class="lazy">`;
         sectionHTML += `<h3>${product.name || 'Producto sin nombre'}</h3>`;
 
-        // 2. Lógica para mostrar estado de la oferta (sin cambios)
+        // Lógica para mostrar estado de la oferta (sin cambios)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const offerEndDateStr = product.endDate || product.offerUntil;
@@ -3817,7 +3822,7 @@ offerUntil: '2025-07-30',
             sectionHTML += `<p class="offer-tag offer-status ${statusClass}">${statusText}</p>`;
         }
         
-        // 3. Si el producto SÍ se puede pedir, mostramos precio y botones
+        // Si el producto SÍ se puede pedir, mostramos precio y botones
         if (isOrderable && !isStatic) {
             const quantities = PRODUCT_QUANTITIES[product.name] || [];
             
@@ -4172,7 +4177,5 @@ offerUntil: '2025-07-30',
   }
   
   // ¡Inicia la aplicación!
-  // NOTA: Asegúrate de que las variables `sections` y `PRODUCT_QUANTITIES`
-  // estén definidas y cargadas antes de llamar a initializeApp().
   initializeApp();
 });
