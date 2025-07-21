@@ -496,100 +496,71 @@ offerUntil: '2025-07-15',
 }
 ],
 
-{
-  "FEM CARREFOUR": [
-    {
-      "name": "",
-      "price": 0.00,
-      "startDate": "2025-07-24",
-      "endDate": "2025-08-07",
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true
-    },
-    {
-      "name": "",
-      "price": 0.00,
-      "offer": false,
-      "staticOffer": true,
-      "discountOptions": {
-        "twoXone": false,
-        "threeXtwo": false,
-        "secondUnit70": false,
-        "twentyPercent": false
-      }
-    }
+"FEM CARREFOUR": [
+      { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2025-07-11",
+      "endDate": "2025-07-24",
+  "offer": false,
+  "staticOffer": true,
+},
+
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
+},
+{ 
+  "name": "",  
+  "price": 0.00,
+  "offer": false,
+  "staticOffer": true,
+  "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+}
     ],
 "FEM CARREFOUR MARKET": [
       { 
