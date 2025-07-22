@@ -760,6 +760,20 @@ offerUntil: '2025-07-15',
   "offer": false,
   "staticOffer": true,
   "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
+},
+  { 
+  "name": "", 
+  "price": 0.00, 
+"startDate": "2025-07-29",
+      "endDate": "2025-08-25",
+  "offer": false,
+  "staticOffer": true,
+},
+  { 
+  "name": "", 
+  "price": 0.00, 
+  "offer": false,
+  "staticOffer": true,
 }
     ],
 
