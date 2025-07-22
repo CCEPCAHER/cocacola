@@ -1,10 +1,17 @@
-document.addEventListener("DOMContentLoaded", function() {
-  // ============================================
-  // Código existente para productos, carrito, etc.
-  // ============================================
-  
-  // Objeto con secciones y productos
-const sections = {
+/* =========================================================================
+   APP DE PEDIDOS – script.js
+   Versión 22-jul-2025
+   - Descarga el Excel con XLSX.writeFile()
+   - Sube el pedido a Firestore con sendOrderToFirestore()
+   ========================================================================= */
+(function () {
+  'use strict';
+
+  /* -----------------------------------------------------------------------
+     1. DATOS: SECCIONES Y PRODUCTOS
+     - Rellena los productos como necesites; estructura mínima incluida.
+  ----------------------------------------------------------------------- */
+  const sections = {
     "FOCOS": [
       { 
         "name": "", 
@@ -3774,20 +3781,74 @@ offerUntil: '2025-07-30',
 "EEFF MONSTER": [0],
 "CABECERA":[0]
   };
+/* -----------------------------------------------------------------------
+   FULLSCREEN MODAL PARA IMÁGENES Y PDF
+------------------------------------------------------------------------ */
+function initFullscreenModal() {
+  const productList   = document.getElementById('product-list');
+  const modal         = document.getElementById('fullscreen-modal');
+  const modalContent  = modal.querySelector('.fullscreen-modal-content');
+  const closeBtn      = modal.querySelector('.close-fullscreen-modal');
 
+  /* abrir */
+  function openModal(card) {
+    const src = card.dataset.fullviewSrc || card.querySelector('img')?.src;
+    if (!src) return;
 
-  // =====================================================================
-  // INICIALIZACIÓN Y RENDERIZADO DE LA APP
-  // =====================================================================
-  function initializeApp() {
-    updateProductList();
-    createFilterDropdown();
-    addEventListeners();
+    modalContent.innerHTML = '';                         // limpia
+    if (src.toLowerCase().endsWith('.pdf')) {
+      const iframe = document.createElement('iframe');   // PDF
+      iframe.src = src;
+      modalContent.appendChild(iframe);
+    } else {
+      const img = document.createElement('img');         // JPG / PNG …
+      img.src = src;
+      modalContent.appendChild(img);
+    }
+    modal.classList.remove('hidden');  // la clase .hidden suele tener display:none
+    modal.classList.add('active');     // activa transiciones CSS
+    document.body.style.overflow = 'hidden';             // bloquea scroll fondo
   }
 
+  /* cerrar */
+  function closeModal() {
+    modal.classList.remove('active');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modalContent.innerHTML = '';
+      document.body.style.overflow = '';
+    }, 400);                                             // mismo tiempo que la transición
+  }
+
+  /* ─── Delegación de eventos ─── */
+  productList.addEventListener('click', e => {
+    const card = e.target.closest('.product');
+    if (card && !e.target.closest('button,input,a')) {   // no disparar sobre controles
+      e.preventDefault();
+      openModal(card);
+    }
+  });
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+  });
+}
+
+  /* -----------------------------------------------------------------------
+     2. RENDERIZADO DE LA TIENDA
+  ----------------------------------------------------------------------- */
+  function initializeApp() {
+  updateProductList();
+  createFilterDropdown();
+  addEventListeners();
+  initFullscreenModal();          // ← NUEVO
+}
+
   function updateProductList() {
-    const productListElem = document.getElementById("product-list");
+    const productListElem = document.getElementById('product-list');
     if (!productListElem) return;
+
     productListElem.innerHTML = Object.entries(sections)
       .map(([sectionName, products]) =>
         `<div class="section" data-section="${sectionName}">
@@ -3795,412 +3856,315 @@ offerUntil: '2025-07-30',
          </div>`
       )
       .join('');
+
     lazyLoadImages();
   }
 
-  // =====================================================================
-  // FUNCIÓN createSection (VERSIÓN CORREGIDA Y ROBUSTA)
-  // =====================================================================
   function createSection(sectionName, products) {
     const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
-    let sectionHTML = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
+    let html = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
 
-    products.forEach((product, index) => {
-        const buttonId = `${sectionName.replace(/\s/g, '_')}-${index}`;
-        
-        // --- INICIO DE LA LÓGICA DE CORRECCIÓN ---
-        const imageName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${index}.jpg`;
-        const imagePath = `images/${imageName}`; // Ruta de la imagen
-        // --- FIN DE LA LÓGICA DE CORRECCIÓN ---
+    products.forEach((p, i) => {
+      const btnId = `${sectionName.replace(/\s/g, '_')}-${i}`;
+      const img   = `images/${sectionName.toLowerCase().replace(/\s+/g, '_')}_${i}.jpg`;
+      const today = new Date(); today.setHours(0,0,0,0);
 
-        const isOrderable = typeof product.price === 'number';
-        const isStatic = product.staticOffer === true;
+      html += `
+        <div class="product" data-section-name="${escapeHTML(sectionName)}" data-fullview-src="${img}">
+          <img data-src="${img}" alt="${escapeHTML(p.name)}" class="lazy">
+          <h3>${p.name || 'Producto sin nombre'}</h3>
+      `;
 
-        // CORRECCIÓN: Se añade el atributo 'data-fullview-src' con la ruta de la imagen
-        // para que el modal sepa qué imagen mostrar.
-        sectionHTML += `<div class="product" data-section-name="${escapeHTML(sectionName)}" data-fullview-src="${imagePath}">`;
-        
-        sectionHTML += `<img data-src="${imagePath}" alt="${escapeHTML(product.name)}" class="lazy">`;
-        sectionHTML += `<h3>${product.name || 'Producto sin nombre'}</h3>`;
-
-        // Lógica para mostrar estado de la oferta (sin cambios)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const offerEndDateStr = product.endDate || product.offerUntil;
-        if (offerEndDateStr) {
-            const offerEndDate = new Date(offerEndDateStr);
-            const offerStartDate = product.startDate ? new Date(product.startDate) : null;
-            let statusText = '', statusClass = '';
-            if (offerEndDate < today) {
-                statusText = 'Oferta caducada';
-                statusClass = 'offer-expired';
-            } else if (offerStartDate && offerStartDate > today) {
-                const startDateFormatted = offerStartDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-                const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-                statusText = `Próxima: ${startDateFormatted} - ${endDateFormatted}`;
-                statusClass = 'offer-upcoming';
-            } else {
-                const endDateFormatted = offerEndDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                statusText = `Activa hasta: ${endDateFormatted}`;
-                statusClass = 'offer-active';
-            }
-            sectionHTML += `<p class="offer-tag offer-status ${statusClass}">${statusText}</p>`;
+      /* Etiqueta de oferta (si procede) */
+      if (p.endDate) {
+        const fin  = new Date(p.endDate);
+        const ini  = p.startDate ? new Date(p.startDate) : null;
+        let txt='', cls='';
+        if (fin < today) {
+          txt='Oferta caducada'; cls='offer-expired';
+        } else if (ini && ini > today) {
+          txt=`Próxima: ${ini.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})}
+                - ${fin.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})}`;
+          cls='offer-upcoming';
+        } else {
+          txt=`Activa hasta: ${fin.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
+          cls='offer-active';
         }
-        
-        // Si el producto SÍ se puede pedir, mostramos precio y botones
-        if (isOrderable && !isStatic) {
-            const quantities = PRODUCT_QUANTITIES[product.name] || [];
-            
-            sectionHTML += `<p class="price">€${product.price.toFixed(2)}</p>`;
-            sectionHTML += `
-                <div class="quantity-buttons">
-                    ${quantities.map(value => `<button onclick="setQuantity(this, ${value})">${value}</button>`).join('')}
-                    <input type="number" placeholder="Otro" oninput="validateInput(this)">
-                </div>
-                <button id="${buttonId}"
-                        class="add-btn"
-                        data-product-name="${escapeHTML(product.name)}"
-                        data-product-price="${product.price}"
-                        onclick="addToCart(this)">
-                    Agregar
-                </button>`;
-        } else if (!isOrderable && !isStatic) {
-            // Opcional: Mostrar un mensaje si un producto no estático no tiene precio
-            sectionHTML += `<p class="price-unavailable">Precio no disponible</p>`;
-        }
-        
-        sectionHTML += `</div>`; // Cierre de div.product
+        html += `<p class="offer-tag ${cls}">${txt}</p>`;
+      }
+
+      /* Precio + controles */
+      if (!p.staticOffer && typeof p.price === 'number') {
+        const qs = PRODUCT_QUANTITIES[p.name] || [];
+        html += `<p class="price">€${p.price.toFixed(2)}</p>
+          <div class="quantity-buttons">
+            ${qs.map(q => `<button onclick="setQuantity(this,${q})">${q}</button>`).join('')}
+            <input type="number" placeholder="Otro" oninput="validateInput(this)">
+          </div>
+          <button id="${btnId}" class="add-btn"
+                  data-product-name="${escapeHTML(p.name)}"
+                  data-product-price="${p.price}"
+                  onclick="addToCart(this)">Agregar</button>`;
+      }
+
+      html += `</div>`;   // .product
     });
 
-    sectionHTML += `</div>`; // Cierre de div.carousel-container
-    return sectionHTML;
+    html += `</div>`;      // .carousel-container
+    return html;
   }
 
-  // =====================================================================
-  // LÓGICA DEL CARRITO
-  // =====================================================================
-  function setQuantity(button, value) {
-    let input = button.parentElement.querySelector('input');
-    input.value = value;
+  /* -----------------------------------------------------------------------
+     3. CARRITO
+  ----------------------------------------------------------------------- */
+  function setQuantity(btn, v) {
+    const input = btn.parentElement.querySelector('input');
+    input.value = v;
   }
-
   function validateInput(input) {
     if (input.value < 0) input.value = 0;
   }
 
-  function updateTotalDisplay(total) {
-    const totalDisplay = document.getElementById('total-display');
-    const modalTotal = document.getElementById('modal-total');
-    if(totalDisplay) totalDisplay.innerText = 'Total: €' + total.toFixed(2);
-    if(modalTotal) modalTotal.innerText = 'Total: €' + total.toFixed(2);
+  function updateTotalDisplay(t) {
+    const out = `Total: €${t.toFixed(2)}`;
+    ['total-display', 'modal-total']
+      .forEach(id => { const el=document.getElementById(id); if (el) el.innerText=out; });
   }
 
   function updateTotalPrice() {
     let total = 0;
-    document.querySelectorAll('#cart-items-modal .cart-item').forEach(item => {
-      const itemPrice = parseFloat(item.dataset.price);
-      if (!isNaN(itemPrice)) {
-        total += itemPrice;
-      }
-    });
+    document.querySelectorAll('#cart-items-modal .cart-item')
+      .forEach(it => total += parseFloat(it.dataset.price) || 0);
     updateTotalDisplay(total);
   }
 
-  function addToCart(button) {
-      const productName = button.dataset.productName;
-      const productPrice = parseFloat(button.dataset.productPrice);
-      let input = button.parentElement.querySelector('input[type="number"]');
-      
-      if (!input || input.value.trim() === '') {
-          alert("Por favor, ingresa una cantidad.");
-          return;
-      }
-      
-      let quantity = parseInt(input.value, 10);
+  function addToCart(btn) {
+    const name  = btn.dataset.productName;
+    const price = parseFloat(btn.dataset.productPrice);
+    const input = btn.parentElement.querySelector('input[type="number"]');
 
-      if (isNaN(quantity) || quantity <= 0) {
-          alert("Por favor, ingresa una cantidad numérica válida y mayor que cero.");
-          return;
-      }
-      if (button.classList.contains('added')) {
-          alert("Este producto ya ha sido añadido.");
-          return;
-      }
-      
-      const sectionName = button.closest('[data-section-name]').dataset.sectionName || 'General';
+    if (!input || !input.value.trim()) { alert('Ingresa una cantidad'); return; }
+    const qty = parseInt(input.value,10);
+    if (!qty || qty<=0)         { alert('Cantidad no válida'); return; }
+    if (btn.classList.contains('added')) { alert('Ya añadido'); return; }
 
-      button.classList.add('added');
-      button.style.backgroundColor = '#ffa500';
-      button.innerText = 'Añadido';
+    const section = btn.closest('[data-section-name]').dataset.sectionName || 'General';
+    const cart    = document.getElementById('cart-items-modal');
+    if (cart.innerText.trim()==='No hay productos añadidos.') cart.innerHTML='';
 
-      let cartItemsContainer = document.getElementById("cart-items-modal");
-      if (cartItemsContainer.innerText.trim() === 'No hay productos añadidos.') {
-          cartItemsContainer.innerHTML = '';
-      }
+    const subtotal = price*qty;
+    cart.insertAdjacentHTML('beforeend',`
+      <div class="cart-item" data-price="${subtotal.toFixed(2)}"
+           data-section="${section}" data-quantity="${qty}"
+           data-product-name="${name}">
+        <span class="cart-product-name">${name}</span> – ${qty} uds – €${subtotal.toFixed(2)}
+        <button class="remove-btn" onclick="removeFromCart(this,'${btn.id}')">Eliminar</button>
+      </div>`);
 
-      const totalPrice = productPrice * quantity;
-
-      cartItemsContainer.innerHTML += `
-        <div class="cart-item"
-             data-price="${totalPrice.toFixed(2)}"
-             data-section="${sectionName}"
-             data-quantity="${quantity}"
-             data-product-name="${productName}">
-          <span class="cart-product-name">${productName}</span> - ${quantity} uds - €${totalPrice.toFixed(2)}
-          <button class="remove-btn" onclick="removeFromCart(this, '${button.id}')">Eliminar</button>
-        </div>`;
-      updateTotalPrice();
-      showToast("Producto añadido: " + productName);
+    btn.classList.add('added'); btn.style.background='#28a745'; btn.textContent='Añadido';
+    updateTotalPrice(); showToast(`Producto añadido: ${name}`);
   }
 
-  function removeFromCart(button, buttonId) {
-    button.parentElement.remove();
-    const addButton = document.getElementById(buttonId);
-    if (addButton) {
-      addButton.classList.remove('added');
-      addButton.style.backgroundColor = '#2c7a7b';
-      addButton.innerText = 'Agregar';
-      const input = addButton.parentElement.querySelector('input[type="number"]');
-      if (input) input.value = "";
+  function removeFromCart(removeBtn, addBtnId) {
+    removeBtn.parentElement.remove();
+    const addBtn=document.getElementById(addBtnId);
+    if (addBtn){
+      addBtn.classList.remove('added');
+      addBtn.style.background='#E41A1C';
+      addBtn.textContent='Agregar';
+      const input = addBtn.parentElement.querySelector('input[type="number"]');
+      if (input) input.value='';
     }
-    let cartItemsContainer = document.getElementById("cart-items-modal");
-    if (cartItemsContainer.children.length === 0) {
-      cartItemsContainer.innerHTML = 'No hay productos añadidos.';
-    }
+    const cart=document.getElementById('cart-items-modal');
+    if (!cart.children.length) cart.innerHTML='No hay productos añadidos.';
     updateTotalPrice();
   }
-  
+
+  /** Devuelve array de items {product,quantity,totalPrice,section} o null */
   function collectCartData() {
     const cartItems = document.querySelectorAll('#cart-items-modal .cart-item');
-    if (cartItems.length === 0) {
-      return null;
-    }
-    const orderData = Array.from(cartItems).map(item => {
-        const qty = parseInt(item.dataset.quantity, 10);
-        return {
-            product: item.dataset.productName,
-            quantity: isNaN(qty) ? 0 : qty,
-            totalPrice: parseFloat(item.dataset.price),
-            section: item.dataset.section
-        };
+    if (!cartItems.length) return null;
+    return Array.from(cartItems).map(it=>{
+      const q = parseInt(it.dataset.quantity,10) || 0;
+      return {
+        product    : it.dataset.productName,
+        quantity   : q,
+        totalPrice : parseFloat(it.dataset.price) || 0,
+        section    : it.dataset.section
+      };
     });
-    return orderData;
   }
 
+  /** Comprueba que no queden inputs con cantidad sin añadir */
   function checkPendingInputs() {
     for (const div of document.querySelectorAll('.product')) {
       const input = div.querySelector('input[type="number"]');
-      const addButton = div.querySelector('.add-btn');
-      if (input && input.value && parseInt(input.value) > 0 && addButton && !addButton.classList.contains('added')) {
-        const productName = div.querySelector('h3')?.innerText || "un producto";
-        alert(`Ha olvidado añadir ${productName} al carrito. Por favor, añádalo o borre la cantidad.`);
+      const add   = div.querySelector('.add-btn');
+      if (input && input.value && parseInt(input.value)>0 && add && !add.classList.contains('added')){
+        alert(`Falta añadir ${div.querySelector('h3')?.innerText||'un producto'} al carrito.`);
         return true;
       }
     }
     return false;
   }
 
+  /* -----------  FINALIZAR PEDIDO  --------------------------------------- */
   function submitOrder() {
     if (checkPendingInputs()) return;
-    const orderItems = collectCartData();
-    if (!orderItems) {
-      alert("El carrito está vacío. Añade productos para continuar.");
-      return;
+
+    const items = collectCartData();
+    if (!items) { alert('Carrito vacío'); return; }
+
+    if (!confirm('¿Finalizar y descargar pedido?')) return;
+
+    /* 1. Guardar en Firestore (definido en index.html módulo) */
+    if (typeof window.sendOrderToFirestore === 'function') {
+      window.sendOrderToFirestore(items);
     }
-    if (confirm("¿Estás seguro de que deseas finalizar el pedido?")) {
-      exportToExcel(orderItems);
-      document.getElementById("cart-items-modal").innerHTML = 'No hay productos añadidos.';
-      updateTotalDisplay(0);
-      document.querySelectorAll('.add-btn').forEach(btn => {
-        btn.classList.remove('added');
-        btn.style.backgroundColor = '#2c7a7b';
-        btn.innerText = 'Agregar';
-      });
-       document.querySelectorAll('.product input[type="number"]').forEach(input => {
-        input.value = '';
-      });
-      toggleCart();
-      alert("Pedido descargado exitosamente.");
-    }
+
+    /* 2. Descargar Excel */
+    exportToExcel(items);
+
+    /* 3. Reset visual */
+    document.getElementById('cart-items-modal').innerHTML = 'No hay productos añadidos.';
+    updateTotalDisplay(0);
+    document.querySelectorAll('.add-btn').forEach(b=>{
+      b.classList.remove('added'); b.style.background='#E41A1C'; b.textContent='Agregar';
+    });
+    document.querySelectorAll('.product input[type="number"]').forEach(i=>i.value='');
+    toggleCart();
+    alert('✅ Pedido enviado y descargado');
   }
 
+  /* -----------  EXCEL (XLSX.js)  ---------------------------------------- */
   function exportToExcel(order) {
-    if (!order || order.length === 0) return;
+    if (!order || !order.length) return;
 
-    const storeName = localStorage.getItem("userStore") || "Tienda no especificada";
-    const userName = localStorage.getItem("loggedInUser") || "Usuario no identificado";
-    const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const fileName = `Pedido_${storeName.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
+    const store = localStorage.getItem('userStore')   || 'Tienda';
+    const user  = localStorage.getItem('loggedInUser')|| 'Usuario';
+    const date  = new Date().toLocaleDateString('es-ES');
+    const file  = `Pedido_${store.replace(/\s/g,'_')}_${date.replace(/\//g,'-')}.xlsx`;
 
-    const groupedOrder = order.reduce((acc, item) => {
-        (acc[item.section] = acc[item.section] || []).push(item);
-        return acc;
-    }, {});
+    /* Agrupar por sección */
+    const grouped = order.reduce((a,i)=>{
+      (a[i.section]=a[i.section]||[]).push(i); return a;
+    },{});
 
-    let excelData = [];
-    let grandTotal = 0;
+    const sheet = [
+      [`Pedido para: ${store}`],
+      [`Realizado por: ${user}`],
+      [`Fecha: ${date}`],
+      []
+    ];
 
-    excelData.push([`Pedido para: ${storeName}`], [`Realizado por: ${userName}`], [`Fecha: ${date}`], []);
-    const tableHeader = ["Producto", "Unidades", "Precio Unit.", "Subtotal"];
-
-    for (const sectionName in groupedOrder) {
-        excelData.push([sectionName.toUpperCase()], tableHeader);
-        let sectionSubtotal = 0;
-
-        groupedOrder[sectionName].forEach(item => {
-            const quantity = (typeof item.quantity === 'number' && !isNaN(item.quantity)) ? item.quantity : 0;
-            const totalPrice = (typeof item.totalPrice === 'number' && !isNaN(item.totalPrice)) ? item.totalPrice : 0;
-            const unitPrice = (quantity > 0) ? (totalPrice / quantity) : 0;
-
-            excelData.push([
-                item.product,
-                quantity,
-                { t: 'n', v: unitPrice, z: '€#,##0.00' },
-                { t: 'n', v: totalPrice, z: '€#,##0.00' }
-            ]);
-            sectionSubtotal += totalPrice;
-        });
-
-        excelData.push([`Subtotal ${sectionName}`, "", "", { t: 'n', v: sectionSubtotal, z: '€#,##0.00' }], []);
-        grandTotal += sectionSubtotal;
+    let grandTotal=0;
+    for (const sec in grouped){
+      sheet.push([sec]);
+      sheet.push(['Producto','Unidades','Precio Unit.','Subtotal']);
+      let subtotal=0;
+      grouped[sec].forEach(i=>{
+        const unit = i.quantity ? i.totalPrice/i.quantity : 0;
+        sheet.push([i.product,i.quantity,unit,i.totalPrice]);
+        subtotal+=i.totalPrice;
+      });
+      sheet.push([`Subtotal ${sec}`,'','',subtotal],[]);
+      grandTotal+=subtotal;
     }
+    sheet.push([],['TOTAL','','',grandTotal]);
 
-    excelData.push([]);
-    excelData.push(["TOTAL GENERAL", "", "", { t: 'n', v: grandTotal, z: '€#,##0.00' }]);
-
-    const ws = XLSX.utils.aoa_to_sheet(excelData);
-    ws["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
-    
-    const merges = [];
-    let currentRow = 0;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } }); currentRow++;
-    currentRow++;
-
-    for (const sectionName in groupedOrder) {
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 3 } });
-        currentRow += groupedOrder[sectionName].length + 2;
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
-        currentRow += 2;
-    }
-    
-    currentRow++;
-    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 2 } });
-    ws['!merges'] = merges;
-
+    const ws = XLSX.utils.aoa_to_sheet(sheet);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedido Detallado");
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => { document.body.removeChild(link); }, 100);
+    XLSX.utils.book_append_sheet(wb,ws,'Pedido');
+    XLSX.writeFile(wb,file);
   }
 
-  // =====================================================================
-  // FUNCIONES DE UI Y FILTROS
-  // =====================================================================
+  /* -----------------------------------------------------------------------
+     4. UTILIDADES DE UI
+  ----------------------------------------------------------------------- */
   function toggleCart() {
-    document.getElementById("cart-modal")?.classList.toggle("active");
+    document.getElementById('cart-modal')?.classList.toggle('active');
   }
-
-  function showToast(message) {
-    let toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerText = message;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 500);
-      }, 2000);
-    }, 100);
+  function showToast(msg) {
+    const t=document.createElement('div');
+    t.className='toast'; t.innerText=msg;
+    document.body.appendChild(t);
+    setTimeout(()=>{t.classList.add('show');},100);
+    setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),500);},2500);
   }
-
   function lazyLoadImages() {
-    const lazyImages = [...document.querySelectorAll('img.lazy')];
+    const imgs=[...document.querySelectorAll('img.lazy')];
     if ('IntersectionObserver' in window) {
-      let observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            let img = entry.target;
-            img.src = img.dataset.src;
-            img.classList.remove('lazy');
-            obs.unobserve(img);
+      const obs=new IntersectionObserver((entries,o)=>{
+        entries.forEach(e=>{
+          if (e.isIntersecting){
+            e.target.src=e.target.dataset.src; e.target.classList.remove('lazy'); o.unobserve(e.target);
           }
         });
       });
-      lazyImages.forEach(img => observer.observe(img));
+      imgs.forEach(i=>obs.observe(i));
     } else {
-      lazyImages.forEach(img => {
-        img.src = img.dataset.src;
-        img.classList.remove('lazy');
-      });
+      imgs.forEach(i=>{ i.src=i.dataset.src; i.classList.remove('lazy'); });
     }
   }
 
+  /* -----------------------------------------------------------------------
+     5. FILTRO POR SECCIÓN
+  ----------------------------------------------------------------------- */
   function createFilterDropdown() {
-      const filterContainer = document.getElementById("filter-container");
-      if (!filterContainer) return;
-      filterContainer.innerHTML = "";
-      const dropdownWrapper = document.createElement("div");
-      dropdownWrapper.className = "dropdown";
-      const dropdownButton = document.createElement("button");
-      dropdownButton.className = "filter-dropdown-btn";
-      dropdownButton.textContent = "Filtrar por sección ▼";
-      const dropdownContent = document.createElement("div");
-      dropdownContent.className = "dropdown-content";
-      dropdownButton.onclick = () => dropdownContent.classList.toggle("show");
-      const createOption = (text, section) => {
-          const option = document.createElement("a");
-          option.href = "#";
-          option.textContent = text;
-          option.onclick = (e) => {
-              e.preventDefault();
-              filterSections(section);
-              dropdownContent.classList.remove("show");
-              dropdownButton.textContent = `Filtrar: ${text} ▼`;
-          };
-          return option;
+    const wrap=document.getElementById('filter-container');
+    if (!wrap) return;
+
+    wrap.innerHTML='';
+    const dd = document.createElement('div'); dd.className='dropdown';
+    const btn= document.createElement('button'); btn.className='filter-dropdown-btn';
+    btn.textContent='Filtrar por sección ▼';
+    const list=document.createElement('div'); list.className='dropdown-content';
+
+    btn.onclick=()=>list.classList.toggle('show');
+    const addOpt=(txt,sec)=>{
+      const a=document.createElement('a'); a.href='#'; a.textContent=txt;
+      a.onclick=e=>{
+        e.preventDefault();
+        filterSections(sec); list.classList.remove('show');
+        btn.textContent=`Filtrar: ${txt} ▼`;
       };
-      dropdownContent.appendChild(createOption("Todos", "Todos"));
-      Object.keys(sections).forEach(sectionName => {
-          dropdownContent.appendChild(createOption(sectionName, sectionName));
-      });
-      dropdownWrapper.append(dropdownButton, dropdownContent);
-      filterContainer.appendChild(dropdownWrapper);
+      list.appendChild(a);
+    };
+    addOpt('Todos','Todos');
+    Object.keys(sections).forEach(s=>addOpt(s,s));
+
+    dd.append(btn,list); wrap.appendChild(dd);
   }
 
-  function filterSections(selectedSection) {
-    document.querySelectorAll('.section').forEach(elem => {
-      elem.style.display = (selectedSection === "Todos" || elem.dataset.section === selectedSection) ? "" : "none";
+  function filterSections(sel) {
+    document.querySelectorAll('.section').forEach(el=>{
+      el.style.display = (sel==='Todos'||el.dataset.section===sel) ? '' : 'none';
     });
   }
-  
-  // =====================================================================
-  // ASIGNACIÓN DE EVENTOS Y ARRANQUE
-  // =====================================================================
-  function addEventListeners() {
-    document.getElementById("cart-toggle")?.addEventListener('click', toggleCart);
-    document.getElementById('submit-order')?.addEventListener('click', submitOrder);
-    document.getElementById('close-modal')?.addEventListener('click', toggleCart);
-  }
 
-  Object.assign(window, {
-      setQuantity, validateInput, addToCart, removeFromCart, toggleCart
-  });
+  /* -----------------------------------------------------------------------
+     6. REGISTRO DE EVENTOS Y SERVICE WORKER
+  ----------------------------------------------------------------------- */
+  function addEventListeners() {
+    document.getElementById('cart-toggle') ?.addEventListener('click',toggleCart);
+    document.getElementById('submit-order')?.addEventListener('click',submitOrder);
+    document.getElementById('close-modal') ?.addEventListener('click',toggleCart);
+  }
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log("Service Worker registrado."))
-      .catch(err => console.error("Error en Service Worker:", err));
+      .then(()=>console.log('Service Worker registrado'))
+      .catch(err=>console.error('SW error',err));
   }
-  
-  // ¡Inicia la aplicación!
+
+  /* -----------------------------------------------------------------------
+     7. LANZAR APP
+  ----------------------------------------------------------------------- */
   initializeApp();
-});
+
+  /* Hacer funciones globales para HTML inline */
+  Object.assign(window,{
+    setQuantity, validateInput, addToCart, removeFromCart, toggleCart
+  });
+
+})();  /* IIFE */
