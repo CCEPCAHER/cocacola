@@ -12,17 +12,18 @@
   --bg-light: #f0f4f8;
   --font: 'Arial', sans-serif;
 }
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:var(--font);
+  background:linear-gradient(135deg,#f5f7fa,#c3cfe2);
+  color:var(--color-text);
+  padding-bottom:120px; /* Espacio para elementos fijos */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-body {
-  font-family: var(--font);
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-  color: var(--color-text);
-  padding-bottom: 120px; /* Espacio para elementos fijos */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* ========================
@@ -36,7 +37,6 @@ header {
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   border-bottom: 3px solid var(--color-primary-hover);
 }
-
 header h1 {
   font-size: clamp(2rem, 4vw, 2.4rem);
   margin-bottom: 0.5rem;
@@ -44,7 +44,6 @@ header h1 {
   letter-spacing: 1px;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
-
 header h2 {
   font-size: 1.2rem;
   margin-top: 0.5rem;
@@ -52,18 +51,18 @@ header h2 {
 }
 
 /* ========================
-   TOTAL VISIBLE FIJO (estilo caja registradora – tamaño original)
+   TOTAL VISIBLE FIJO (estilo caja registradora)
 ========================= */
 #total-display {
   position: fixed;
-  top: 100px; /* Ajustado según la altura del header */
+  top: 100px;
   right: 20px;
   z-index: 9999;
   background: linear-gradient(to bottom, #2e2e2e, #1a1a1a);
   padding: 10px 16px;
   border: 1px solid #0f0;
   border-radius: 5px;
-  font-family: 'Digital-7', 'Courier New', monospace; /* Fuente digital o monospace */
+  font-family: 'Digital-7', 'Courier New', monospace;
   font-size: 1em;
   color: #0f0;
   letter-spacing: 1px;
@@ -71,7 +70,6 @@ header h2 {
   box-shadow: inset 0 0 6px #0f0, 0 4px 8px rgba(0, 255, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 #total-display:hover {
   transform: translateY(-3px);
   box-shadow: inset 0 0 6px #0f0, 0 6px 12px rgba(0, 255, 0, 0.5);
@@ -96,8 +94,6 @@ header h2 {
   text-align: center;
   margin: 20px 0 10px;
 }
-
-/* Fondos personalizados para cada sección (ajusta o elimina según necesites) */
 .section-title:nth-of-type(1) { background: #c0392b; }
 .section-title:nth-of-type(2) { background: #34495e; }
 .section-title:nth-of-type(3) { background: #7f8c8d; }
@@ -127,11 +123,9 @@ header h2 {
   gap: 10px;
   padding-bottom: 10px;
 }
-
 .carousel-container::-webkit-scrollbar {
   height: 6px;
 }
-
 .carousel-container::-webkit-scrollbar-thumb {
   background: var(--color-primary);
   border-radius: 3px;
@@ -151,15 +145,13 @@ header h2 {
   align-items: center;
   position: relative;
   transition: transform var(--transition), box-shadow var(--transition);
-  overflow: visible; /* Para que la etiqueta no se corte */
-  cursor: pointer; /* AÑADIDO: Indica que la tarjeta es clicable */
+  overflow: visible;
+  cursor: pointer;
 }
-
 .product:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
-
 .product img {
   width: 100%;
   height: 190px;
@@ -168,9 +160,8 @@ header h2 {
   margin-bottom: 8px;
   background: var(--bg-light);
   transition: opacity 0.3s;
-  pointer-events: none; /* Evita que la imagen intercepte el clic de la tarjeta */
+  pointer-events: none;
 }
-
 .product h3 {
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   margin-bottom: 4px;
@@ -183,7 +174,6 @@ header h2 {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-
 .product p {
   font-size: clamp(0.9rem, 2vw, 1rem);
   margin-bottom: 8px;
@@ -195,99 +185,32 @@ header h2 {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-
 .product p s {
   color: #888;
   margin-right: 4px;
 }
-/* =======================================
-   MODAL DE VISUALIZACIÓN A PANTALLA COMPLETA
-   ======================================= */
-
-.fullscreen-modal-overlay {
-  position: fixed; /* Se queda fijo en la pantalla */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85); /* Fondo negro semitransparente */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000; /* Debe estar por encima de todo lo demás */
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-
-.fullscreen-modal-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.close-fullscreen-modal {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 3rem;
-  color: #fff;
-  cursor: pointer;
-  z-index: 2001;
-  transition: transform 0.3s;
-}
-
-.close-fullscreen-modal:hover {
-  transform: scale(1.2);
-}
-
-.fullscreen-modal-content {
-  position: relative;
-  width: 90%; /* Ancho máximo del contenido */
-  height: 90%; /* Altura máxima del contenido */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.fullscreen-modal-content img,
-.fullscreen-modal-content iframe {
-  max-width: 100%;
-  max-height: 100%;
-  border: 3px solid white; /* Opcional: un borde para la imagen/PDF */
-  border-radius: 5px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.5);
-}
-
-/* Para los iframes (PDFs) */
-.fullscreen-modal-content iframe {
-  width: 100%;
-  height: 100%;
-}
 
 /* ========================
-   ETIQUETA DE OFERTA (MODIFICADO PARA ESTILO SPAM)
+   ETIQUETA DE OFERTA (SPAM)
 ========================= */
 .offer-tag {
   position: absolute;
   top: 8px;
-  left: -5px; /* Ligeramente fuera para llamar la atención */
+  left: -5px;
   background: linear-gradient(45deg, #ff416c, #ff4b2b);
   color: #fff;
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 0.9em;
-  font-weight: 700; /* Texto en negrita */
-  text-transform: uppercase; /* Texto en mayúsculas */
+  font-weight: 700;
+  text-transform: uppercase;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
   box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-  border: 2px dashed yellow; /* Borde llamativo */
-  transform: rotate(-4deg); /* Rotación para un look más dinámico */
-  z-index: 5; /* Asegura que esté por encima de otros elementos */
-  
-  /* Animación constante para atraer la vista */
+  border: 2px dashed yellow;
+  transform: rotate(-4deg);
+  z-index: 5;
   animation: spam-shake-grow 1s infinite;
 }
-
 
 /* ========================
    CONTROLES DE CANTIDAD
@@ -298,7 +221,6 @@ header h2 {
   gap: 6px;
   margin-bottom: 8px;
 }
-
 .quantity-buttons button {
   background: var(--color-primary);
   color: #fff;
@@ -309,11 +231,9 @@ header h2 {
   cursor: pointer;
   transition: background var(--transition);
 }
-
 .quantity-buttons button:hover {
   background: var(--color-primary-hover);
 }
-
 .quantity-buttons input {
   width: 50px;
   padding: 8px;
@@ -337,47 +257,35 @@ header h2 {
   cursor: pointer;
   transition: background 0.3s ease, color 0.3s ease;
 }
-
 .add-btn:hover {
   background: #C31A17;
 }
-
 .add-btn.added {
   background: #28a745;
   color: #fff;
   cursor: default;
 }
 
-/* ========================
-   MODAL DEL CARRITO
-========================= */
-#cart-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.8);
-  background: #fff;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  z-index: 1100;
-  transition: transform 0.4s, opacity 0.4s;
-  opacity: 0;
-  pointer-events: none;
+/* =======================================================================
+   MODAL CARRITO
+------------------------------------------------------------------------ */
+#cart-modal{                          /* CERRADO */
+  pointer-events:none;                /* ← bloquea clics invisibles */
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.8);
+  background:#fff;width:90%;max-width:500px;
+  border-radius:15px;padding:20px;
+  opacity:0;transition:transform .4s,opacity .4s;
+  z-index:1100;
 }
-
-#cart-modal.active {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-  pointer-events: auto;
+#cart-modal.active{                   /* ABIERTO */
+  pointer-events:auto;                /* ← acepta toques */
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
 }
-
 #cart-modal-content {
   position: relative;
 }
-
 #close-modal {
   position: absolute;
   top: 20px;
@@ -388,14 +296,12 @@ header h2 {
   cursor: pointer;
   color: var(--color-text);
 }
-
 #cart-items-modal {
   max-height: 300px;
   overflow-y: auto;
   margin-bottom: 10px;
   padding-right: 10px;
 }
-
 .cart-item {
   display: flex;
   justify-content: space-between;
@@ -406,11 +312,9 @@ header h2 {
   border-bottom: 1px solid #E41A1C;
   font-size: 1em;
 }
-
 .cart-item:last-child {
   border-bottom: none;
 }
-
 .remove-btn {
   background: var(--color-error);
   color: #fff;
@@ -420,11 +324,9 @@ header h2 {
   cursor: pointer;
   transition: background var(--transition);
 }
-
 .remove-btn:hover {
   background: #c82333;
 }
-
 #modal-total {
   text-align: center;
   font-size: 1.2em;
@@ -434,6 +336,41 @@ header h2 {
   background: #ffccbc;
   border-radius: 8px;
   margin: 12px 0;
+}
+
+/* =======================================================================
+   FULLSCREEN MODAL – AÑADIDO PARA ZOOM DE IMÁGENES
+------------------------------------------------------------------------ */
+.fullscreen-modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.85);
+  display:flex;justify-content:center;align-items:center;
+  opacity:0;visibility:hidden;
+  transition:opacity .4s ease,visibility .4s ease;
+  z-index:2000;
+}
+.fullscreen-modal-overlay.active{
+  opacity:1;visibility:visible;
+}
+.close-fullscreen-modal{
+  position:absolute;top:20px;right:30px;
+  font-size:3rem;color:#fff;
+  cursor:pointer;z-index:2001;
+  transition:transform .3s;
+}
+.close-fullscreen-modal:hover{transform:scale(1.2);}
+.fullscreen-modal-content{
+  width:90%;height:90%;display:flex;justify-content:center;align-items:center;
+}
+.fullscreen-modal-content img,
+.fullscreen-modal-content iframe{
+  max-width:100%;max-height:100%;
+  border:3px solid #fff;border-radius:5px;
+  box-shadow:0 0 25px rgba(0,0,0,.5);
+}
+.fullscreen-modal-content iframe {
+  width: 100%;
+  height: 100%;
 }
 
 /* ========================
@@ -451,7 +388,6 @@ header h2 {
   cursor: pointer;
   transition: background var(--transition), transform var(--transition);
 }
-
 #submit-order:hover {
   background: var(--color-primary-hover);
   transform: scale(1.02);
@@ -486,7 +422,6 @@ header h2 {
   backdrop-filter: blur(5px);
   animation: pulse 2s infinite;
 }
-
 #cart-toggle:hover {
   transform: scale(1.15) rotate(10deg);
   box-shadow: 
@@ -498,11 +433,9 @@ header h2 {
     rgba(255, 255, 255, 0.3) 70%);
   filter: brightness(1.1);
 }
-
 #cart-toggle:active {
   transform: scale(0.95);
 }
-
 .cart-quantity {
   position: absolute;
   top: -5px;
@@ -519,7 +452,6 @@ header h2 {
   min-width: 28px;
   text-align: center;
 }
-
 @keyframes pulse {
   0% { box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.4); }
   50% { box-shadow: 0 0 25px 10px rgba(255, 215, 0, 0.5); }
@@ -543,21 +475,9 @@ header h2 {
   transition: opacity 0.5s, transform 0.5s;
   z-index: 1300;
 }
-
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
-}
-
-/* ========================
-   MEDIA QUERIES
-========================= */
-@media (orientation: portrait) {
-  .product img {
-    height: auto;
-    max-height: 190px;
-    object-fit: contain;
-  }
 }
 
 /* ========================
@@ -575,7 +495,6 @@ header h2 {
   align-items: center;
   z-index: 1500;
 }
-
 #login-form {
   background: rgba(199, 181, 181, 0.046);
   padding: 2rem;
@@ -584,12 +503,10 @@ header h2 {
   text-align: center;
   width: 320px;
 }
-
 #login-form h2 {
   color: var(--color-text);
   margin-bottom: 1rem;
 }
-
 #login-form select,
 #login-form input,
 #login-form button {
@@ -601,30 +518,25 @@ header h2 {
   font-size: 1rem;
   transition: var(--transition);
 }
-
 #login-form select,
 #login-form input {
   background: var(--bg-light);
   color: var(--color-text);
 }
-
 #login-form input::placeholder {
   color: #140e0e;
   opacity: 0.8;
 }
-
 #login-form input:focus {
   outline: none;
   box-shadow: 0 0 5px var(--color-primary);
 }
-
 #login-form button {
   background: #E41A1C;
   color: #FFFFFF;
   font-weight: bold;
   cursor: pointer;
 }
-
 #login-form button:hover {
   background: #C31A17;
 }       
@@ -643,7 +555,6 @@ header h2 {
   z-index: 2;
   margin-bottom: 2px;
 }
-
 .discount-tag.twoXone      { background-color: #4caf50; }
 .discount-tag.threeXtwo    { background-color: #2196f3; }
 .discount-tag.secondUnit70 { background-color: #9c27b0; }
@@ -653,11 +564,6 @@ header h2 {
 .discount-tag.travel       { background-color: #3f51b5; }
 .discount-tag.draw         { background-color: #f44336; }
 .discount-tag.promoWeb     { background-color: #ff5722; }
-
-/* ================================
-   NUEVOS DESCUENTOS: TARJETAS Y 2DA
-================================== */
-/* Tarjeta Cliente 25% */
 .discount-tag.client-card25 {
   background-color: #00bcd4;
   border: 1px solid #fff;
@@ -665,8 +571,6 @@ header h2 {
   padding: 4px 8px;
   border-radius: 5px;
 }
-
-/* Tarjeta Cliente 15% */
 .discount-tag.client-card15 {
   background-color: #0097a7;
   border: 1px solid #fff;
@@ -674,8 +578,6 @@ header h2 {
   padding: 4px 8px;
   border-radius: 5px;
 }
-
-/* Segunda unidad a mitad de precio */
 .discount-tag.second-unit50 {
   background-color: #ffeb3b;
   color: #000;
@@ -684,14 +586,14 @@ header h2 {
   padding: 4px 8px;
   border-radius: 5px;
 }
+
 /* ========================
-   CONTENEDOR DE IMAGEN
+   CONTENEDOR DE IMAGEN Y LOGOS
 ========================= */
 .product-image-container {
   position: relative;
   display: inline-block;
 }
-
 .logo-container {
   position: absolute;
   bottom: 150px;
@@ -706,7 +608,6 @@ header h2 {
   border-radius: 6px;
   box-shadow: none;
 }
-
 .logo-container img {
   width: 30px;
   height: 30px;
@@ -714,7 +615,6 @@ header h2 {
   margin: 0;
   transition: transform 0.3s;
 }
-
 .logo-container img:hover {
   transform: scale(1.1);
 }
@@ -728,7 +628,6 @@ header h2 {
   left: 70px;
   z-index: 2;
 }
-
 .focus-text {
   display: inline-block;
   padding: 4px 8px;
@@ -739,29 +638,17 @@ header h2 {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(0,0,0,0.2);
 }
-
-.foco1 .focus-text {
-  background-color: gold;
-  color: #333;
-}
-
-.foco2 .focus-text {
-  background-color: #6c757d;
-  color: white;
-}
-
-.foco3 .focus-text {
-  background-color: #cd7f32;
-  color: white;
-}
-
-.foco4 .focus-text {
-  background-color: #6f42c1;
-  color: white;
+.foco1 .focus-text { background-color: gold; color: #333; }
+.foco2 .focus-text { background-color: #6c757d; color: white; }
+.foco3 .focus-text { background-color: #cd7f32; color: white; }
+.foco4 .focus-text { background-color: #6f42c1; color: white; }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* ========================
-   BOTÓN AÑADIR AL CARRITO
+   BOTÓN AÑADIR AL CARRITO (Genérico)
 ========================= */
 .add-to-cart {
   background-color: #28a745;
@@ -774,7 +661,6 @@ header h2 {
   transition: all 0.3s;
   font-size: 14px;
 }
-
 .add-to-cart:hover {
   background-color: #218838;
   transform: translateY(-1px);
@@ -789,19 +675,9 @@ header h2 {
   animation: blink 1.5s ease-in-out infinite;
 }
 
-@keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
 /* ========================
-   DROPDOWN FILTRO COMPACTO - MOBILE FIRST
+   DROPDOWN FILTRO COMPACTO
 ========================= */
-
 .dropdown-container {
   display: flex;
   justify-content: center;
@@ -815,14 +691,12 @@ header h2 {
   max-width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
-
 .dropdown {
   position: relative;
   display: inline-block;
   width: 100%;
   max-width: 320px;
 }
-
 .filter-dropdown-btn {
   display: inline-flex;
   align-items: center;
@@ -841,7 +715,6 @@ header h2 {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 6px rgba(42, 109, 245, 0.2);
 }
-
 .dropdown-content {
   display: none;
   position: absolute;
@@ -856,114 +729,34 @@ header h2 {
   margin-top: 10px;
   padding: 8px 0;
 }
-
-/* CORRECCIÓN: Texto centrado y negrita */
 .dropdown-content a {
   color: #2d3748;
   padding: 14px 24px;
   font-size: 0.9375rem;
-  font-weight: 600; /* Aumentado a negrita */
+  font-weight: 600;
   line-height: 1.5;
-  text-align: center; /* Texto centrado */
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-/* Media Queries para móviles */
-@media (max-width: 768px) {
-  .filter-dropdown-btn {
-    font-size: 1.125rem;
-    padding: 18px 32px;
-  }
-  
-  .dropdown-content a {
-    font-size: 1rem;
-    padding: 16px 24px;
-  }
-  
-  .dropdown-container {
-    padding: 1rem;
-    margin: 1rem auto;
-  }
-}
-
-/* Interacción táctil mejorada */
 .dropdown-content a:hover,
 .dropdown-content a:focus {
   background: #f8fafc;
   transform: translateX(3px);
 }
-
-/* Optimización touch */
-@media (hover: none) {
-  .dropdown-content a:hover {
-    background: inherit;
-    transform: none;
-  }
-  
-  .dropdown-content a:active {
-    background: #f1f5f9;
-    transform: scale(0.98); /* Efecto más apropiado para móviles */
-  }
-}
-
-/* Animaciones */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .dropdown-content.show {
   display: block;
   animation: slideIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
-
-/* Resto de estilos... */
-/* Ajustes de zoom seguro */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-/* Animación de apertura */
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.dropdown-content.show {
-  display: block;
-  animation: slideIn 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-/* Mejoras de tipografía */
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* ========================
+   ETIQUETA RANGO DE FECHAS
+========================= */
 #store {
   max-height: 180px;
   overflow-y: auto;
@@ -971,7 +764,7 @@ body {
 }
 .date-range-tag {
   position: absolute;
-  top: -2px; /* Posición sobre la foto */
+  top: -2px;
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(145deg, #4a5568, #2d3748);
@@ -979,7 +772,7 @@ body {
   padding: 8px 20px;
   border-radius: 0 0 15px 15px;
   font-size: 12px;
-  z-index: 3; /* Mayor z-index que la imagen */
+  z-index: 3;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   animation: float 3s ease-in-out infinite, pulse 2s infinite;
   font-weight: 600;
@@ -992,13 +785,6 @@ body {
   white-space: nowrap;
   clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
 }
-
-/* Asegurar que el contenedor del producto tenga posición relativa */
-.product {
-  position: relative;
-  overflow: visible; /* Para que la etiqueta sea visible fuera del contenedor */
-}
-
 .date-range-tag::before {
   content: '';
   width: 5px;
@@ -1008,63 +794,37 @@ body {
   animation: blink 1.5s infinite;
   filter: drop-shadow(0 0 3px #48bb78);
 }
-
 @keyframes float {
   0% { transform: translate(-50%, -15px); }
   50% { transform: translate(-50%, -5px); }
   100% { transform: translate(-50%, -15px); }
-}
-@media (orientation: landscape) {
-  .product img {
-    /* Puedes definir una altura mayor o dejar que ocupe el espacio disponible */
-    max-height: 250px; /* Aumenta este valor según lo que necesites */
-    object-fit: contain;
-  }
-  
-  /* Si el contenedor de la imagen debe ampliarse, por ejemplo: */
-  .product {
-    flex: 0 0 280px; /* Aumentamos el ancho base de cada tarjeta producto */
-  }
 }
 
 /* ========================
    NUEVAS ANIMACIONES PARA OFERTAS
 ========================= */
 @keyframes spam-shake-grow {
-  0%, 100% {
-    transform: scale(1) rotate(-4deg);
-  }
-  25% {
-    transform: scale(1.15) rotate(4deg);
-  }
-  50% {
-    transform: scale(1.15) rotate(-4deg);
-  }
-  75% {
-    transform: scale(1.15) rotate(4deg);
-  }
+  0%, 100% { transform: scale(1) rotate(-4deg); }
+  25% { transform: scale(1.15) rotate(4deg); }
+  50% { transform: scale(1.15) rotate(-4deg); }
+  75% { transform: scale(1.15) rotate(4deg); }
+}
+@keyframes spam-glow {
+  0%, 100% { box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 0 10px #ffdd00, 0 0 20px #ffdd00; }
+  50% { box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 25px #ff00de, 0 0 35px #ff00de; }
 }
 
-@keyframes spam-glow {
-  0%, 100% {
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 0 10px #ffdd00, 0 0 20px #ffdd00;
-  }
-  50% {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 25px #ff00de, 0 0 35px #ff00de;
-  }
-}
 /* ========================
-   ESTILOS PARA NAVEGACIÓN POR PESTAÑAS
+   NAVEGACIÓN POR PESTAÑAS
 ========================= */
 #tab-navigation {
   display: flex;
   justify-content: center;
   gap: 10px;
   padding: 15px;
-  background-color: #f0f4f8; /* Fondo claro para la barra de navegación */
+  background-color: #f0f4f8;
   border-bottom: 2px solid #ddd;
 }
-
 .tab-button {
   padding: 12px 25px;
   font-size: 1rem;
@@ -1076,21 +836,70 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
 .tab-button:hover {
   background-color: var(--color-primary-hover);
   color: #fff;
 }
-
 .tab-button.active {
   background-color: var(--color-primary);
   color: #fff;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   transform: translateY(-2px);
 }
-
-/* Clase para ocultar las páginas que no están activas */
 .hidden {
   display: none !important;
 }
 
+/* ========================
+   MEDIA QUERIES
+========================= */
+@media (max-width: 768px) {
+  .filter-dropdown-btn {
+    font-size: 1.125rem;
+    padding: 18px 32px;
+  }
+  .dropdown-content a {
+    font-size: 1rem;
+    padding: 16px 24px;
+  }
+  .dropdown-container {
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+}
+@media (orientation: portrait) {
+  .product img {
+    height: auto;
+    max-height: 190px;
+    object-fit: contain;
+  }
+}
+@media (orientation: landscape) {
+  .product img {
+    max-height: 250px;
+    object-fit: contain;
+  }
+  .product {
+    flex: 0 0 280px;
+  }
+}
+@media (hover: none) {
+  .dropdown-content a:hover {
+    background: inherit;
+    transform: none;
+  }
+  .dropdown-content a:active {
+    background: #f1f5f9;
+    transform: scale(0.98);
+  }
+}
+
+/* =======================================================================
+   TOUCH-FRIENDLY (reduce retardo y quita flash azul)
+------------------------------------------------------------------------ */
+html,body {
+  touch-action:manipulation;
+}
+button,.product {
+  -webkit-tap-highlight-color:transparent;
+}
