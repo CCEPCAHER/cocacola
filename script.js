@@ -398,7 +398,7 @@ const sections = {
       { 
   "name": "", 
   "price": 0.00, 
-offerUntil: '2025-07-15',
+offerUntil: '2025-07-29',
   "offer": false,
   "staticOffer": true,
 },
