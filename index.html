@@ -1,232 +1,172 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEDIDOS</title>
-    <meta name="description" content="Compra en el mejor supermercado para teléfonos móviles.">
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEDIDOS</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="app-container">
+  <!-- LOGIN -->
+  <div id="login-container">
+    <form id="login-form">
+      <h2>Iniciar Sesión</h2>
+      <select id="store" name="store" required>
+        <option value="" disabled selected>Selecciona tu supermercado</option>
+      </select>
+      <input type="text" id="username" name="username" placeholder="Usuario (email)" autocomplete="username" required>
+      <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
 
-        <div id="login-container">
-            <form id="login-form">
-                <h2>Iniciar Sesión</h2>
-                <select id="store" name="store" required>
-                    <option value="" disabled selected>Selecciona tu supermercado</option>
-                </select>
-                <input type="text" id="username" name="username" placeholder="Usuario (email)" autocomplete="username" required>
-                <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
-                <button type="submit">Entrar</button>
-            </form>
+  <!-- CONTENIDO PRIVADO -->
+  <div id="contenido" class="hidden">
+    <header><h1>CONSULTAS</h1></header>
+
+    <main>
+      <div class="dropdown-container"><div id="filter-container"></div></div>
+      <section id="product-list" aria-live="polite"></section>
+
+      <div id="total-display" aria-live="polite">Total: €0.00</div>
+
+      <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
+
+      <!-- Modal carrito -->
+      <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
+        <div id="cart-modal-content">
+          <h2 id="cart-modal-title">Tu Pedido</h2>
+          <button id="close-modal" aria-label="Cerrar carrito">✖</button>
+          <div id="cart-items-modal">No hay productos añadidos.</div>
+          <div id="modal-total">Total: €0.00</div>
+          <button id="submit-order">Enviar Pedido</button>
         </div>
-      
-        <div id="contenido" style="display:none;">
-            <header>
-                <h1>CONSULTAS</h1>
-            </header>
-            
-            <main>
-                <div class="dropdown-container">
-                    <div id="filter-container">
-                        </div>
-                </div>
-              
-                <section id="product-list" aria-live="polite">
-                    </section>
-              
-                <div id="total-display" aria-live="polite">Total: €0.00</div>
-              
-                <button id="cart-toggle" aria-label="Ver carrito">
-                    🛒
-                </button>
-              
-                <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title" class="hidden">
-                    <div id="cart-modal-content">
-                        <h2 id="cart-modal-title">Tu Pedido</h2>
-                        <button id="close-modal" aria-label="Cerrar carrito">✖</button>
-                        <div id="cart-items-modal">No hay productos añadidos.</div>
-                        <div id="modal-total">Total: €0.00</div>
-                        <button id="submit-order">Enviar Pedido</button>
-                    </div>
-                </div>
-            </main>
-        </div>
+      </div>
+    </main>
+  </div>
 
-    </div> 
-    
-    <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
-    
-    <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
-      <span class="close-fullscreen-modal">&times;</span>
-      <div class="fullscreen-modal-content">
-        </div>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <script src="script.js"></script>
-    
-    <script type="module">
-        // Importamos los módulos necesarios desde Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-        
-        // Configuración de Firebase (tus datos están bien)
-        const firebaseConfig = {
-            apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
-            authDomain: "cocacolaconsultas-20759.firebaseapp.com",
-            projectId: "cocacolaconsultas-20759",
-            storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
-            messagingSenderId: "274074684363",
-            appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
-            measurementId: "G-29GJZ22GMM"
-        };
+  <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
 
-        // Inicializamos Firebase y su servicio de autenticación
-        const appFirebase = initializeApp(firebaseConfig);
-        const auth = getAuth(appFirebase);
+<!-- VISOR FULLSCREEN (IMAGEN / PDF) ------------------------------------ -->
+  <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
+    <span class="close-fullscreen-modal">&times;</span>
+    <div class="fullscreen-modal-content"></div>
+  </div>
 
-        // Referencias a elementos del DOM
-        const loginContainer = document.getElementById("login-container");
-        const contenidoDiv = document.getElementById("contenido");
-        const loginForm = document.getElementById("login-form");
-        const storeSelect = document.getElementById("store");
-        const headerH1 = document.querySelector("#contenido header h1");
 
-        // Función para mostrar el contenido protegido
-        function mostrarContenido(storeName) {
-            loginContainer.style.display = "none";
-            contenidoDiv.style.display = "block";
-            // Actualiza el título del header con el nombre de la tienda
-            if (storeName && !headerH1.textContent.includes(storeName)) {
-                headerH1.textContent += ` - ${storeName}`;
-            }
-        }
+  <!-- librería Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-        // Escuchamos los cambios en el estado de autenticación
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Si el usuario ya está logueado, muestra el contenido
-                const userStore = localStorage.getItem("userStore");
-                mostrarContenido(userStore);
-                localStorage.setItem("loggedInUser", user.email);
-            } else {
-                // Si no, asegura que se muestre el login
-                loginContainer.style.display = "flex"; // Usar flex para centrar
-                contenidoDiv.style.display = "none";
-            }
+  <!-- lógica principal -->
+  <script src="script.js"></script>
+
+  <!-- Firebase + funciones globales para el pedido -->
+  <script type="module">
+    import { initializeApp }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth,
+             signInWithEmailAndPassword,
+             onAuthStateChanged }       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore,
+             collection,
+             addDoc,
+             serverTimestamp }          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+    /* --- CONFIG FIREBASE ------------------------------------------------- */
+    const firebaseConfig = {
+      apiKey:            "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
+      authDomain:        "cocacolaconsultas-20759.firebaseapp.com",
+      projectId:         "cocacolaconsultas-20759",
+      storageBucket:     "cocacolaconsultas-20759.appspot.com",
+      messagingSenderId: "274074684363",
+      appId:             "1:274074684363:web:b988c76c7e74f9e1e3444e",
+      measurementId:     "G-29GJZ22GMM"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    /* --- ELEMENTOS DOM --------------------------------------------------- */
+    const loginContainer = document.getElementById("login-container");
+    const contenidoDiv   = document.getElementById("contenido");
+    const loginForm      = document.getElementById("login-form");
+    const storeSelect    = document.getElementById("store");
+    const headerH1       = document.querySelector("#contenido header h1");
+
+    /* --- HELPER: mostrar contenido privado ------------------------------- */
+    function mostrarContenido(storeName){
+      loginContainer.style.display = "none";
+      contenidoDiv.classList.remove("hidden");
+      if (storeName && !headerH1.textContent.includes(storeName)){
+        headerH1.textContent += ` - ${storeName}`;
+      }
+    }
+
+    /* --- AUTH LISTENER --------------------------------------------------- */
+    onAuthStateChanged(auth, user=>{
+      if (user){
+        const userStore = localStorage.getItem("userStore");
+        mostrarContenido(userStore);
+        localStorage.setItem("loggedInUser", user.email);
+      }else{
+        loginContainer.style.display = "flex";
+        contenidoDiv.classList.add("hidden");
+      }
+    });
+
+    /* --- CARGAR SELECT DE TIENDAS ---------------------------------------- */
+    document.addEventListener("DOMContentLoaded",()=>{
+      const stores = ["CAT21","CAT22","CAT23","CAT24","CAT25","EJE4",
+                      "Alcampo Sant Quirze","Carrefour Sant Cugat","Carrefour Barbera"];
+      stores.forEach(s=>{
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = s;
+        storeSelect.appendChild(opt);
+      });
+    });
+
+    /* --- LOGIN ----------------------------------------------------------- */
+    loginForm.addEventListener("submit",e=>{
+      e.preventDefault();
+      const store    = storeSelect.value;
+      const email    = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!store){ alert("Por favor selecciona un supermercado."); return; }
+
+      signInWithEmailAndPassword(auth,email,password)
+        .then(()=>{
+          localStorage.setItem("userStore",store);
+          mostrarContenido(store);
+        })
+        .catch(err=>{
+          console.error(err);
+          alert("Credenciales incorrectas.");
         });
+    });
 
-        // Al cargar la página, llenamos el desplegable y configuramos los modals
-        document.addEventListener("DOMContentLoaded", () => {
-            // Llenar el desplegable de supermercados
-            const stores = ["CAT21", "CAT22", "CAT23", "CAT24", "CAT25", "EJE4", "Alcampo Sant Quirze", "Carrefour Sant Cugat", "Carrefour Barbera"];
-            stores.forEach(store => {
-                const option = document.createElement("option");
-                option.value = store;
-                option.textContent = store;
-                storeSelect.appendChild(option);
-            });
-
-            // ===============================================
-            // JAVASCRIPT DEL MODAL A PANTALLA COMPLETA
-            // ===============================================
-            const productList = document.getElementById('product-list');
-            const modal = document.getElementById('fullscreen-modal');
-            const modalContent = modal.querySelector('.fullscreen-modal-content');
-            const closeModalBtn = modal.querySelector('.close-fullscreen-modal');
-
-            // Función para abrir el modal
-            function openModal(element) {
-                const source = element.dataset.fullviewSrc;
-                if (!source) {
-                    console.warn("Este producto no tiene 'data-fullview-src' para expandir.");
-                    return;
-                }
-                modalContent.innerHTML = '';
-
-                if (source.toLowerCase().endsWith('.pdf')) {
-                    const iframe = document.createElement('iframe');
-                    iframe.src = source;
-                    modalContent.appendChild(iframe);
-                } else {
-                    const img = document.createElement('img');
-                    img.src = source;
-                    modalContent.appendChild(img);
-                }
-
-                modal.classList.remove('hidden');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; 
-            }
-
-            // Función para cerrar el modal
-            function closeModal() {
-                modal.classList.remove('active');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    modalContent.innerHTML = '';
-                }, 400);
-                document.body.style.overflow = 'auto';
-            }
-
-            // Event Listener en la lista de productos (delegación de eventos)
-            productList.addEventListener('click', function(e) {
-                const productCard = e.target.closest('.product');
-                // Se activa si se hace clic en la tarjeta, pero no en un botón, input o enlace dentro de ella
-                if (productCard && !e.target.closest('button, input, a')) {
-                    openModal(productCard);
-                }
-            });
-
-            closeModalBtn.addEventListener('click', closeModal);
-
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeModal();
-                }
-            });
+    /* ---------- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------- */
+    window.sendOrderToFirestore = async function(orderItems){
+      try{
+        const docRef = await addDoc(collection(db,"orders"),{
+          store   : localStorage.getItem("userStore")   || "Sin tienda",
+          user    : localStorage.getItem("loggedInUser")|| "Anónimo",
+          created : serverTimestamp(),
+          items   : orderItems
         });
+        console.log("Pedido guardado con ID:", docRef.id);
+      }catch(e){
+        console.error("Error al guardar pedido:",e);
+        alert("⚠️ El pedido no pudo guardarse en la nube.");
+      }
+    };
 
-        // Evento para el formulario de login
-        loginForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const storeInput = storeSelect.value;
-            const emailInput = document.getElementById("username").value.trim();
-            const passwordInput = document.getElementById("password").value.trim();
-
-            if (!storeInput) {
-                alert("Por favor, selecciona un supermercado.");
-                return;
-            }
-            
-            signInWithEmailAndPassword(auth, emailInput, passwordInput)
-                .then((userCredential) => {
-                    localStorage.setItem("userStore", storeInput);
-                    mostrarContenido(storeInput);
-                })
-                .catch((error) => {
-                    console.error("Error en el login:", error.code, error.message);
-                    alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
-                });
-        });
-        
-        // Hacemos `auth` accesible globalmente para que `script.js` pueda usarlo si es necesario
-        window.auth = auth;
-
-    </script>
+    /* --- Poner auth y firestore en global para script.js ------------------ */
+    window.auth = auth;
+  </script>
 </body>
 </html>
