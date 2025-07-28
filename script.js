@@ -800,8 +800,8 @@
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2025-07-17",
-      "endDate": "2025-07-30",
+"startDate": "2025-07-31",
+      "endDate": "2025-08-13",
   "offer": false,
   "staticOffer": true,
 },
