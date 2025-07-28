@@ -575,7 +575,7 @@
   "name": "", 
   "price": 0.00, 
 "startDate": "2025-07-24",
-      "endDate": "2025-08-25",
+      "endDate": "2025-08-07",
   "offer": false,
   "staticOffer": true,
 },
