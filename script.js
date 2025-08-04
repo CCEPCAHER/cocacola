@@ -405,8 +405,8 @@
       { 
   "name": "", 
   "price": 0.00, 
-"startDate": "2025-07-15",
-      "endDate": "2025-07-29",
+"startDate": "2025-07-30",
+      "endDate": "2025-08-13",
   "offer": false,
   "staticOffer": true,
 },
