@@ -3473,12 +3473,6 @@
     ],
     "Appletiser": [
       { 
-        "name": "Appletiser VNR75 C6", 
-        "price": 6.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
         "name": "Appletiser VNR275 P6 C4", 
         "price": 4.00, 
         "offer": false,
@@ -3513,12 +3507,6 @@
       { 
         "name": "Abuabona Singular PET50 C12", 
         "price": 12.00, 
-        "offer": false,
-        "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
-      },
-      { 
-        "name": "Agua Vilas del Turbón pet 1L", 
-        "price": 1.00, 
         "offer": false,
         "discountOptions": { "twoXone": false, "threeXtwo": false, "secondUnit70": false, "twentyPercent": false }
       }
