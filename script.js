@@ -3134,7 +3134,37 @@
       }
     },
       { 
-        "name": "Fuze Tea Peach Hibiscus PET50", 
+        "name": "FUZE MP PET 1,5L C6", 
+        "price": 1.50,
+      "previousPrice": 1.25,
+      "offer": false,
+      "focus1": false,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
+    },
+      { 
+        "name": "FUZE GTM PET50 C24", 
         "price": 0.50, 
         "offer": false,
       "focus1": false,  
@@ -3255,7 +3285,68 @@
       }
     },
       { 
-        "name": "Powerade Blood Orange Charge Pet 50",         
+        "name": "Powerade Blood Orange Charge Pet 50",        
+      "price": 1.00,
+      "previousPrice": 1.20,
+      "offer": false,
+      "focus1": false,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
+    },
+      { 
+        "name": "POWERADE ICE STORM PET 1L",        
+      "price": 1.00,
+      "previousPrice": 1.20,
+      "offer": false,
+      "focus1": false,  
+      "focus2": false,
+      "focus3": false,
+      "focus4": false,
+      "discountOptions": { 
+        "twoXone": false, 
+        "threeXtwo": false, 
+        "secondUnit70": false, 
+        "twentyPercent": false,
+        "fiftyPercent": false,
+        "gift": false,
+        "travel": false,
+        "draw": false,
+        "promoWeb": false 
+      },
+      "offerLogos": {
+         "alcampo": false,
+         "condis": false,
+         "carrefour": false,
+         "caprabo": false,
+         "consum": false,
+         "sorli": false
+
+      }
+    },
+   
+      { 
+        "name": "POWERADE GOLDEN MANGO PET 1L",         
       "price": 1.00,
       "previousPrice": 1.20,
       "offer": false,
@@ -3713,6 +3804,8 @@
     "Monster Reserve White Pineapple Lata 50 C24": [9, 18],
     "MONSTER ULTRA STRAWBERRY DREAMS LA50 C24": [9, 18],
     "Limón&Nada Clásica 1 L.": [25, 50],
+    "FUZE GTM PET50 C24": [9, 18],
+    "FUZE MP PET 1,5L C6": [21, 42],
     "Fuze Limón Lata 33": [9, 18],
     "Fuze Limón sin azúcar Lata 33": [9, 18],
     "Fuze Limón Pet 50": [9, 18],
@@ -3722,8 +3815,11 @@
     "Fuze Tea Peach Hibiscus PET50": [9, 18],
     "Powerade Ice Storm Pet 50": [9, 18],
     "Powerade Zero Ice Storm PET50 C12": [9, 18],
+
     "Powerade Citrus Charge Pet 50": [9, 18],
     "Powerade Blood Orange Charge Pet 50": [9, 18],
+"Powerade Ice Storm Pet 50": [12, 24],
+"Powerade Ice Storm Pet 50": [12, 24],
     "Reign Melon manía Lata 50 C12": [3, 5],
     "Reign Razzle Berry Lata 50 C12": [3, 5],
     "SEMI  Aquarius limón lata (960x2)=1920": [2, 4],
