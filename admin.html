@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Coca-Cola</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos específicos del panel admin */
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .admin-section {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 20px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .admin-section h2 {
+      color: var(--color-primary);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--color-primary);
+    }
+
+    .upload-area {
+      border: 3px dashed var(--color-primary);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      background: #f8f9fa;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .upload-area:hover {
+      background: #e9ecef;
+      border-color: var(--color-primary-hover);
+    }
+
+    .upload-area.dragover {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+
+    .section-select {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    .progress-container {
+      display: none;
+      margin: 20px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 30px;
+      background: #e9ecef;
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+      width: 0%;
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .alert-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin: 20px 0;
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-size: 1.1rem;
+    }
+
+    .back-link:hover {
+      color: var(--color-primary-hover);
+      transform: translateX(-5px);
+    }
+
+    .preview-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .preview-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .instruction-box {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .instruction-box h3 {
+      color: #856404;
+      margin-bottom: 10px;
+    }
+
+    .instruction-box ol {
+      margin-left: 20px;
+      color: #856404;
+    }
+
+    .instruction-box li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN ADMIN -->
+  <div id="admin-login-container">
+    <form id="admin-login-form">
+      <h2>🔐 Acceso Administrador</h2>
+      <input type="email" id="admin-email" placeholder="Email de administrador" required>
+      <input type="password" id="admin-password" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <!-- PANEL ADMIN -->
+  <div id="admin-panel" class="hidden">
+    <header>
+      <h1>⚙️ Panel de Administración</h1>
+      <h2 id="admin-username"></h2>
+    </header>
+
+    <div class="admin-container">
+      <a href="index.html" class="back-link">← Volver a la tienda</a>
+
+      <!-- SECCIÓN: SUBIR PDF -->
+      <div class="admin-section">
+        <h2>📄 Convertir PDF a Imágenes y Subir a Firebase</h2>
+        
+        <div class="instruction-box">
+          <h3>📋 Instrucciones:</h3>
+          <ol>
+            <li>Selecciona la sección del menú</li>
+            <li>Arrastra o selecciona el PDF</li>
+            <li>Espera a que se procese (verás el progreso)</li>
+            <li>Las imágenes se subirán automáticamente a Firebase Storage</li>
+            <li>¡Listo! Las imágenes estarán disponibles en la app inmediatamente</li>
+          </ol>
+        </div>
+        
+        <select id="section-selector" class="section-select">
+          <option value="">Selecciona la sección...</option>
+        </select>
+
+        <div id="drop-area" class="upload-area">
+          <p style="font-size: 1.2rem; margin-bottom: 10px;">📁 Arrastra el PDF aquí</p>
+          <p style="color: #666;">o haz clic para seleccionar</p>
+          <input type="file" id="pdf-input" accept="application/pdf" style="display: none;">
+        </div>
+
+        <div id="progress-container" class="progress-container">
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill">0%</div>
+          </div>
+          <p id="progress-text" style="margin-top: 10px; text-align: center;"></p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div id="preview-container" class="preview-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
+      authDomain: "cocacolaconsultas-20759.firebaseapp.com",
+      projectId: "cocacolaconsultas-20759",
+      storageBucket: "cocacolaconsultas-20759.appspot.com",
+      messagingSenderId: "274074684363",
+      appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
+      measurementId: "G-29GJZ22GMM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const ADMIN_EMAIL = "ccipbcncrd4@grupocaher.com";
+
+    const loginContainer = document.getElementById("admin-login-container");
+    const adminPanel = document.getElementById("admin-panel");
+    const loginForm = document.getElementById("admin-login-form");
+    const adminUsername = document.getElementById("admin-username");
+
+    // Auth listener
+    onAuthStateChanged(auth, user => {
+      if (user && user.email === ADMIN_EMAIL) {
+        loginContainer.style.display = "none";
+        adminPanel.classList.remove("hidden");
+        adminUsername.textContent = `Admin: ${user.email}`;
+        window.adminAuth = { user, auth };
+      } else {
+        if (user) auth.signOut();
+        loginContainer.style.display = "flex";
+        adminPanel.classList.add("hidden");
+      }
+    });
+
+    // Login
+    loginForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const email = document.getElementById("admin-email").value.trim();
+      const password = document.getElementById("admin-password").value;
+
+      if (email !== ADMIN_EMAIL) {
+        alert("❌ No tienes permisos de administrador");
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => console.log("✅ Admin autenticado"))
+        .catch(err => {
+          console.error(err);
+          alert("❌ Credenciales incorrectas");
+        });
+    });
+  </script>
+
+  <!-- Admin Logic -->
+  <script src="admin.js"></script>
+</body>
+</html>
