@@ -1,10 +1,13 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage
+// admin.js - Panel de Administración con Firebase Storage (CORREGIDO)
 // =========================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+// Verificar si el DOM ya está listo o esperar el evento
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPDFConverter);
+} else {
   initPDFConverter();
-});
+}
 
 // =========================================================================
 // 1. CONFIGURACIÓN DE FIREBASE STORAGE
@@ -40,6 +43,18 @@ function initPDFConverter() {
   const progressText = document.getElementById('progress-text');
   const alertContainer = document.getElementById('alert-container');
   const previewContainer = document.getElementById('preview-container');
+
+  // Verificar que los elementos existen
+  if (!sectionSelector || !dropArea || !pdfInput) {
+    console.error('❌ No se encontraron los elementos del DOM');
+    return;
+  }
+
+  // Configurar PDF.js worker
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
 
   // Cargar secciones
   loadSections();
@@ -117,13 +132,10 @@ function initPDFConverter() {
       throw new Error('PDF.js no está cargado');
     }
 
-    // Configurar worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    // Cargar PDF
+    // Cargar PDF - CORRECCIÓN AQUÍ
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({  arrayBuffer }).promise;
+    const loadingTask = pdfjsLib.getDocument({  arrayBuffer });
+    const pdf = await loadingTask.promise;
     const totalPages = pdf.numPages;
 
     progressText.textContent = `Procesando ${totalPages} páginas...`;
@@ -180,6 +192,7 @@ function initPDFConverter() {
     const downloadURL = await getDownloadURL(snapshot.ref);
     
     console.log(`✅ Subido a: images/${folderName}/${fileName}`);
+    console.log(`URL: ${downloadURL}`);
     
     return downloadURL;
   }
