@@ -1,5 +1,5 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (COMPLETO)
+// admin.js - Panel de Administración con Firebase Storage (CORREGIDO)
 // =========================================================================
 
 // Verificar si el DOM ya está listo o esperar el evento
@@ -50,11 +50,20 @@ function initPDFConverter() {
     return;
   }
 
-  // Configurar PDF.js worker
-  if (typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  // Configurar PDF.js worker ANTES de cualquier operación
+  console.log('🔧 Configurando PDF.js...');
+  
+  if (typeof pdfjsLib === 'undefined') {
+    console.error('❌ PDF.js no está cargado. Verifica que la biblioteca esté incluida.');
+    showAlert('❌ Error: PDF.js no está cargado correctamente', 'error');
+    return;
   }
+  
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  
+  console.log('✅ PDF.js configurado correctamente');
+  console.log('📦 Versión de PDF.js:', pdfjsLib.version);
 
   // Cargar secciones
   loadSections();
@@ -97,6 +106,12 @@ function initPDFConverter() {
 
     const file = files[0];
     
+    console.log('📁 Archivo seleccionado:', {
+      nombre: file.name,
+      tamaño: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+      tipo: file.type
+    });
+    
     // Validar tamaño del archivo (máximo 10 MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -124,7 +139,7 @@ function initPDFConverter() {
 
       showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error completo:', error);
       showAlert(`❌ Error: ${error.message}`, 'error');
     } finally {
       progressContainer.style.display = 'none';
@@ -137,40 +152,55 @@ function initPDFConverter() {
   async function convertPDFToImages(file, section) {
     // Verificar que pdf.js esté cargado
     if (typeof pdfjsLib === 'undefined') {
-      throw new Error('PDF.js no está cargado');
+      throw new Error('PDF.js no está cargado. Por favor recarga la página.');
     }
 
+    console.log('🔄 Iniciando conversión de PDF...');
+
     try {
-      // Cargar el archivo como ArrayBuffer
+      // Leer el archivo como ArrayBuffer
+      console.log('📖 Leyendo archivo...');
       const arrayBuffer = await file.arrayBuffer();
+      console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength, 'bytes');
       
-      // Convertir ArrayBuffer a Uint8Array (formato requerido por PDF.js)
-      const typedArray = new Uint8Array(arrayBuffer);
+      // IMPORTANTE: Convertir ArrayBuffer a Uint8Array
+      const uint8Array = new Uint8Array(arrayBuffer);
+      console.log('✅ Uint8Array creado, longitud:', uint8Array.length);
       
-      // Configurar opciones de carga para archivos grandes
+      // Verificar que los primeros bytes son un PDF válido (%PDF)
+      const pdfHeader = String.fromCharCode(uint8Array[0], uint8Array[1], uint8Array[2], uint8Array[3]);
+      if (pdfHeader !== '%PDF') {
+        throw new Error('El archivo no es un PDF válido');
+      }
+      console.log('✅ Header PDF válido:', pdfHeader);
+      
+      // Configurar opciones de carga
+      console.log('⚙️ Configurando opciones de carga...');
       const loadingTask = pdfjsLib.getDocument({
-         typedArray,
+         uint8Array,  // USAR uint8Array, NO arrayBuffer
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
-        maxImageSize: 50 * 1024 * 1024,
-        disableStream: true,
-        disableAutoFetch: false,
-        useWorkerFetch: false
+        verbosity: 1  // Activar logs para debugging
       });
       
+      console.log('📥 Cargando documento PDF...');
       const pdf = await loadingTask.promise;
       const totalPages = pdf.numPages;
+      console.log(`✅ PDF cargado exitosamente: ${totalPages} páginas`);
 
       progressText.textContent = `Procesando ${totalPages} páginas...`;
 
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        console.log(`📄 Procesando página ${pageNum} de ${totalPages}...`);
         updateProgress(pageNum, totalPages);
 
         const page = await pdf.getPage(pageNum);
+        console.log(`✅ Página ${pageNum} obtenida`);
         
-        // Reducir escala para archivos grandes
+        // Escala de renderizado
         const scale = 1.5;
         const viewport = page.getViewport({ scale: scale });
+        console.log(`📐 Viewport: ${viewport.width}x${viewport.height}`);
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d', { 
@@ -181,23 +211,29 @@ function initPDFConverter() {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
+        console.log(`🎨 Renderizando página ${pageNum}...`);
         await page.render({ 
           canvasContext: context, 
           viewport: viewport,
           intent: 'print'
         }).promise;
+        console.log(`✅ Página ${pageNum} renderizada`);
 
-        // Convertir a blob JPG con compresión
+        // Convertir a blob JPG
+        console.log(`💾 Convirtiendo página ${pageNum} a JPEG...`);
         const blob = await new Promise(resolve => 
           canvas.toBlob(resolve, 'image/jpeg', 0.85)
         );
+        console.log(`✅ Blob creado, tamaño: ${(blob.size / 1024).toFixed(2)} KB`);
         
         // Nombre del archivo
         const sectionName = section.toLowerCase().replace(/\s+/g, '_');
         const fileName = `${sectionName}_${pageNum - 1}.jpg`;
 
         // Subir a Firebase Storage
+        console.log(`☁️ Subiendo ${fileName} a Firebase...`);
         await uploadToFirebase(blob, fileName, section);
+        console.log(`✅ ${fileName} subido exitosamente`);
 
         // Crear preview
         const img = document.createElement('img');
@@ -215,11 +251,14 @@ function initPDFConverter() {
       }
       
       // Limpiar PDF de memoria
+      console.log('🧹 Limpiando recursos...');
       pdf.cleanup();
       pdf.destroy();
+      console.log('✅ Conversión completada exitosamente');
       
     } catch (error) {
-      console.error('Error detallado:', error);
+      console.error('❌ Error detallado en convertPDFToImages:', error);
+      console.error('Stack trace:', error.stack);
       throw new Error(`Error al procesar PDF: ${error.message}`);
     }
   }
@@ -244,7 +283,7 @@ function initPDFConverter() {
     const downloadURL = await getDownloadURL(snapshot.ref);
     
     console.log(`✅ Subido a: images/${folderName}/${fileName}`);
-    console.log(`URL: ${downloadURL}`);
+    console.log(`🔗 URL: ${downloadURL}`);
     
     return downloadURL;
   }
