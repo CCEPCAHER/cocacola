@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PEDIDOS</title>
+  <title>PEDIDOS - Coca-Cola</title>
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,6 +21,7 @@
       <input type="text" id="username" name="username" placeholder="Usuario (email)" autocomplete="username" required>
       <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
       <button type="submit">Entrar</button>
+      <a href="admin.html" style="display: block; margin-top: 15px; text-align: center; color: var(--color-primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">⚙️ Panel de Administración</a>
     </form>
   </div>
 
@@ -52,20 +52,16 @@
 
   <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
 
-<!-- VISOR FULLSCREEN (IMAGEN / PDF) ------------------------------------ -->
+  <!-- VISOR FULLSCREEN (IMAGEN / PDF) -->
   <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
     <span class="close-fullscreen-modal">&times;</span>
     <div class="fullscreen-modal-content"></div>
   </div>
 
-
   <!-- librería Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- lógica principal -->
-  <script src="script.js"></script>
-
-  <!-- Firebase + funciones globales para el pedido -->
+  <!-- Firebase + Storage + Auth -->
   <script type="module">
     import { initializeApp }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth,
@@ -75,6 +71,10 @@
              collection,
              addDoc,
              serverTimestamp }          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getStorage,
+             ref,
+             getDownloadURL,
+             listAll }                  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     /* --- CONFIG FIREBASE ------------------------------------------------- */
     const firebaseConfig = {
@@ -86,9 +86,11 @@
       appId:             "1:274074684363:web:b988c76c7e74f9e1e3444e",
       measurementId:     "G-29GJZ22GMM"
     };
+    
     const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db   = getFirestore(app);
+    const storage = getStorage(app);
 
     /* --- ELEMENTOS DOM --------------------------------------------------- */
     const loginContainer = document.getElementById("login-container");
@@ -112,6 +114,9 @@
         const userStore = localStorage.getItem("userStore");
         mostrarContenido(userStore);
         localStorage.setItem("loggedInUser", user.email);
+        
+        // Cargar imágenes desde Firebase Storage
+        loadImagesFromStorage();
       }else{
         loginContainer.style.display = "flex";
         contenidoDiv.classList.add("hidden");
@@ -145,11 +150,84 @@
         })
         .catch(err=>{
           console.error(err);
-          alert("Credenciales incorrectas.");
+          alert("Credenciales incorrectas. Verifica tu email y contraseña.");
         });
     });
 
-    /* ---------- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------- */
+    /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE -------------------------- */
+    async function loadImagesFromStorage() {
+      try {
+        console.log('🔄 Cargando imágenes desde Firebase Storage...');
+        
+        // Referencia a la carpeta images/
+        const imagesRef = ref(storage, 'images/');
+        
+        // Listar todas las carpetas (prefixes) y archivos (items)
+        const result = await listAll(imagesRef);
+        
+        // Crear un mapa de URLs
+        const imageUrls = {};
+        
+        // Primero obtener archivos en la raíz (si existen imágenes antiguas sin carpeta)
+        for (const itemRef of result.items) {
+          const url = await getDownloadURL(itemRef);
+          imageUrls[itemRef.name] = url;
+          console.log(`📄 Archivo en raíz: ${itemRef.name}`);
+        }
+        
+        // Recorrer cada subcarpeta (sección)
+        for (const folderRef of result.prefixes) {
+          console.log(`📁 Procesando carpeta: ${folderRef.name}`);
+          
+          // Listar archivos dentro de cada carpeta
+          const folderResult = await listAll(folderRef);
+          
+          // Obtener URLs de cada imagen en la carpeta
+          for (const itemRef of folderResult.items) {
+            const url = await getDownloadURL(itemRef);
+            imageUrls[itemRef.name] = url;
+            console.log(`  └─ ${itemRef.name}`);
+          }
+        }
+        
+        // Guardar en global para que script.js lo use
+        window.firebaseImageUrls = imageUrls;
+        
+        console.log('✅ Imágenes cargadas:', Object.keys(imageUrls).length);
+        console.log('📋 Lista de imágenes:', Object.keys(imageUrls));
+        
+        // Actualizar imágenes en el DOM si ya están cargadas
+        updateProductImages();
+        
+      } catch (error) {
+        console.error('❌ Error al cargar imágenes:', error);
+        // Si falla, usar rutas locales como fallback
+        window.firebaseImageUrls = {};
+      }
+    }
+
+    /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS ----------------------------- */
+    function updateProductImages() {
+      if (!window.firebaseImageUrls) return;
+      
+      document.querySelectorAll('.product img[data-src]').forEach(img => {
+        const originalSrc = img.dataset.src;
+        const fileName = originalSrc.split('/').pop();
+        
+        if (window.firebaseImageUrls[fileName]) {
+          img.dataset.src = window.firebaseImageUrls[fileName];
+          // Si ya está visible, actualizar src también
+          if (!img.classList.contains('lazy')) {
+            img.src = window.firebaseImageUrls[fileName];
+          }
+          console.log(`🖼️ Imagen actualizada: ${fileName}`);
+        } else {
+          console.warn(`⚠️ Imagen no encontrada en Storage: ${fileName}`);
+        }
+      });
+    }
+
+    /* --- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------------- */
     window.sendOrderToFirestore = async function(orderItems){
       try{
         const docRef = await addDoc(collection(db,"orders"),{
@@ -158,15 +236,23 @@
           created : serverTimestamp(),
           items   : orderItems
         });
-        console.log("Pedido guardado con ID:", docRef.id);
+        console.log("✅ Pedido guardado con ID:", docRef.id);
       }catch(e){
-        console.error("Error al guardar pedido:",e);
+        console.error("❌ Error al guardar pedido:",e);
         alert("⚠️ El pedido no pudo guardarse en la nube.");
       }
     };
 
-    /* --- Poner auth y firestore en global para script.js ------------------ */
+    /* --- Poner auth, storage y firestore en global -------------------- */
     window.auth = auth;
+    window.firebaseStorage = storage;
+    window.firebaseStorageRef = ref;
+    window.firebaseGetDownloadURL = getDownloadURL;
+    window.firebaseListAll = listAll;
   </script>
+
+  <!-- lógica principal -->
+  <script src="script.js"></script>
+
 </body>
 </html>
