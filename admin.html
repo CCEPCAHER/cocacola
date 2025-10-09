@@ -183,6 +183,59 @@
     .instruction-box li {
       margin: 8px 0;
     }
+
+    .hidden {
+      display: none;
+    }
+
+    #admin-login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    #admin-login-form {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    #admin-login-form h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    #admin-login-form input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    #admin-login-form button {
+      width: 100%;
+      padding: 12px;
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #admin-login-form button:hover {
+      background: var(--color-primary-hover);
+    }
   </style>
 </head>
 <body>
@@ -214,7 +267,7 @@
           <h3>📋 Instrucciones:</h3>
           <ol>
             <li>Selecciona la sección del menú</li>
-            <li>Arrastra o selecciona el PDF</li>
+            <li>Arrastra o selecciona el PDF (máximo 10 MB)</li>
             <li>Espera a que se procese (verás el progreso)</li>
             <li>Las imágenes se subirán automáticamente a Firebase Storage</li>
             <li>¡Listo! Las imágenes estarán disponibles en la app inmediatamente</li>
