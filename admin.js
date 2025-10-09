@@ -1,5 +1,5 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (CORREGIDO)
+// admin.js - Panel de Administración con Firebase Storage (COMPLETO)
 // =========================================================================
 
 // Verificar si el DOM ya está listo o esperar el evento
@@ -95,13 +95,21 @@ function initPDFConverter() {
   async function handleFiles(files) {
     if (!files.length) return;
 
+    const file = files[0];
+    
+    // Validar tamaño del archivo (máximo 10 MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showAlert(`⚠️ El archivo es muy grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Máximo permitido: 10 MB`, 'warning');
+      return;
+    }
+
     const section = sectionSelector.value;
     if (!section) {
       showAlert('⚠️ Selecciona una sección primero', 'warning');
       return;
     }
 
-    const file = files[0];
     if (file.type !== 'application/pdf') {
       showAlert('❌ Solo se permiten archivos PDF', 'error');
       return;
@@ -132,49 +140,93 @@ function initPDFConverter() {
       throw new Error('PDF.js no está cargado');
     }
 
-    // Cargar PDF - CORRECCIÓN AQUÍ
-    const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({  arrayBuffer });
-    const pdf = await loadingTask.promise;
-    const totalPages = pdf.numPages;
-
-    progressText.textContent = `Procesando ${totalPages} páginas...`;
-
-    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-      updateProgress(pageNum, totalPages);
-
-      const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2.0 });
-
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-      // Convertir a blob JPG
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+    try {
+      // Cargar el archivo como ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
       
-      // Nombre del archivo
-      const sectionName = section.toLowerCase().replace(/\s+/g, '_');
-      const fileName = `${sectionName}_${pageNum - 1}.jpg`;
+      // Convertir ArrayBuffer a Uint8Array (formato requerido por PDF.js)
+      const typedArray = new Uint8Array(arrayBuffer);
+      
+      // Configurar opciones de carga para archivos grandes
+      const loadingTask = pdfjsLib.getDocument({
+         typedArray,
+        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+        cMapPacked: true,
+        maxImageSize: 50 * 1024 * 1024,
+        disableStream: true,
+        disableAutoFetch: false,
+        useWorkerFetch: false
+      });
+      
+      const pdf = await loadingTask.promise;
+      const totalPages = pdf.numPages;
 
-      // Subir a Firebase Storage
-      await uploadToFirebase(blob, fileName, section);
+      progressText.textContent = `Procesando ${totalPages} páginas...`;
 
-      // Crear preview
-      const img = document.createElement('img');
-      img.src = canvas.toDataURL('image/jpeg', 0.95);
-      img.className = 'preview-image';
-      img.alt = `Página ${pageNum}`;
-      previewContainer.appendChild(img);
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        updateProgress(pageNum, totalPages);
+
+        const page = await pdf.getPage(pageNum);
+        
+        // Reducir escala para archivos grandes
+        const scale = 1.5;
+        const viewport = page.getViewport({ scale: scale });
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d', { 
+          willReadFrequently: false,
+          alpha: false
+        });
+        
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        await page.render({ 
+          canvasContext: context, 
+          viewport: viewport,
+          intent: 'print'
+        }).promise;
+
+        // Convertir a blob JPG con compresión
+        const blob = await new Promise(resolve => 
+          canvas.toBlob(resolve, 'image/jpeg', 0.85)
+        );
+        
+        // Nombre del archivo
+        const sectionName = section.toLowerCase().replace(/\s+/g, '_');
+        const fileName = `${sectionName}_${pageNum - 1}.jpg`;
+
+        // Subir a Firebase Storage
+        await uploadToFirebase(blob, fileName, section);
+
+        // Crear preview
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/jpeg', 0.85);
+        img.className = 'preview-image';
+        img.alt = `Página ${pageNum}`;
+        previewContainer.appendChild(img);
+        
+        // Limpiar canvas de memoria
+        canvas.width = 0;
+        canvas.height = 0;
+        
+        // Liberar memoria de la página
+        page.cleanup();
+      }
+      
+      // Limpiar PDF de memoria
+      pdf.cleanup();
+      pdf.destroy();
+      
+    } catch (error) {
+      console.error('Error detallado:', error);
+      throw new Error(`Error al procesar PDF: ${error.message}`);
     }
   }
 
   async function uploadToFirebase(blob, fileName, section) {
     if (!storage || !storageModule) {
-      throw new Error('Firebase Storage no está inicializado');
+      throw new Error('Firebase Storage no está inicializado. Espera unos segundos e intenta de nuevo.');
     }
 
     const { ref, uploadBytes, getDownloadURL } = storageModule;
@@ -182,7 +234,7 @@ function initPDFConverter() {
     // Normalizar nombre de sección para usar como carpeta
     const folderName = section.toLowerCase().replace(/\s+/g, '_');
     
-    // Crear referencia con estructura de carpetas: images/{seccion}/{archivo}
+    // Crear referencia con estructura: images/{seccion}/{archivo}
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
     
     // Subir archivo
@@ -213,16 +265,39 @@ function initPDFConverter() {
 
   function loadSections() {
     const sections = [
-      "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS",
-      "FEM ALCAMPO", "FEM CARREFOUR", "FEM CARREFOUR MARKET",
-      "FEM SUPECO", "FEM SORLI", "FEM SCLAT BONPREU",
-      "FEM CAPRABO", "FEM CONSUM", "FEM CONDIS", "FEM COVIRAN",
-      "IMPLANTACIONES", "Coca Cola", "Coca Cola Zero",
-      "coca cola light", "Coca Cola Zero Zero", "Coca Cola Sabores",
-      "Fanta naranja", "Fanta limón", "Fanta sabores",
-      "Sprite", "Tónica", "Burn", "Energéticas",
-      "M.Maid", "FUZE", "Deportivas", "Isotónicas",
-      "Appletiser", "Aquabona", "Alcoholes"
+      "FOCOS",
+      "EEAA Y PUNTUACION",
+      "ORDEN DE MARCAS",
+      "FEM ALCAMPO",
+      "FEM CARREFOUR",
+      "FEM CARREFOUR MARKET",
+      "FEM SUPECO",
+      "FEM SORLI",
+      "FEM SCLAT BONPREU",
+      "FEM CAPRABO",
+      "FEM CONSUM",
+      "FEM CONDIS",
+      "FEM COVIRAN",
+      "IMPLANTACIONES",
+      "Coca Cola",
+      "Coca Cola Zero",
+      "coca cola light",
+      "Coca Cola Zero Zero",
+      "Coca Cola Sabores",
+      "Fanta naranja",
+      "Fanta limón",
+      "Fanta sabores",
+      "Sprite",
+      "Tónica",
+      "Burn",
+      "Energéticas",
+      "M.Maid",
+      "FUZE",
+      "Deportivas",
+      "Isotónicas",
+      "Appletiser",
+      "Aquabona",
+      "Alcoholes"
     ];
 
     sections.forEach(section => {
