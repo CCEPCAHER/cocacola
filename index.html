@@ -27,7 +27,12 @@
 
   <!-- CONTENIDO PRIVADO -->
   <div id="contenido" class="hidden">
-    <header><h1>CONSULTAS</h1></header>
+    <header>
+      <h1>CONSULTAS</h1>
+      <button id="logout-btn" class="btn-logout" aria-label="Cerrar sesión">
+        🚪 Cerrar Sesión
+      </button>
+    </header>
 
     <main>
       <div class="dropdown-container"><div id="filter-container"></div></div>
@@ -66,7 +71,8 @@
     import { initializeApp }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth,
              signInWithEmailAndPassword,
-             onAuthStateChanged }       from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+             onAuthStateChanged,
+             signOut }                  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore,
              collection,
              addDoc,
@@ -98,6 +104,7 @@
     const loginForm      = document.getElementById("login-form");
     const storeSelect    = document.getElementById("store");
     const headerH1       = document.querySelector("#contenido header h1");
+    const logoutBtn      = document.getElementById("logout-btn");
 
     /* --- HELPER: mostrar contenido privado ------------------------------- */
     function mostrarContenido(storeName){
@@ -152,6 +159,22 @@
           console.error(err);
           alert("Credenciales incorrectas. Verifica tu email y contraseña.");
         });
+    });
+
+    /* --- LOGOUT ---------------------------------------------------------- */
+    logoutBtn.addEventListener("click", async () => {
+      const confirmed = confirm("¿Estás seguro de que quieres cerrar sesión?");
+      if (confirmed) {
+        try {
+          await signOut(auth);
+          localStorage.removeItem("userStore");
+          localStorage.removeItem("loggedInUser");
+          console.log("✅ Sesión cerrada correctamente");
+        } catch (error) {
+          console.error("Error al cerrar sesión:", error);
+          alert("❌ Error al cerrar sesión");
+        }
+      }
     });
 
     /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE -------------------------- */
