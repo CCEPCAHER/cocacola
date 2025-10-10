@@ -80,7 +80,8 @@
     import { getStorage,
              ref,
              getDownloadURL,
-             listAll }                  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+             listAll,
+             uploadBytes }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     /* --- CONFIG FIREBASE ------------------------------------------------- */
     const firebaseConfig = {
@@ -274,11 +275,12 @@
     window.firebaseStorageRef = ref;
     window.firebaseGetDownloadURL = getDownloadURL;
     window.firebaseListAll = listAll;
+    window.firebaseUploadBytes = uploadBytes;
     console.log('✅ Firebase expuesto globalmente');
   </script>
 
   <!-- lógica principal -->
-<script src="script.js?v=2025101001"></script>
+  <script src="script.js?v=2025101001"></script>
 
 </body>
 </html>
