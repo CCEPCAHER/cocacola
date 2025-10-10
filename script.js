@@ -165,16 +165,15 @@
       }
     });
     
-    showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
-    
-    // Ocultar mensajes después de 10 segundos
-    setTimeout(() => {
-      const debugDiv = document.getElementById('debug-messages');
-      if (debugDiv) {
-        debugDiv.style.display = 'none';
-      }
-    }, 10000);
+showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
+
+// Ocultar mensajes después de 10 segundos
+setTimeout(() => {
+  const debugDiv = document.getElementById('debug-messages');
+  if (debugDiv) {
+    debugDiv.style.display = 'none';
   }
+}, 10000);
 
   // Iniciar carga al cargar el DOM
   if (document.readyState === 'loading') {
