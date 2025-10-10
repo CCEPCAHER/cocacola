@@ -178,10 +178,10 @@ function initPDFConverter() {
       }
       console.log('✅ Header PDF válido');
       
-      // Configurar opciones de carga - AQUÍ ESTABA EL ERROR
+      // Configurar opciones de carga - ✅ CORRECCIÓN AQUÍ
       console.log('⚙️ Configurando pdfjsLib.getDocument...');
       const loadingTask = pdfjsLib.getDocument({
-         uint8Array,  // ✅ CORRECCIÓN: Agregado "" antes de uint8Array
+         uint8Array,  // ✅ CORRECCIÓN: " " agregado
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
         verbosity: 1
