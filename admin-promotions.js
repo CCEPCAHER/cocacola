@@ -1,5 +1,5 @@
 // =========================================================================
-// admin-promotions.js - Gestión de fechas de promociones
+// admin-promotions.js - Gestión de fechas de promociones y carga de PDFs
 // =========================================================================
 
 let db;
@@ -19,6 +19,9 @@ const waitForFirestore = setInterval(() => {
         
         // Inicializar gestión de promociones
         initPromotionManager();
+        
+        // Inicializar carga de PDFs
+        initPDFUploader();
       })
       .catch(err => console.error('❌ Error al cargar Firestore:', err));
   }
@@ -280,5 +283,184 @@ function initPromotionManager() {
     setTimeout(() => {
       statusDiv.innerHTML = '';
     }, 4000);
+  }
+}
+
+// =========================================================================
+// SUBIR PDFs Y EXTRAER IMÁGENES
+// =========================================================================
+
+function initPDFUploader() {
+  const uploadBtn = document.getElementById('upload-pdf-btn');
+  const pdfFileInput = document.getElementById('pdf-file');
+  const sectionSelect = document.getElementById('section-select');
+
+  if (!uploadBtn || !pdfFileInput || !sectionSelect) {
+    console.error('❌ Elementos de carga de PDF no encontrados');
+    return;
+  }
+
+  // Poblar selector de secciones
+  const sections = [
+    'MONSTER BLITZ 2025',
+    'FOCOS',
+    'FEM ALCAMPO',
+    'FEM CARREFOUR',
+    'FEM CARREFOUR MARKET',
+    'FEM SUPECO',
+    'FEM SORLI',
+    'FEM SCLAT BONPREU',
+    'FEM CAPRABO',
+    'FEM CONSUM',
+    'FEM CONDIS',
+    'FEM COVIRAN',
+    'Coca Cola',
+    'Coca Cola Zero',
+    'coca cola light'
+  ];
+
+  sections.forEach(section => {
+    const option = document.createElement('option');
+    option.value = section;
+    option.textContent = section;
+    sectionSelect.appendChild(option);
+  });
+
+  // Evento de carga
+  uploadBtn.addEventListener('click', async () => {
+    const pdfFile = pdfFileInput.files[0];
+    const sectionName = sectionSelect.value;
+
+    if (!pdfFile) {
+      alert('⚠️ Por favor selecciona un archivo PDF');
+      return;
+    }
+
+    if (!sectionName) {
+      alert('⚠️ Por favor selecciona una sección');
+      return;
+    }
+
+    if (!pdfFile.type.includes('pdf')) {
+      alert('❌ El archivo debe ser un PDF');
+      return;
+    }
+
+    await extractImagesFromPDF(pdfFile, sectionName);
+  });
+}
+
+// Función para extraer imágenes de PDF
+async function extractImagesFromPDF(pdfFile, sectionName) {
+  const resultsDiv = document.getElementById('pdf-results');
+  const progressBar = document.getElementById('pdf-progress');
+  const progressText = document.getElementById('pdf-progress-text');
+  const sectionTitle = document.getElementById('section-title');
+  
+  try {
+    resultsDiv.innerHTML = '<p style="color: #666;">Procesando PDF...</p>';
+    progressBar.style.width = '0%';
+    progressBar.style.display = 'block';
+    progressText.style.display = 'block';
+    sectionTitle.textContent = `Sección: ${sectionName}`;
+    sectionTitle.style.display = 'block';
+
+    // Convertir el archivo a ArrayBuffer
+    const arrayBuffer = await pdfFile.arrayBuffer();
+    
+    // Cargar el PDF con pdf.js
+    const loadingTask = pdfjsLib.getDocument({  arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    console.log(`PDF cargado: ${pdf.numPages} páginas`);
+    
+    const images = [];
+    
+    // Procesar cada página
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      progressBar.style.width = `${(pageNum / pdf.numPages) * 100}%`;
+      progressText.textContent = `Procesando página ${pageNum} de ${pdf.numPages}...`;
+      
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2.0 });
+      
+      // Crear canvas
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      
+      // Renderizar la página
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      // Convertir a Blob
+      const blob = await new Promise(resolve => {
+        canvas.toBlob(resolve, 'image/jpeg', 0.95);
+      });
+      
+      images.push({
+        blob: blob,
+        pageNum: pageNum
+      });
+      
+      console.log(`Página ${pageNum} procesada`);
+    }
+    
+    progressText.textContent = 'Subiendo imágenes a Firebase Storage...';
+    
+    // Subir cada imagen a Firebase Storage
+    let uploadedCount = 0;
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      const fileName = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${i}.jpg`;
+      const storageRef = window.firebaseStorageRef(window.firebaseStorage, `images/${fileName}`);
+      
+      await window.firebaseUploadBytes(storageRef, image.blob, {
+        contentType: 'image/jpeg'
+      });
+      
+      uploadedCount++;
+      progressBar.style.width = `${(uploadedCount / images.length) * 100}%`;
+      progressText.textContent = `Subiendo ${uploadedCount} de ${images.length} imágenes...`;
+      
+      console.log(`Imagen subida: ${fileName}`);
+    }
+    
+    // Éxito
+    progressText.textContent = `✅ ${images.length} imágenes subidas correctamente`;
+    progressBar.style.width = '100%';
+    progressBar.style.background = '#28a745';
+    
+    resultsDiv.innerHTML = `
+      <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-top: 10px;">
+        <strong>✅ ¡Éxito!</strong><br>
+        ${images.length} imágenes extraídas y subidas a Firebase Storage.<br>
+        Sección: <strong>${sectionName}</strong>
+      </div>
+    `;
+    
+    // Resetear después de 3 segundos
+    setTimeout(() => {
+      progressBar.style.display = 'none';
+      progressText.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressBar.style.background = '#E41A1C';
+      document.getElementById('pdf-file').value = '';
+      document.getElementById('section-select').value = '';
+      sectionTitle.style.display = 'none';
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error procesando PDF:', error);
+    resultsDiv.innerHTML = `
+      <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+        <strong>❌ Error:</strong> ${error.message}
+      </div>
+    `;
+    progressBar.style.display = 'none';
+    progressText.style.display = 'none';
   }
 }
