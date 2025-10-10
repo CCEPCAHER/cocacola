@@ -7,12 +7,132 @@
 (function () {
   'use strict';
 
+  /* =========================================================================
+     CARGAR FECHAS DESDE FIRESTORE
+     ========================================================================= */
+  let promotionDates = {};
+  let firestoreReady = false;
+
+  // Función para cargar fechas desde Firestore
+  async function loadPromotionDatesFromFirestore() {
+    try {
+      console.log('🔄 Iniciando carga de fechas desde Firestore...');
+      
+      // Esperar a que Firebase esté disponible (viene de index.html)
+      let attempts = 0;
+      while (!window.auth && attempts < 100) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        attempts++;
+      }
+
+      if (!window.auth) {
+        console.warn('⚠️ Firebase Auth no disponible, usando fechas del código');
+        return;
+      }
+
+      console.log('✅ Firebase Auth detectado');
+
+      // Importar Firestore
+      const { getFirestore, collection, getDocs } = await import(
+        'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
+      );
+      
+      // Obtener instancia de Firestore
+      const db = getFirestore(window.auth.app);
+      console.log('✅ Firestore inicializado');
+      
+      // Cargar promociones desde la colección "promotions"
+      const querySnapshot = await getDocs(collection(db, 'promotions'));
+      
+      if (querySnapshot.empty) {
+        console.warn('⚠️ No hay promociones en Firestore, usando fechas por defecto');
+        return;
+      }
+      
+      // Guardar cada promoción
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        promotionDates[doc.id] = data;
+        console.log(`📅 ${doc.id}: ${data.startDate} → ${data.endDate} (${data.active ? 'ACTIVA' : 'INACTIVA'})`);
+      });
+      
+      firestoreReady = true;
+      console.log(`✅ ${Object.keys(promotionDates).length} promociones cargadas desde Firestore`);
+      
+      // Aplicar fechas a las secciones
+      applyPromotionDatesToSections();
+      
+    } catch (error) {
+      console.error('❌ Error al cargar fechas desde Firestore:', error);
+      console.error('Stack:', error.stack);
+      console.warn('ℹ️ Se usarán las fechas por defecto del código');
+    }
+  }
+
+  // Aplicar fechas dinámicas a las secciones
+  function applyPromotionDatesToSections() {
+    if (!firestoreReady || Object.keys(promotionDates).length === 0) {
+      console.log('ℹ️ No se aplicarán fechas de Firestore');
+      return;
+    }
+
+    let sectionsUpdated = 0;
+    let productsUpdated = 0;
+
+    // Iterar sobre todas las secciones
+    Object.keys(sections).forEach(sectionKey => {
+      // Normalizar nombre: "FEM ALCAMPO" → "FEM_ALCAMPO"
+      const normalizedKey = sectionKey.toUpperCase().replace(/\s+/g, '_');
+      
+      // Buscar en Firestore
+      if (promotionDates[normalizedKey]) {
+        const promo = promotionDates[normalizedKey];
+        
+        console.log(`🔄 Actualizando sección: "${sectionKey}"`);
+        console.log(`   → Fechas Firestore: ${promo.startDate} a ${promo.endDate}`);
+        console.log(`   → Estado: ${promo.active ? 'ACTIVA' : 'INACTIVA'}`);
+        
+        // Actualizar todos los productos de esta sección
+        sections[sectionKey].forEach(product => {
+          if (promo.active) {
+            // Si está activa, aplicar fechas
+            product.startDate = promo.startDate;
+            product.endDate = promo.endDate;
+            productsUpdated++;
+          } else {
+            // Si está inactiva, eliminar fechas
+            delete product.startDate;
+            delete product.endDate;
+          }
+        });
+        
+        sectionsUpdated++;
+      }
+    });
+    
+    console.log(`✅ Actualización completada:`);
+    console.log(`   - Secciones actualizadas: ${sectionsUpdated}`);
+    console.log(`   - Productos actualizados: ${productsUpdated}`);
+  }
+
+  // Iniciar carga al cargar el DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('📦 DOM cargado - Iniciando carga de fechas...');
+      setTimeout(loadPromotionDatesFromFirestore, 1000);
+    });
+  } else {
+    console.log('📦 DOM ya listo - Iniciando carga de fechas...');
+    setTimeout(loadPromotionDatesFromFirestore, 1000);
+  }
+
   /* -----------------------------------------------------------------------
      1. DATOS: SECCIONES Y PRODUCTOS
      - Rellena los productos como necesites; estructura mínima incluida.
   ----------------------------------------------------------------------- */
   const sections = {
         "MONSTER BLITZ 2025": [
+
       { 
         "name": "", 
         "price": 0.00,
