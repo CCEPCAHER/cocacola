@@ -167,6 +167,11 @@
     
 showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
 
+// RE-RENDERIZAR PRODUCTOS CON NUEVAS FECHAS
+showDebugMessage('🔄 Re-renderizando productos con nuevas fechas...', 'info');
+updateProductList();
+showDebugMessage('✅ Productos re-renderizados correctamente', 'success');
+
 // Ocultar mensajes después de 10 segundos
 setTimeout(() => {
   const debugDiv = document.getElementById('debug-messages');
