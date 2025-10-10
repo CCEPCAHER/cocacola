@@ -165,7 +165,7 @@
       }
     });
     
-showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
+     showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
 
 // RE-RENDERIZAR PRODUCTOS CON NUEVAS FECHAS
 showDebugMessage('🔄 Re-renderizando productos con nuevas fechas...', 'info');
@@ -179,17 +179,18 @@ setTimeout(() => {
     debugDiv.style.display = 'none';
   }
 }, 10000);
+}  // ← AGREGAR ESTA LLAVE DE CIERRE
 
-  // Iniciar carga al cargar el DOM
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      showDebugMessage('📦 DOM cargado - Iniciando...', 'info');
-      setTimeout(loadPromotionDatesFromFirestore, 2000);
-    });
-  } else {
-    showDebugMessage('📦 DOM ya listo - Iniciando...', 'info');
+// Iniciar carga al cargar el DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    showDebugMessage('📦 DOM cargado - Iniciando...', 'info');
     setTimeout(loadPromotionDatesFromFirestore, 2000);
-  }
+  });
+} else {
+  showDebugMessage('📦 DOM ya listo - Iniciando...', 'info');
+  setTimeout(loadPromotionDatesFromFirestore, 2000);
+}
 
   
 
