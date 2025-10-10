@@ -112,10 +112,10 @@ function initPDFConverter() {
       tipo: file.type
     });
     
-    // Validar tamaño del archivo (máximo 10 MB)
-    const maxSize = 10 * 1024 * 1024;
+    // Validar tamaño del archivo (máximo 100 MB)
+    const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
-      showAlert(`⚠️ El archivo es muy grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Máximo permitido: 10 MB`, 'warning');
+      showAlert(`⚠️ El archivo es muy grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Máximo permitido: 100 MB`, 'warning');
       return;
     }
 
