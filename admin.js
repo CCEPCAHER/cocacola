@@ -1,5 +1,5 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (VERSIÓN MEJORADA)
+// admin.js - Panel de Administración con Firebase Storage (VERSIÓN CORREGIDA FINAL)
 // =========================================================================
 
 // Verificar si el DOM ya está listo o esperar el evento
@@ -184,7 +184,7 @@ function initPDFConverter() {
       updateProgress(2, 5, 'Cargando documento...');
       
       const loadingTask = pdfjsLib.getDocument({
-         uint8Array,  // ✅ CORRECCIÓN AQUÍ - "" agregado
+         uint8Array,  // ✅ CORRECCIÓN CRÍTICA AQUÍ
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
         verbosity: 1
