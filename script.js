@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-
   /* =========================================================================
      CARGAR FECHAS DESDE FIRESTORE
      ========================================================================= */
@@ -11,8 +10,6 @@
   // Función para cargar fechas desde Firestore
   async function loadPromotionDatesFromFirestore() {
     try {
-      showDebugMessage('🔄 Iniciando carga de fechas...', 'info');
-      
       // Esperar a que Firebase esté disponible
       let attempts = 0;
       let firebaseApp = null;
@@ -20,84 +17,57 @@
       while (attempts < 150) {
         if (window.auth) {
           firebaseApp = window.auth.app;
-          showDebugMessage('✅ Firebase encontrado via window.auth', 'success');
           break;
         }
         
         if (window.firebaseApp) {
           firebaseApp = window.firebaseApp;
-          showDebugMessage('✅ Firebase encontrado via window.firebaseApp', 'success');
           break;
         }
         
         await new Promise(resolve => setTimeout(resolve, 50));
         attempts++;
-        
-        if (attempts % 20 === 0) {
-          showDebugMessage(`⏳ Esperando Firebase... intento ${attempts}/150`, 'warning');
-        }
       }
 
       if (!firebaseApp) {
-        showDebugMessage('❌ Firebase no disponible después de esperar', 'error');
-        showDebugMessage('⚠️ Usando fechas por defecto del código', 'warning');
         return;
       }
-
-      showDebugMessage('✅ Firebase detectado, importando Firestore...', 'success');
 
       // Importar Firestore
       const { getFirestore, collection, getDocs } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
       );
       
-      showDebugMessage('✅ Módulo Firestore importado', 'success');
-      
       // Obtener instancia de Firestore
       const db = getFirestore(firebaseApp);
-      showDebugMessage('✅ Firestore inicializado', 'success');
       
       // Cargar promociones desde la colección "promotions"
-      showDebugMessage('📥 Cargando colección "promotions"...', 'info');
       const querySnapshot = await getDocs(collection(db, 'promotions'));
       
       if (querySnapshot.empty) {
-        showDebugMessage('⚠️ Colección "promotions" está vacía', 'warning');
         return;
       }
       
-      showDebugMessage(`📦 ${querySnapshot.size} documentos encontrados`, 'success');
-      
       // Guardar cada promoción
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        promotionDates[doc.id] = data;
-        const status = data.active ? 'ACTIVA ✅' : 'INACTIVA ❌';
-        showDebugMessage(`📅 ${doc.id}: ${data.startDate} → ${data.endDate} (${status})`, 'info');
+        promotionDates[doc.id] = doc.data();
       });
       
       firestoreReady = true;
-      showDebugMessage(`✅ ${Object.keys(promotionDates).length} promociones cargadas`, 'success');
       
       // Aplicar fechas a las secciones
-      showDebugMessage('🔄 Aplicando fechas a las secciones...', 'info');
       applyPromotionDatesToSections();
       
     } catch (error) {
-      showDebugMessage(`❌ ERROR: ${error.message}`, 'error');
-      console.error('Stack:', error.stack);
+      console.error('Error cargando fechas:', error);
     }
   }
 
   // Aplicar fechas dinámicas a las secciones
   function applyPromotionDatesToSections() {
     if (!firestoreReady || Object.keys(promotionDates).length === 0) {
-      showDebugMessage('⚠️ No se aplicarán fechas de Firestore', 'warning');
       return;
     }
-
-    let sectionsUpdated = 0;
-    let productsUpdated = 0;
 
     // Iterar sobre todas las secciones
     Object.keys(sections).forEach(sectionKey => {
@@ -106,53 +76,30 @@
       if (promotionDates[normalizedKey]) {
         const promo = promotionDates[normalizedKey];
         
-        showDebugMessage(`🔄 Actualizando: ${sectionKey}`, 'info');
-        showDebugMessage(`   Fechas: ${promo.startDate} → ${promo.endDate}`, 'info');
-        
         sections[sectionKey].forEach(product => {
           if (promo.active) {
             product.startDate = promo.startDate;
             product.endDate = promo.endDate;
-            productsUpdated++;
           } else {
             delete product.startDate;
             delete product.endDate;
           }
         });
-        
-        sectionsUpdated++;
       }
     });
     
-     showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
-
-// RE-RENDERIZAR PRODUCTOS CON NUEVAS FECHAS
-showDebugMessage('🔄 Re-renderizando productos con nuevas fechas...', 'info');
-updateProductList();
-showDebugMessage('✅ Productos re-renderizados correctamente', 'success');
-
-// Ocultar mensajes después de 10 segundos
-setTimeout(() => {
-  const debugDiv = document.getElementById('debug-messages');
-  if (debugDiv) {
-    debugDiv.style.display = 'none';
+    // Re-renderizar productos con nuevas fechas
+    updateProductList();
   }
-}, 10000);
-}  // ← AGREGAR ESTA LLAVE DE CIERRE
 
-// Iniciar carga al cargar el DOM
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    showDebugMessage('📦 DOM cargado - Iniciando...', 'info');
+  // Iniciar carga al cargar el DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(loadPromotionDatesFromFirestore, 2000);
+    });
+  } else {
     setTimeout(loadPromotionDatesFromFirestore, 2000);
-  });
-} else {
-  showDebugMessage('📦 DOM ya listo - Iniciando...', 'info');
-  setTimeout(loadPromotionDatesFromFirestore, 2000);
-}
-
-  
-
+  }
   /* -----------------------------------------------------------------------
      1. DATOS: SECCIONES Y PRODUCTOS
      - Rellena los productos como necesites; estructura mínima incluida.
