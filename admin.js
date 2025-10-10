@@ -1,5 +1,5 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (CORREGIDO)
+// admin.js - Panel de Administración con Firebase Storage (VERSIÓN MEJORADA)
 // =========================================================================
 
 // Verificar si el DOM ya está listo o esperar el evento
@@ -131,7 +131,7 @@ function initPDFConverter() {
     }
 
     try {
-      showAlert('🔄 Procesando PDF...', 'info');
+      showAlert(`🔄 Iniciando procesamiento de "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
       progressContainer.style.display = 'block';
       previewContainer.innerHTML = '';
 
@@ -160,52 +160,52 @@ function initPDFConverter() {
     console.log('==========================================');
 
     try {
-      // Leer el archivo como ArrayBuffer
-      console.log('📖 Leyendo archivo...');
+      // PASO 1: Leer archivo
+      showAlert('📖 Paso 1/5: Leyendo archivo PDF...', 'info');
+      updateProgress(0, 5, 'Leyendo archivo...');
+      
       const arrayBuffer = await file.arrayBuffer();
       console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength, 'bytes');
       
-      // IMPORTANTE: Convertir ArrayBuffer a Uint8Array
-      const uint8Array = new Uint8Array(arrayBuffer);
-      console.log('✅ Uint8Array creado, longitud:', uint8Array.length);
+      // PASO 2: Validar PDF
+      showAlert('🔍 Paso 2/5: Validando formato PDF...', 'info');
+      updateProgress(1, 5, 'Validando PDF...');
       
-      // Verificar que los primeros bytes son un PDF válido (%PDF)
+      const uint8Array = new Uint8Array(arrayBuffer);
       const pdfHeader = String.fromCharCode(uint8Array[0], uint8Array[1], uint8Array[2], uint8Array[3]);
-      console.log('🔍 Header encontrado:', pdfHeader);
       
       if (pdfHeader !== '%PDF') {
-        throw new Error(`El archivo no es un PDF válido. Header: "${pdfHeader}" (esperado: "%PDF")`);
+        throw new Error(`El archivo no es un PDF válido. Header: "${pdfHeader}"`);
       }
-      console.log('✅ Header PDF válido');
+      console.log('✅ PDF válido detectado');
       
-      // Configurar opciones de carga - ✅ CORRECCIÓN AQUÍ
-      console.log('⚙️ Configurando pdfjsLib.getDocument...');
+      // PASO 3: Cargar documento
+      showAlert('📥 Paso 3/5: Cargando documento PDF...', 'info');
+      updateProgress(2, 5, 'Cargando documento...');
+      
       const loadingTask = pdfjsLib.getDocument({
-         uint8Array,  // ✅ CORRECCIÓN: " " agregado
+         uint8Array,
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
         verbosity: 1
       });
       
-      console.log('📥 Cargando documento PDF...');
       const pdf = await loadingTask.promise;
       const totalPages = pdf.numPages;
-      console.log(`✅ PDF cargado exitosamente: ${totalPages} páginas`);
-      console.log('==========================================');
-
-      progressText.textContent = `Procesando ${totalPages} páginas...`;
+      console.log(`✅ PDF cargado: ${totalPages} páginas`);
+      
+      // PASO 4: Convertir páginas
+      showAlert(`🎨 Paso 4/5: Convirtiendo ${totalPages} páginas a imágenes...`, 'info');
 
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-        console.log(`\n📄 === PÁGINA ${pageNum}/${totalPages} ===`);
-        updateProgress(pageNum, totalPages);
+        updateProgress(pageNum, totalPages, `Convirtiendo página ${pageNum}/${totalPages}...`);
+        
+        showAlert(`🎨 Convirtiendo página ${pageNum} de ${totalPages}...`, 'info');
 
         const page = await pdf.getPage(pageNum);
-        console.log('✅ Página obtenida');
         
-        // Escala de renderizado
         const scale = 1.5;
         const viewport = page.getViewport({ scale: scale });
-        console.log(`📐 Viewport: ${viewport.width.toFixed(0)}x${viewport.height.toFixed(0)}px`);
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d', { 
@@ -216,47 +216,43 @@ function initPDFConverter() {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        console.log('🎨 Renderizando...');
         await page.render({ 
           canvasContext: context, 
           viewport: viewport,
           intent: 'print'
         }).promise;
-        console.log('✅ Renderizado completo');
 
-        // Convertir a blob JPG
-        console.log('💾 Convirtiendo a JPEG...');
         const blob = await new Promise(resolve => 
           canvas.toBlob(resolve, 'image/jpeg', 0.85)
         );
-        console.log(`✅ JPEG creado: ${(blob.size / 1024).toFixed(2)} KB`);
         
-        // Nombre del archivo
         const sectionName = section.toLowerCase().replace(/\s+/g, '_');
         const fileName = `${sectionName}_${pageNum - 1}.jpg`;
 
-        // Subir a Firebase Storage
-        console.log(`☁️ Subiendo ${fileName}...`);
+        // PASO 5: Subir a Firebase
+        showAlert(`☁️ Subiendo ${fileName} a Firebase Storage...`, 'info');
         await uploadToFirebase(blob, fileName, section);
-        console.log('✅ Subida completada');
+        
+        showAlert(`✅ ${fileName} subido correctamente (${(blob.size / 1024).toFixed(0)} KB)`, 'success');
 
         // Crear preview
         const img = document.createElement('img');
         img.src = canvas.toDataURL('image/jpeg', 0.85);
         img.className = 'preview-image';
         img.alt = `Página ${pageNum}`;
+        img.title = `${fileName} - ${(blob.size / 1024).toFixed(0)} KB`;
         previewContainer.appendChild(img);
         
-        // Limpiar canvas de memoria
+        // Limpiar memoria
         canvas.width = 0;
         canvas.height = 0;
-        
-        // Liberar memoria de la página
         page.cleanup();
       }
       
-      // Limpiar PDF de memoria
-      console.log('\n🧹 Limpiando recursos...');
+      // PASO 5: Finalizar
+      updateProgress(5, 5, '¡Completado!');
+      showAlert(`🎉 Proceso completado: ${totalPages} imágenes convertidas y subidas`, 'success');
+      
       pdf.cleanup();
       pdf.destroy();
       console.log('==========================================');
@@ -279,52 +275,61 @@ function initPDFConverter() {
     // Esperar hasta 10 segundos a que Storage se inicialice
     let attempts = 0;
     while ((!storage || !storageModule) && attempts < 100) {
-      console.log(`⏳ Esperando Firebase Storage... intento ${attempts + 1}`);
+      if (attempts === 0) {
+        showAlert('⏳ Esperando a que Firebase Storage esté listo...', 'info');
+      }
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
     }
     
     if (!storage || !storageModule) {
-      throw new Error('Firebase Storage no pudo inicializarse después de 10 segundos. Recarga la página e intenta de nuevo.');
+      throw new Error('Firebase Storage no pudo inicializarse. Recarga la página e intenta de nuevo.');
     }
 
     const { ref, uploadBytes, getDownloadURL } = storageModule;
     
-    // Normalizar nombre de sección para usar como carpeta
     const folderName = section.toLowerCase().replace(/\s+/g, '_');
-    
-    // Crear referencia con estructura: images/{seccion}/{archivo}
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
     
     try {
-      // Subir archivo
       const snapshot = await uploadBytes(storageRef, blob);
-      
-      // Obtener URL de descarga
       const downloadURL = await getDownloadURL(snapshot.ref);
       
-      console.log(`✅ Subido a: images/${folderName}/${fileName}`);
+      console.log(`✅ Subido: images/${folderName}/${fileName}`);
       console.log(`🔗 URL: ${downloadURL}`);
       
       return downloadURL;
     } catch (error) {
       console.error('❌ Error en uploadBytes:', error);
-      throw new Error(`Error al subir archivo: ${error.message}`);
+      throw new Error(`Error al subir ${fileName}: ${error.message}`);
     }
   }
 
-  function updateProgress(current, total) {
+  function updateProgress(current, total, message = '') {
     const percent = Math.round((current / total) * 100);
     progressFill.style.width = percent + '%';
     progressFill.textContent = percent + '%';
-    progressText.textContent = `Procesando página ${current} de ${total}...`;
+    progressText.textContent = message || `Procesando ${current} de ${total}...`;
   }
 
   function showAlert(message, type) {
-    alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-    setTimeout(() => {
-      alertContainer.innerHTML = '';
-    }, 5000);
+    const timestamp = new Date().toLocaleTimeString('es-ES');
+    alertContainer.innerHTML = `
+      <div class="alert alert-${type}">
+        <strong>[${timestamp}]</strong> ${message}
+      </div>
+    `;
+    
+    // No ocultar automáticamente mensajes de éxito/error para que se vean
+    if (type === 'info') {
+      setTimeout(() => {
+        // Solo limpiar si no hay otro mensaje más reciente
+        const currentAlert = alertContainer.querySelector('.alert-info');
+        if (currentAlert) {
+          alertContainer.innerHTML = '';
+        }
+      }, 3000);
+    }
   }
 
   function loadSections() {
