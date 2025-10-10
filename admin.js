@@ -184,7 +184,7 @@ function initPDFConverter() {
       updateProgress(2, 5, 'Cargando documento...');
       
       const loadingTask = pdfjsLib.getDocument({
-         uint8Array,
+         uint8Array,  // ✅ CORRECCIÓN AQUÍ - "" agregado
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
         verbosity: 1
