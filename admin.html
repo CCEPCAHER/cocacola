@@ -356,6 +356,54 @@
 
         <div id="preview-container" class="preview-container"></div>
       </div>
+
+      <!-- SECCIÓN: GESTIONAR FECHAS DE PROMOCIONES -->
+      <div class="admin-section">
+        <h2>📅 Gestionar Fechas de Promociones</h2>
+        
+        <div class="instruction-box">
+          <h3>📋 Instrucciones:</h3>
+          <ol>
+            <li>Selecciona la promoción que deseas editar</li>
+            <li>Cambia las fechas de inicio y fin</li>
+            <li>Marca o desmarca si la promoción está activa</li>
+            <li>Haz clic en "Guardar Cambios"</li>
+            <li>Las fechas se actualizarán automáticamente en la app</li>
+          </ol>
+        </div>
+
+        <select id="promotion-selector" class="section-select">
+          <option value="">Selecciona una promoción...</option>
+        </select>
+
+        <div id="promotion-dates-form" style="display: none; margin-top: 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+              <label for="start-date" style="display: block; margin-bottom: 8px; font-weight: bold;">Fecha de Inicio:</label>
+              <input type="date" id="start-date" class="section-select" style="width: 100%;">
+            </div>
+            <div>
+              <label for="end-date" style="display: block; margin-bottom: 8px; font-weight: bold;">Fecha de Fin:</label>
+              <input type="date" id="end-date" class="section-select" style="width: 100%;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+            <input type="checkbox" id="promotion-active" style="width: 20px; height: 20px;">
+            <label for="promotion-active" style="font-weight: bold;">Promoción activa</label>
+          </div>
+
+          <button id="save-promotion-btn" class="btn-primary">💾 Guardar Cambios</button>
+          
+          <div id="promotion-status" style="margin-top: 15px;"></div>
+        </div>
+
+        <div id="current-promotions" style="margin-top: 30px;">
+          <h3 style="color: var(--color-primary); margin-bottom: 15px;">Promociones Configuradas:</h3>
+          <div id="promotions-list"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -448,7 +496,10 @@
     });
   </script>
 
-  <!-- Admin Logic - DEBE ser el ÚLTIMO script -->
+  <!-- Admin Logic - Convertir PDF -->
   <script src="admin.js"></script>
+  
+  <!-- Gestión de Promociones -->
+  <script src="admin-promotions.js"></script>
 </body>
 </html>
