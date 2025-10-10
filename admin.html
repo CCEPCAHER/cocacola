@@ -101,6 +101,26 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
+    .btn-logout {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-logout:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
     .alert {
       padding: 15px;
       border-radius: 8px;
@@ -236,6 +256,40 @@
     #admin-login-form button:hover {
       background: var(--color-primary-hover);
     }
+
+    /* Header con botón de logout */
+    #admin-panel header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    #admin-panel header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    #admin-panel header h2 {
+      margin: 5px 0 0 0;
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: normal;
+    }
   </style>
 </head>
 <body>
@@ -252,8 +306,15 @@
   <!-- PANEL ADMIN -->
   <div id="admin-panel" class="hidden">
     <header>
-      <h1>⚙️ Panel de Administración</h1>
-      <h2 id="admin-username"></h2>
+      <div class="header-left">
+        <h1>⚙️ Panel de Administración</h1>
+        <h2 id="admin-username"></h2>
+      </div>
+      <div class="header-right">
+        <button id="logout-btn" class="btn-logout">
+          🚪 Cerrar Sesión
+        </button>
+      </div>
     </header>
 
     <div class="admin-container">
@@ -298,13 +359,24 @@
     </div>
   </div>
 
-  <!-- PDF.js Library -->
+  <!-- PDF.js Library - CRÍTICO: Cargar ANTES de los módulos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  
+  <!-- Configurar PDF.js worker inmediatamente después de cargarlo -->
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      console.log('✅ PDF.js configurado, versión:', pdfjsLib.version);
+    } else {
+      console.error('❌ PDF.js no se cargó correctamente');
+    }
+  </script>
 
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
@@ -325,6 +397,7 @@
     const adminPanel = document.getElementById("admin-panel");
     const loginForm = document.getElementById("admin-login-form");
     const adminUsername = document.getElementById("admin-username");
+    const logoutBtn = document.getElementById("logout-btn");
 
     // Auth listener
     onAuthStateChanged(auth, user => {
@@ -333,6 +406,7 @@
         adminPanel.classList.remove("hidden");
         adminUsername.textContent = `Admin: ${user.email}`;
         window.adminAuth = { user, auth };
+        console.log('✅ Admin autenticado:', user.email);
       } else {
         if (user) auth.signOut();
         loginContainer.style.display = "flex";
@@ -358,9 +432,23 @@
           alert("❌ Credenciales incorrectas");
         });
     });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      const confirmed = confirm("¿Estás seguro de que quieres cerrar sesión?");
+      if (confirmed) {
+        try {
+          await signOut(auth);
+          console.log("✅ Sesión cerrada correctamente");
+        } catch (error) {
+          console.error("Error al cerrar sesión:", error);
+          alert("❌ Error al cerrar sesión");
+        }
+      }
+    });
   </script>
 
-  <!-- Admin Logic -->
+  <!-- Admin Logic - DEBE ser el ÚLTIMO script -->
   <script src="admin.js"></script>
 </body>
 </html>
