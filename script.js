@@ -4219,15 +4219,15 @@ function initFullscreenModal() {
   });
 }
 
-  /* -----------------------------------------------------------------------
+/* -----------------------------------------------------------------------
      2. RENDERIZADO DE LA TIENDA
   ----------------------------------------------------------------------- */
   function initializeApp() {
-  updateProductList();
-  createFilterDropdown();
-  addEventListeners();
-  initFullscreenModal();          // ← NUEVO
-}
+    updateProductList();
+    createFilterDropdown();
+    addEventListeners();
+    initFullscreenModal();
+  }
 
   function updateProductList() {
     const productListElem = document.getElementById('product-list');
@@ -4251,7 +4251,10 @@ function initFullscreenModal() {
     products.forEach((p, i) => {
       const btnId = `${sectionName.replace(/\s/g, '_')}-${i}`;
       const img   = `images/${sectionName.toLowerCase().replace(/\s+/g, '_')}_${i}.jpg`;
-      const today = new Date(); today.setHours(0,0,0,0);
+      
+      // Fecha actual a medianoche
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
       html += `
         <div class="product" data-section-name="${escapeHTML(sectionName)}" data-fullview-src="${img}">
@@ -4261,19 +4264,31 @@ function initFullscreenModal() {
 
       /* Etiqueta de oferta (si procede) */
       if (p.endDate) {
-        const fin  = new Date(p.endDate);
-        const ini  = p.startDate ? new Date(p.startDate) : null;
-        let txt='', cls='';
-        if (fin < today) {
-          txt='Oferta caducada'; cls='offer-expired';
-        } else if (ini && ini > today) {
-          txt=`Próxima: ${ini.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})}
-                - ${fin.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})}`;
-          cls='offer-upcoming';
-        } else {
-          txt=`Activa hasta: ${fin.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
-          cls='offer-active';
+        // Crear fechas correctamente desde formato YYYY-MM-DD
+        const endParts = p.endDate.split('-');
+        const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+        fin.setHours(23, 59, 59, 999); // Fin del día
+        
+        let ini = null;
+        if (p.startDate) {
+          const startParts = p.startDate.split('-');
+          ini = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+          ini.setHours(0, 0, 0, 0); // Inicio del día
         }
+        
+        let txt = '', cls = '';
+        
+        if (fin < today) {
+          txt = 'Oferta caducada';
+          cls = 'offer-expired';
+        } else if (ini && ini > today) {
+          txt = `Próxima: ${ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})} - ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})}`;
+          cls = 'offer-upcoming';
+        } else {
+          txt = `Activa hasta: ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
+          cls = 'offer-active';
+        }
+        
         html += `<p class="offer-tag ${cls}">${txt}</p>`;
       }
 
@@ -4305,6 +4320,7 @@ function initFullscreenModal() {
     const input = btn.parentElement.querySelector('input');
     input.value = v;
   }
+  
   function validateInput(input) {
     if (input.value < 0) input.value = 0;
   }
@@ -4468,6 +4484,7 @@ function initFullscreenModal() {
   function toggleCart() {
     document.getElementById('cart-modal')?.classList.toggle('active');
   }
+  
   function showToast(msg) {
     const t=document.createElement('div');
     t.className='toast'; t.innerText=msg;
@@ -4475,6 +4492,7 @@ function initFullscreenModal() {
     setTimeout(()=>{t.classList.add('show');},100);
     setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),500);},2500);
   }
+  
   function lazyLoadImages() {
     const imgs=[...document.querySelectorAll('img.lazy')];
     if ('IntersectionObserver' in window) {
