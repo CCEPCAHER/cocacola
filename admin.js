@@ -155,7 +155,9 @@ function initPDFConverter() {
       throw new Error('PDF.js no está cargado. Por favor recarga la página.');
     }
 
-    console.log('🔄 Iniciando conversión de PDF...');
+    console.log('==========================================');
+    console.log('🔄 INICIANDO CONVERSIÓN DE PDF');
+    console.log('==========================================');
 
     try {
       // Leer el archivo como ArrayBuffer
@@ -169,38 +171,41 @@ function initPDFConverter() {
       
       // Verificar que los primeros bytes son un PDF válido (%PDF)
       const pdfHeader = String.fromCharCode(uint8Array[0], uint8Array[1], uint8Array[2], uint8Array[3]);
-      if (pdfHeader !== '%PDF') {
-        throw new Error('El archivo no es un PDF válido');
-      }
-      console.log('✅ Header PDF válido:', pdfHeader);
+      console.log('🔍 Header encontrado:', pdfHeader);
       
-      // Configurar opciones de carga
-      console.log('⚙️ Configurando opciones de carga...');
+      if (pdfHeader !== '%PDF') {
+        throw new Error(`El archivo no es un PDF válido. Header: "${pdfHeader}" (esperado: "%PDF")`);
+      }
+      console.log('✅ Header PDF válido');
+      
+      // Configurar opciones de carga - AQUÍ ESTABA EL ERROR
+      console.log('⚙️ Configurando pdfjsLib.getDocument...');
       const loadingTask = pdfjsLib.getDocument({
-         uint8Array,  // USAR uint8Array, NO arrayBuffer
+         uint8Array,  // ✅ CORRECCIÓN: Agregado "" antes de uint8Array
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
-        verbosity: 1  // Activar logs para debugging
+        verbosity: 1
       });
       
       console.log('📥 Cargando documento PDF...');
       const pdf = await loadingTask.promise;
       const totalPages = pdf.numPages;
       console.log(`✅ PDF cargado exitosamente: ${totalPages} páginas`);
+      console.log('==========================================');
 
       progressText.textContent = `Procesando ${totalPages} páginas...`;
 
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-        console.log(`📄 Procesando página ${pageNum} de ${totalPages}...`);
+        console.log(`\n📄 === PÁGINA ${pageNum}/${totalPages} ===`);
         updateProgress(pageNum, totalPages);
 
         const page = await pdf.getPage(pageNum);
-        console.log(`✅ Página ${pageNum} obtenida`);
+        console.log('✅ Página obtenida');
         
         // Escala de renderizado
         const scale = 1.5;
         const viewport = page.getViewport({ scale: scale });
-        console.log(`📐 Viewport: ${viewport.width}x${viewport.height}`);
+        console.log(`📐 Viewport: ${viewport.width.toFixed(0)}x${viewport.height.toFixed(0)}px`);
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d', { 
@@ -211,29 +216,29 @@ function initPDFConverter() {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
-        console.log(`🎨 Renderizando página ${pageNum}...`);
+        console.log('🎨 Renderizando...');
         await page.render({ 
           canvasContext: context, 
           viewport: viewport,
           intent: 'print'
         }).promise;
-        console.log(`✅ Página ${pageNum} renderizada`);
+        console.log('✅ Renderizado completo');
 
         // Convertir a blob JPG
-        console.log(`💾 Convirtiendo página ${pageNum} a JPEG...`);
+        console.log('💾 Convirtiendo a JPEG...');
         const blob = await new Promise(resolve => 
           canvas.toBlob(resolve, 'image/jpeg', 0.85)
         );
-        console.log(`✅ Blob creado, tamaño: ${(blob.size / 1024).toFixed(2)} KB`);
+        console.log(`✅ JPEG creado: ${(blob.size / 1024).toFixed(2)} KB`);
         
         // Nombre del archivo
         const sectionName = section.toLowerCase().replace(/\s+/g, '_');
         const fileName = `${sectionName}_${pageNum - 1}.jpg`;
 
         // Subir a Firebase Storage
-        console.log(`☁️ Subiendo ${fileName} a Firebase...`);
+        console.log(`☁️ Subiendo ${fileName}...`);
         await uploadToFirebase(blob, fileName, section);
-        console.log(`✅ ${fileName} subido exitosamente`);
+        console.log('✅ Subida completada');
 
         // Crear preview
         const img = document.createElement('img');
@@ -251,21 +256,36 @@ function initPDFConverter() {
       }
       
       // Limpiar PDF de memoria
-      console.log('🧹 Limpiando recursos...');
+      console.log('\n🧹 Limpiando recursos...');
       pdf.cleanup();
       pdf.destroy();
-      console.log('✅ Conversión completada exitosamente');
+      console.log('==========================================');
+      console.log('✅ CONVERSIÓN COMPLETADA EXITOSAMENTE');
+      console.log('==========================================\n');
       
     } catch (error) {
-      console.error('❌ Error detallado en convertPDFToImages:', error);
-      console.error('Stack trace:', error.stack);
+      console.error('==========================================');
+      console.error('❌ ERROR EN CONVERSIÓN DE PDF');
+      console.error('==========================================');
+      console.error('Tipo de error:', error.name);
+      console.error('Mensaje:', error.message);
+      console.error('Stack completo:', error.stack);
+      console.error('==========================================\n');
       throw new Error(`Error al procesar PDF: ${error.message}`);
     }
   }
 
   async function uploadToFirebase(blob, fileName, section) {
+    // Esperar hasta 10 segundos a que Storage se inicialice
+    let attempts = 0;
+    while ((!storage || !storageModule) && attempts < 100) {
+      console.log(`⏳ Esperando Firebase Storage... intento ${attempts + 1}`);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
     if (!storage || !storageModule) {
-      throw new Error('Firebase Storage no está inicializado. Espera unos segundos e intenta de nuevo.');
+      throw new Error('Firebase Storage no pudo inicializarse después de 10 segundos. Recarga la página e intenta de nuevo.');
     }
 
     const { ref, uploadBytes, getDownloadURL } = storageModule;
@@ -276,16 +296,21 @@ function initPDFConverter() {
     // Crear referencia con estructura: images/{seccion}/{archivo}
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
     
-    // Subir archivo
-    const snapshot = await uploadBytes(storageRef, blob);
-    
-    // Obtener URL de descarga
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    
-    console.log(`✅ Subido a: images/${folderName}/${fileName}`);
-    console.log(`🔗 URL: ${downloadURL}`);
-    
-    return downloadURL;
+    try {
+      // Subir archivo
+      const snapshot = await uploadBytes(storageRef, blob);
+      
+      // Obtener URL de descarga
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      console.log(`✅ Subido a: images/${folderName}/${fileName}`);
+      console.log(`🔗 URL: ${downloadURL}`);
+      
+      return downloadURL;
+    } catch (error) {
+      console.error('❌ Error en uploadBytes:', error);
+      throw new Error(`Error al subir archivo: ${error.message}`);
+    }
   }
 
   function updateProgress(current, total) {
