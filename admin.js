@@ -1,5 +1,5 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (VERSIÓN CORREGIDA FINAL)
+// admin.js - Panel de Administración con Firebase Storage
 // =========================================================================
 
 // Verificar si el DOM ya está listo o esperar el evento
@@ -15,21 +15,29 @@ if (document.readyState === 'loading') {
 let storage;
 let storageModule;
 
-// Esperar a que Firebase esté disponible
-const waitForFirebase = setInterval(() => {
-  if (window.adminAuth && window.adminAuth.auth) {
-    clearInterval(waitForFirebase);
-    // Importar Storage
-    import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js')
-      .then(module => {
-        const { getStorage, ref, uploadBytes, getDownloadURL, listAll } = module;
-        storage = getStorage(window.adminAuth.auth.app);
-        storageModule = { ref, uploadBytes, getDownloadURL, listAll };
-        console.log('✅ Firebase Storage inicializado');
-      })
-      .catch(err => console.error('❌ Error al cargar Storage:', err));
+async function initializeFirebaseStorage() {
+  // Esperar a que el objeto de autenticación esté disponible en window
+  await new Promise(resolve => {
+    const interval = setInterval(() => {
+      if (window.adminAuth && window.adminAuth.auth) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 100);
+  });
+
+  try {
+    const module = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js');
+    const { getStorage, ref, uploadBytes, getDownloadURL, listAll } = module;
+    storage = getStorage(window.adminAuth.auth.app);
+    storageModule = { ref, uploadBytes, getDownloadURL, listAll };
+    console.log('✅ Firebase Storage inicializado');
+  } catch (err) {
+    console.error('❌ Error al cargar Firebase Storage:', err);
   }
-}, 100);
+}
+
+initializeFirebaseStorage();
 
 // =========================================================================
 // 2. CONVERTIDOR DE PDF A IMÁGENES
@@ -43,6 +51,11 @@ function initPDFConverter() {
   const progressText = document.getElementById('progress-text');
   const alertContainer = document.getElementById('alert-container');
   const previewContainer = document.getElementById('preview-container');
+
+  // Constantes para configuración
+  const MAX_FILE_SIZE_MB = 100;
+  const PDF_RENDER_SCALE = 1.5;
+  const IMAGE_QUALITY = 0.85;
 
   // Verificar que los elementos existen
   if (!sectionSelector || !dropArea || !pdfInput) {
@@ -113,9 +126,9 @@ function initPDFConverter() {
     });
     
     // Validar tamaño del archivo (máximo 100 MB)
-    const maxSize = 100 * 1024 * 1024;
+    const maxSize = MAX_FILE_SIZE_MB * 1024 * 1024;
     if (file.size > maxSize) {
-      showAlert(`⚠️ El archivo es muy grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Máximo permitido: 100 MB`, 'warning');
+      showAlert(`⚠️ El archivo es muy grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Máximo permitido: ${MAX_FILE_SIZE_MB} MB`, 'warning');
       return;
     }
 
@@ -184,7 +197,7 @@ function initPDFConverter() {
       updateProgress(2, 5, 'Cargando documento...');
       
       const loadingTask = pdfjsLib.getDocument({
-         uint8Array,  // ✅ CORRECCIÓN FINAL AQUÍ - AGREGADO ""
+        data: uint8Array, // La clave correcta es 'data'
         cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
         cMapPacked: true,
         verbosity: 1
@@ -202,7 +215,7 @@ function initPDFConverter() {
         
         showAlert(`🎨 Convirtiendo página ${pageNum} de ${totalPages}...`, 'info');
 
-        const page = await pdf.getPage(pageNum);
+        const page = await pdf.getPage(pageNum).catch(err => { throw new Error(`No se pudo cargar la página ${pageNum}: ${err.message}`); });
         
         const scale = 1.5;
         const viewport = page.getViewport({ scale: scale });
@@ -223,7 +236,7 @@ function initPDFConverter() {
         }).promise;
 
         const blob = await new Promise(resolve => 
-          canvas.toBlob(resolve, 'image/jpeg', 0.85)
+          canvas.toBlob(resolve, 'image/jpeg', IMAGE_QUALITY)
         );
         
         const sectionName = section.toLowerCase().replace(/\s+/g, '_');
@@ -237,7 +250,7 @@ function initPDFConverter() {
 
         // Crear preview
         const img = document.createElement('img');
-        img.src = canvas.toDataURL('image/jpeg', 0.85);
+        img.src = canvas.toDataURL('image/jpeg', IMAGE_QUALITY);
         img.className = 'preview-image';
         img.alt = `Página ${pageNum}`;
         img.title = `${fileName} - ${(blob.size / 1024).toFixed(0)} KB`;
@@ -252,8 +265,9 @@ function initPDFConverter() {
       // PASO 5: Finalizar
       updateProgress(5, 5, '¡Completado!');
       showAlert(`🎉 Proceso completado: ${totalPages} imágenes convertidas y subidas`, 'success');
-      
-      pdf.cleanup();
+
+      // pdf.cleanup() está obsoleto. La limpieza de memoria es ahora automática.
+      // Solo necesitamos destruir el objeto PDF.
       pdf.destroy();
       console.log('==========================================');
       console.log('✅ CONVERSIÓN COMPLETADA EXITOSAMENTE');
