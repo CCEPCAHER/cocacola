@@ -1,11 +1,47 @@
-/* =========================================================================
-   APP DE PEDIDOS – script.js
-   Versión 22-jul-2025
-   - Descarga el Excel con XLSX.writeFile()
-   - Sube el pedido a Firestore con sendOrderToFirestore()
-   ========================================================================= */
 (function () {
   'use strict';
+
+  /* =========================================================================
+     DEBUG VISUAL - TEMPORAL
+     ========================================================================= */
+  function showDebugMessage(message, type = 'info') {
+    const debugDiv = document.getElementById('debug-messages') || (() => {
+      const div = document.createElement('div');
+      div.id = 'debug-messages';
+      div.style.cssText = `
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.9);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 12px;
+        z-index: 10000;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+      `;
+      document.body.appendChild(div);
+      return div;
+    })();
+    
+    const time = new Date().toLocaleTimeString();
+    const colors = {
+      info: '#00bfff',
+      success: '#00ff00',
+      error: '#ff0000',
+      warning: '#ffaa00'
+    };
+    
+    debugDiv.innerHTML += `<div style="color: ${colors[type]}; margin-bottom: 5px;">[${time}] ${message}</div>`;
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+    console.log(message);
+  }
+
+  // Exponer globalmente
+  window.showDebugMessage = showDebugMessage;
 
   /* =========================================================================
      CARGAR FECHAS DESDE FIRESTORE
@@ -16,63 +52,88 @@
   // Función para cargar fechas desde Firestore
   async function loadPromotionDatesFromFirestore() {
     try {
-      console.log('🔄 Iniciando carga de fechas desde Firestore...');
+      showDebugMessage('🔄 Iniciando carga de fechas...', 'info');
       
-      // Esperar a que Firebase esté disponible (viene de index.html)
+      // Esperar a que Firebase esté disponible
       let attempts = 0;
-      while (!window.auth && attempts < 100) {
+      let firebaseApp = null;
+      
+      while (attempts < 150) {
+        if (window.auth) {
+          firebaseApp = window.auth.app;
+          showDebugMessage('✅ Firebase encontrado via window.auth', 'success');
+          break;
+        }
+        
+        if (window.firebaseApp) {
+          firebaseApp = window.firebaseApp;
+          showDebugMessage('✅ Firebase encontrado via window.firebaseApp', 'success');
+          break;
+        }
+        
         await new Promise(resolve => setTimeout(resolve, 50));
         attempts++;
+        
+        if (attempts % 20 === 0) {
+          showDebugMessage(`⏳ Esperando Firebase... intento ${attempts}/150`, 'warning');
+        }
       }
 
-      if (!window.auth) {
-        console.warn('⚠️ Firebase Auth no disponible, usando fechas del código');
+      if (!firebaseApp) {
+        showDebugMessage('❌ Firebase no disponible después de esperar', 'error');
+        showDebugMessage('⚠️ Usando fechas por defecto del código', 'warning');
         return;
       }
 
-      console.log('✅ Firebase Auth detectado');
+      showDebugMessage('✅ Firebase detectado, importando Firestore...', 'success');
 
       // Importar Firestore
       const { getFirestore, collection, getDocs } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
       );
       
+      showDebugMessage('✅ Módulo Firestore importado', 'success');
+      
       // Obtener instancia de Firestore
-      const db = getFirestore(window.auth.app);
-      console.log('✅ Firestore inicializado');
+      const db = getFirestore(firebaseApp);
+      showDebugMessage('✅ Firestore inicializado', 'success');
       
       // Cargar promociones desde la colección "promotions"
+      showDebugMessage('📥 Cargando colección "promotions"...', 'info');
       const querySnapshot = await getDocs(collection(db, 'promotions'));
       
       if (querySnapshot.empty) {
-        console.warn('⚠️ No hay promociones en Firestore, usando fechas por defecto');
+        showDebugMessage('⚠️ Colección "promotions" está vacía', 'warning');
         return;
       }
+      
+      showDebugMessage(`📦 ${querySnapshot.size} documentos encontrados`, 'success');
       
       // Guardar cada promoción
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         promotionDates[doc.id] = data;
-        console.log(`📅 ${doc.id}: ${data.startDate} → ${data.endDate} (${data.active ? 'ACTIVA' : 'INACTIVA'})`);
+        const status = data.active ? 'ACTIVA ✅' : 'INACTIVA ❌';
+        showDebugMessage(`📅 ${doc.id}: ${data.startDate} → ${data.endDate} (${status})`, 'info');
       });
       
       firestoreReady = true;
-      console.log(`✅ ${Object.keys(promotionDates).length} promociones cargadas desde Firestore`);
+      showDebugMessage(`✅ ${Object.keys(promotionDates).length} promociones cargadas`, 'success');
       
       // Aplicar fechas a las secciones
+      showDebugMessage('🔄 Aplicando fechas a las secciones...', 'info');
       applyPromotionDatesToSections();
       
     } catch (error) {
-      console.error('❌ Error al cargar fechas desde Firestore:', error);
+      showDebugMessage(`❌ ERROR: ${error.message}`, 'error');
       console.error('Stack:', error.stack);
-      console.warn('ℹ️ Se usarán las fechas por defecto del código');
     }
   }
 
   // Aplicar fechas dinámicas a las secciones
   function applyPromotionDatesToSections() {
     if (!firestoreReady || Object.keys(promotionDates).length === 0) {
-      console.log('ℹ️ No se aplicarán fechas de Firestore');
+      showDebugMessage('⚠️ No se aplicarán fechas de Firestore', 'warning');
       return;
     }
 
@@ -81,26 +142,20 @@
 
     // Iterar sobre todas las secciones
     Object.keys(sections).forEach(sectionKey => {
-      // Normalizar nombre: "FEM ALCAMPO" → "FEM_ALCAMPO"
       const normalizedKey = sectionKey.toUpperCase().replace(/\s+/g, '_');
       
-      // Buscar en Firestore
       if (promotionDates[normalizedKey]) {
         const promo = promotionDates[normalizedKey];
         
-        console.log(`🔄 Actualizando sección: "${sectionKey}"`);
-        console.log(`   → Fechas Firestore: ${promo.startDate} a ${promo.endDate}`);
-        console.log(`   → Estado: ${promo.active ? 'ACTIVA' : 'INACTIVA'}`);
+        showDebugMessage(`🔄 Actualizando: ${sectionKey}`, 'info');
+        showDebugMessage(`   Fechas: ${promo.startDate} → ${promo.endDate}`, 'info');
         
-        // Actualizar todos los productos de esta sección
         sections[sectionKey].forEach(product => {
           if (promo.active) {
-            // Si está activa, aplicar fechas
             product.startDate = promo.startDate;
             product.endDate = promo.endDate;
             productsUpdated++;
           } else {
-            // Si está inactiva, eliminar fechas
             delete product.startDate;
             delete product.endDate;
           }
@@ -110,21 +165,29 @@
       }
     });
     
-    console.log(`✅ Actualización completada:`);
-    console.log(`   - Secciones actualizadas: ${sectionsUpdated}`);
-    console.log(`   - Productos actualizados: ${productsUpdated}`);
+    showDebugMessage(`✅ Actualización completada: ${sectionsUpdated} secciones, ${productsUpdated} productos`, 'success');
+    
+    // Ocultar mensajes después de 10 segundos
+    setTimeout(() => {
+      const debugDiv = document.getElementById('debug-messages');
+      if (debugDiv) {
+        debugDiv.style.display = 'none';
+      }
+    }, 10000);
   }
 
   // Iniciar carga al cargar el DOM
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('📦 DOM cargado - Iniciando carga de fechas...');
-      setTimeout(loadPromotionDatesFromFirestore, 1000);
+      showDebugMessage('📦 DOM cargado - Iniciando...', 'info');
+      setTimeout(loadPromotionDatesFromFirestore, 2000);
     });
   } else {
-    console.log('📦 DOM ya listo - Iniciando carga de fechas...');
-    setTimeout(loadPromotionDatesFromFirestore, 1000);
+    showDebugMessage('📦 DOM ya listo - Iniciando...', 'info');
+    setTimeout(loadPromotionDatesFromFirestore, 2000);
   }
+
+  
 
   /* -----------------------------------------------------------------------
      1. DATOS: SECCIONES Y PRODUCTOS
