@@ -268,10 +268,13 @@
 
     /* --- Poner auth, storage y firestore en global -------------------- */
     window.auth = auth;
+    window.firebaseApp = app;
+    window.db = db;
     window.firebaseStorage = storage;
     window.firebaseStorageRef = ref;
     window.firebaseGetDownloadURL = getDownloadURL;
     window.firebaseListAll = listAll;
+    console.log('✅ Firebase expuesto globalmente');
   </script>
 
   <!-- lógica principal -->
