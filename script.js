@@ -1,47 +1,6 @@
 (function () {
   'use strict';
 
-  /* =========================================================================
-     DEBUG VISUAL - TEMPORAL
-     ========================================================================= */
-  function showDebugMessage(message, type = 'info') {
-    const debugDiv = document.getElementById('debug-messages') || (() => {
-      const div = document.createElement('div');
-      div.id = 'debug-messages';
-      div.style.cssText = `
-        position: fixed;
-        top: 60px;
-        left: 10px;
-        right: 10px;
-        background: rgba(0,0,0,0.9);
-        color: white;
-        padding: 15px;
-        border-radius: 8px;
-        font-size: 12px;
-        z-index: 10000;
-        max-height: 300px;
-        overflow-y: auto;
-        font-family: monospace;
-      `;
-      document.body.appendChild(div);
-      return div;
-    })();
-    
-    const time = new Date().toLocaleTimeString();
-    const colors = {
-      info: '#00bfff',
-      success: '#00ff00',
-      error: '#ff0000',
-      warning: '#ffaa00'
-    };
-    
-    debugDiv.innerHTML += `<div style="color: ${colors[type]}; margin-bottom: 5px;">[${time}] ${message}</div>`;
-    debugDiv.scrollTop = debugDiv.scrollHeight;
-    console.log(message);
-  }
-
-  // Exponer globalmente
-  window.showDebugMessage = showDebugMessage;
 
   /* =========================================================================
      CARGAR FECHAS DESDE FIRESTORE
