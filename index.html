@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CONSULTAS - Coca-Cola</title>
+  <title>PEDIDOS - Coca-Cola</title>
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -11,6 +11,7 @@
 </head>
 <body>
 
+  <!-- LOGIN -->
   <div id="login-container">
     <form id="login-form">
       <h2>Iniciar Sesión</h2>
@@ -24,6 +25,7 @@
     </form>
   </div>
 
+  <!-- CONTENIDO PRIVADO -->
   <div id="contenido" class="hidden">
     <header>
       <h1>CONSULTAS</h1>
@@ -38,6 +40,7 @@
 
       <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
 
+      <!-- Modal carrito -->
       <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
         <div id="cart-modal-content">
           <h2 id="cart-modal-title">Tu Pedido</h2>
@@ -52,13 +55,16 @@
 
   <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
 
+  <!-- VISOR FULLSCREEN (IMAGEN / PDF) -->
   <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
     <span class="close-fullscreen-modal">&times;</span>
     <div class="fullscreen-modal-content"></div>
   </div>
 
+  <!-- librería Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+  <!-- Firebase + Storage + Auth -->
   <script type="module">
     import { initializeApp }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth,
@@ -72,7 +78,8 @@
     import { getStorage,
              ref,
              getDownloadURL,
-             listAll }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+             listAll,
+             uploadBytes }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     /* --- CONFIG FIREBASE ------------------------------------------------- */
     const firebaseConfig = {
@@ -168,35 +175,27 @@
       }
     });
 
-    /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE (OPTIMIZADO) ------------- */
+    /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE -------------------------- */
     async function loadImagesFromStorage() {
       try {
         console.log('🔄 Cargando imágenes desde Firebase Storage...');
         const imagesRef = ref(storage, 'images/');
-        const result = await listAll(imagesRef);
+        const result = await listAll(imagesRef);                               // Lista raíz
 
         const imageUrls = {};
-        const storageBucketName = 'cocacolaconsultas-20759.appspot.com'; // Usar el bucket de tu config
 
-        // Función para obtener la ruta completa del storage (ej: images/folder/file.jpg)
-        const getFullPath = (itemRef) => {
-          // El itemRef.fullPath ya contiene la ruta completa del storage (ej: images/folder/file.jpg)
-          return itemRef.fullPath;
-        };
-
-        // Archivos en raíz (compatibilidad, ej: images/file.jpg)
+        // Archivos en raíz (compatibilidad)
         for (const itemRef of result.items) {
           const url = await getDownloadURL(itemRef);
-          imageUrls[getFullPath(itemRef)] = url;
+          imageUrls[itemRef.name] = url;
         }
 
-        // Subcarpetas (secciones, ej: images/fem_carrefour/file.jpg)
+        // Subcarpetas (secciones)
         for (const folderRef of result.prefixes) {
-          const folderResult = await listAll(folderRef);
+          const folderResult = await listAll(folderRef);                       // Lista subcarpeta
           for (const itemRef of folderResult.items) {
             const url = await getDownloadURL(itemRef);
-            // USAR LA RUTA COMPLETA COMO CLAVE
-            imageUrls[getFullPath(itemRef)] = url; 
+            imageUrls[itemRef.name] = url;                                     // clave: nombre de archivo
           }
         }
 
@@ -214,20 +213,16 @@
     function updateProductImages() {
       if (!window.firebaseImageUrls) return;
       document.querySelectorAll('.product img[data-src]').forEach(img => {
-        const fullStoragePath = img.dataset.src.trim(); // Espera algo como: images/fem_carrefour/fem_carrefour_0.jpg
-        const url = window.firebaseImageUrls[fullStoragePath];
-        
+        const originalSrc = img.dataset.src;              // p.ej. images/fem_carrefour/fem_carrefour_0.jpg
+        const fileName = originalSrc.split('/').pop();    // fem_carrefour_0.jpg
+        const url = window.firebaseImageUrls[fileName];
         if (url) {
           img.dataset.src = url;
           if (!img.classList.contains('lazy')) {
-            // Carga inmediata para las que no son "lazy" (generalmente las primeras)
-            img.src = url; 
-          } else {
-             // La lógica de lazy loading debe encargarse de asignar img.src después
+            img.src = url;
           }
         } else {
-          // Ya no buscamos solo por nombre de archivo, sino por la ruta completa
-          console.warn(`⚠️ Imagen no encontrada en Storage: ${fullStoragePath}`);
+          console.warn(`⚠️ Imagen no encontrada en Storage: ${fileName}`);
         }
       });
     }
@@ -253,9 +248,14 @@
     window.firebaseApp = app;
     window.db = db;
     window.firebaseStorage = storage;
+    window.firebaseStorageRef = ref;
+    window.firebaseGetDownloadURL = getDownloadURL;
+    window.firebaseListAll = listAll;
+    window.firebaseUploadBytes = uploadBytes;
     console.log('✅ Firebase expuesto globalmente');
   </script>
 
+  <!-- lógica principal -->
   <script src="script.js?v=2025101001"></script>
 </body>
 </html>
