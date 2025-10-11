@@ -1,5 +1,5 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (OPTIMIZADO)
+// admin.js - Panel de Administración con Firebase Storage (CORREGIDO)
 // =========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,7 +29,7 @@ const waitForFirebase = setInterval(() => {
 }, 100);
 
 // =========================================================================
-// 2. CONVERTIDOR DE PDF A IMÁGENES (OPTIMIZADO)
+// 2. CONVERTIDOR DE PDF A IMÁGENES (CORREGIDO)
 // =========================================================================
 function initPDFConverter() {
   const sectionSelector = document.getElementById('section-selector');
@@ -41,7 +41,13 @@ function initPDFConverter() {
   const alertContainer = document.getElementById('alert-container');
   const previewContainer = document.getElementById('preview-container');
 
-  // Cargar secciones
+  // VERIFICAR que los elementos existen antes de continuar
+  if (!sectionSelector) {
+    console.error('❌ No se encontró el elemento section-selector');
+    return;
+  }
+
+  // Cargar secciones - CORRECCIÓN: Llamar aquí dentro de la función
   loadSections();
 
   // Eventos drag & drop
@@ -92,10 +98,10 @@ function initPDFConverter() {
       return;
     }
 
-    // Validar tamaño del archivo (máximo 50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    // Validar tamaño del archivo (máximo 100MB según tus instrucciones)
+    const maxSize = 100 * 1024 * 1024; // 100MB
     if (file.size > maxSize) {
-      showAlert('❌ El PDF es demasiado grande. Máximo 50MB', 'error');
+      showAlert('❌ El PDF es demasiado grande. Máximo 100MB', 'error');
       return;
     }
 
@@ -168,8 +174,7 @@ function initPDFConverter() {
     try {
       const page = await pdf.getPage(pageNum);
       
-      // REDUCIR ESCALA para archivos más pequeños y evitar problemas de memoria
-      // Cambiar de 2.0 a 1.5 o 1.0 si sigues teniendo problemas
+      // REDUCIR ESCALA para archivos más pequeños
       const scale = 1.5;
       const viewport = page.getViewport({ scale });
 
@@ -180,8 +185,8 @@ function initPDFConverter() {
 
       await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-      // Convertir a blob JPG con calidad reducida para móviles
-      const quality = 0.85; // Reducir de 0.95 a 0.85
+      // Convertir a blob JPG con calidad reducida
+      const quality = 0.85;
       const blob = await canvasToBlob(canvas, quality);
       
       // Nombre del archivo
@@ -191,7 +196,7 @@ function initPDFConverter() {
       // Subir a Firebase Storage con reintentos
       await uploadToFirebaseWithRetry(blob, fileName, section, 3);
 
-      // Crear preview (solo para las primeras 10 páginas para no saturar)
+      // Crear preview (solo para las primeras 10 páginas)
       if (pageNum <= 10) {
         const img = document.createElement('img');
         img.src = canvas.toDataURL('image/jpeg', quality);
@@ -212,18 +217,16 @@ function initPDFConverter() {
     }
   }
 
-  // Función mejorada para convertir canvas a blob con soporte cross-browser
+  // Función mejorada para convertir canvas a blob
   function canvasToBlob(canvas, quality) {
     return new Promise((resolve, reject) => {
       try {
-        // Intentar usar toBlob nativo
         if (canvas.toBlob) {
           canvas.toBlob(
             blob => {
               if (blob) {
                 resolve(blob);
               } else {
-                // Fallback a dataURL si toBlob falla
                 resolve(dataURLtoBlob(canvas.toDataURL('image/jpeg', quality)));
               }
             },
@@ -231,7 +234,6 @@ function initPDFConverter() {
             quality
           );
         } else {
-          // Fallback para navegadores que no soportan toBlob
           resolve(dataURLtoBlob(canvas.toDataURL('image/jpeg', quality)));
         }
       } catch (error) {
@@ -241,7 +243,7 @@ function initPDFConverter() {
     });
   }
 
-  // Convertir dataURL a Blob (fallback)
+  // Convertir dataURL a Blob
   function dataURLtoBlob(dataURL) {
     const arr = dataURL.split(',');
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -267,7 +269,6 @@ function initPDFConverter() {
         console.warn(`⚠️ Intento ${attempt}/${maxRetries} falló para ${fileName}: ${error.message}`);
         
         if (attempt < maxRetries) {
-          // Espera exponencial: 1s, 2s, 4s
           const delay = Math.pow(2, attempt - 1) * 1000;
           await new Promise(resolve => setTimeout(resolve, delay));
         }
@@ -325,7 +326,6 @@ function initPDFConverter() {
   function showAlert(message, type) {
     alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
     
-    // Auto-ocultar solo para mensajes de info
     if (type === 'info') {
       setTimeout(() => {
         alertContainer.innerHTML = '';
@@ -333,6 +333,7 @@ function initPDFConverter() {
     }
   }
 
+  // CORRECCIÓN: Definir loadSections dentro del scope donde está sectionSelector
   function loadSections() {
     const sections = [
       "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS",
@@ -347,11 +348,15 @@ function initPDFConverter() {
       "Appletiser", "Aquabona", "Alcoholes"
     ];
 
+    console.log('📋 Cargando secciones...', sections.length);
+
     sections.forEach(section => {
       const option = document.createElement('option');
       option.value = section;
       option.textContent = section;
       sectionSelector.appendChild(option);
     });
+
+    console.log('✅ Secciones cargadas:', sectionSelector.options.length);
   }
 }
