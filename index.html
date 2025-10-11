@@ -29,9 +29,7 @@
   <div id="contenido" class="hidden">
     <header>
       <h1>CONSULTAS</h1>
-      <button id="logout-btn" class="btn-logout" aria-label="Cerrar sesión">
-        🚪 Cerrar Sesión
-      </button>
+      <button id="logout-btn" class="btn-logout" aria-label="Cerrar sesión">🚪 Cerrar Sesión</button>
     </header>
 
     <main>
@@ -88,7 +86,7 @@
       apiKey:            "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
       authDomain:        "cocacolaconsultas-20759.firebaseapp.com",
       projectId:         "cocacolaconsultas-20759",
-      storageBucket:     "cocacolaconsultas-20759.appspot.com",
+      storageBucket:     "cocacolaconsultas-20759.firebasestorage.app",
       messagingSenderId: "274074684363",
       appId:             "1:274074684363:web:b988c76c7e74f9e1e3444e",
       measurementId:     "G-29GJZ22GMM"
@@ -122,7 +120,6 @@
         const userStore = localStorage.getItem("userStore");
         mostrarContenido(userStore);
         localStorage.setItem("loggedInUser", user.email);
-        
         // Cargar imágenes desde Firebase Storage
         loadImagesFromStorage();
       }else{
@@ -182,50 +179,32 @@
     async function loadImagesFromStorage() {
       try {
         console.log('🔄 Cargando imágenes desde Firebase Storage...');
-        
-        // Referencia a la carpeta images/
         const imagesRef = ref(storage, 'images/');
-        
-        // Listar todas las carpetas (prefixes) y archivos (items)
-        const result = await listAll(imagesRef);
-        
-        // Crear un mapa de URLs
+        const result = await listAll(imagesRef);                               // Lista raíz
+
         const imageUrls = {};
-        
-        // Primero obtener archivos en la raíz (si existen imágenes antiguas sin carpeta)
+
+        // Archivos en raíz (compatibilidad)
         for (const itemRef of result.items) {
           const url = await getDownloadURL(itemRef);
           imageUrls[itemRef.name] = url;
-          console.log(`📄 Archivo en raíz: ${itemRef.name}`);
         }
-        
-        // Recorrer cada subcarpeta (sección)
+
+        // Subcarpetas (secciones)
         for (const folderRef of result.prefixes) {
-          console.log(`📁 Procesando carpeta: ${folderRef.name}`);
-          
-          // Listar archivos dentro de cada carpeta
-          const folderResult = await listAll(folderRef);
-          
-          // Obtener URLs de cada imagen en la carpeta
+          const folderResult = await listAll(folderRef);                       // Lista subcarpeta
           for (const itemRef of folderResult.items) {
             const url = await getDownloadURL(itemRef);
-            imageUrls[itemRef.name] = url;
-            console.log(`  └─ ${itemRef.name}`);
+            imageUrls[itemRef.name] = url;                                     // clave: nombre de archivo
           }
         }
-        
-        // Guardar en global para que script.js lo use
+
         window.firebaseImageUrls = imageUrls;
-        
         console.log('✅ Imágenes cargadas:', Object.keys(imageUrls).length);
-        console.log('📋 Lista de imágenes:', Object.keys(imageUrls));
-        
-        // Actualizar imágenes en el DOM si ya están cargadas
         updateProductImages();
-        
+
       } catch (error) {
         console.error('❌ Error al cargar imágenes:', error);
-        // Si falla, usar rutas locales como fallback
         window.firebaseImageUrls = {};
       }
     }
@@ -233,18 +212,15 @@
     /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS ----------------------------- */
     function updateProductImages() {
       if (!window.firebaseImageUrls) return;
-      
       document.querySelectorAll('.product img[data-src]').forEach(img => {
-        const originalSrc = img.dataset.src;
-        const fileName = originalSrc.split('/').pop();
-        
-        if (window.firebaseImageUrls[fileName]) {
-          img.dataset.src = window.firebaseImageUrls[fileName];
-          // Si ya está visible, actualizar src también
+        const originalSrc = img.dataset.src;              // p.ej. images/fem_carrefour/fem_carrefour_0.jpg
+        const fileName = originalSrc.split('/').pop();    // fem_carrefour_0.jpg
+        const url = window.firebaseImageUrls[fileName];
+        if (url) {
+          img.dataset.src = url;
           if (!img.classList.contains('lazy')) {
-            img.src = window.firebaseImageUrls[fileName];
+            img.src = url;
           }
-          console.log(`🖼️ Imagen actualizada: ${fileName}`);
         } else {
           console.warn(`⚠️ Imagen no encontrada en Storage: ${fileName}`);
         }
@@ -267,7 +243,7 @@
       }
     };
 
-    /* --- Poner auth, storage y firestore en global -------------------- */
+    /* --- Exponer global (debug) ---------------------------------------- */
     window.auth = auth;
     window.firebaseApp = app;
     window.db = db;
@@ -281,6 +257,5 @@
 
   <!-- lógica principal -->
   <script src="script.js?v=2025101001"></script>
-
 </body>
 </html>
