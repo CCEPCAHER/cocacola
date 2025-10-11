@@ -1,13 +1,10 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage
+// admin.js - Panel de Administración con Firebase Storage (OPTIMIZADO)
 // =========================================================================
 
-// Verificar si el DOM ya está listo o esperar el evento
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPDFConverter);
-} else {
+document.addEventListener('DOMContentLoaded', () => {
   initPDFConverter();
-}
+});
 
 // =========================================================================
 // 1. CONFIGURACIÓN DE FIREBASE STORAGE
@@ -15,32 +12,24 @@ if (document.readyState === 'loading') {
 let storage;
 let storageModule;
 
-async function initializeFirebaseStorage() {
-  // Esperar a que el objeto de autenticación esté disponible en window
-  await new Promise(resolve => {
-    const interval = setInterval(() => {
-      if (window.adminAuth && window.adminAuth.auth) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 100);
-  });
-
-  try {
-    const module = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js');
-    const { getStorage, ref, uploadBytes, getDownloadURL, listAll } = module;
-    storage = getStorage(window.adminAuth.auth.app);
-    storageModule = { ref, uploadBytes, getDownloadURL, listAll };
-    console.log('✅ Firebase Storage inicializado');
-  } catch (err) {
-    console.error('❌ Error al cargar Firebase Storage:', err);
+// Esperar a que Firebase esté disponible
+const waitForFirebase = setInterval(() => {
+  if (window.adminAuth && window.adminAuth.auth) {
+    clearInterval(waitForFirebase);
+    // Importar Storage
+    import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js')
+      .then(module => {
+        const { getStorage, ref, uploadBytes, getDownloadURL, listAll } = module;
+        storage = getStorage(window.adminAuth.auth.app);
+        storageModule = { ref, uploadBytes, getDownloadURL, listAll };
+        console.log('✅ Firebase Storage inicializado');
+      })
+      .catch(err => console.error('❌ Error al cargar Storage:', err));
   }
-}
-
-initializeFirebaseStorage();
+}, 100);
 
 // =========================================================================
-// 2. CONVERTIDOR DE PDF A IMÁGENES
+// 2. CONVERTIDOR DE PDF A IMÁGENES (OPTIMIZADO)
 // =========================================================================
 function initPDFConverter() {
   const sectionSelector = document.getElementById('section-selector');
@@ -51,32 +40,6 @@ function initPDFConverter() {
   const progressText = document.getElementById('progress-text');
   const alertContainer = document.getElementById('alert-container');
   const previewContainer = document.getElementById('preview-container');
-
-  // Constantes para configuración
-  const MAX_FILE_SIZE_MB = 100;
-  const PDF_RENDER_SCALE = 1.5;
-  const IMAGE_QUALITY = 0.85;
-
-  // Verificar que los elementos existen
-  if (!sectionSelector || !dropArea || !pdfInput) {
-    console.error('❌ No se encontraron los elementos del DOM');
-    return;
-  }
-
-  // Configurar PDF.js worker ANTES de cualquier operación
-  console.log('🔧 Configurando PDF.js...');
-  
-  if (typeof pdfjsLib === 'undefined') {
-    console.error('❌ PDF.js no está cargado. Verifica que la biblioteca esté incluida.');
-    showAlert('❌ Error: PDF.js no está cargado correctamente', 'error');
-    return;
-  }
-  
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  
-  console.log('✅ PDF.js configurado correctamente');
-  console.log('📦 Versión de PDF.js:', pdfjsLib.version);
 
   // Cargar secciones
   loadSections();
@@ -117,34 +80,27 @@ function initPDFConverter() {
   async function handleFiles(files) {
     if (!files.length) return;
 
-    const file = files[0];
-    
-    console.log('📁 Archivo seleccionado:', {
-      nombre: file.name,
-      tamaño: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-      tipo: file.type
-    });
-    
-    // Validar tamaño del archivo (máximo 100 MB)
-    const maxSize = MAX_FILE_SIZE_MB * 1024 * 1024;
-    if (file.size > maxSize) {
-      showAlert(`⚠️ El archivo es muy grande (${(file.size / 1024 / 1024).toFixed(2)} MB). Máximo permitido: ${MAX_FILE_SIZE_MB} MB`, 'warning');
-      return;
-    }
-
     const section = sectionSelector.value;
     if (!section) {
       showAlert('⚠️ Selecciona una sección primero', 'warning');
       return;
     }
 
+    const file = files[0];
     if (file.type !== 'application/pdf') {
       showAlert('❌ Solo se permiten archivos PDF', 'error');
       return;
     }
 
+    // Validar tamaño del archivo (máximo 50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      showAlert('❌ El PDF es demasiado grande. Máximo 50MB', 'error');
+      return;
+    }
+
     try {
-      showAlert(`🔄 Iniciando procesamiento de "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
+      showAlert('🔄 Procesando PDF...', 'info');
       progressContainer.style.display = 'block';
       previewContainer.innerHTML = '';
 
@@ -152,7 +108,7 @@ function initPDFConverter() {
 
       showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
     } catch (error) {
-      console.error('❌ Error completo:', error);
+      console.error('Error:', error);
       showAlert(`❌ Error: ${error.message}`, 'error');
     } finally {
       progressContainer.style.display = 'none';
@@ -165,222 +121,230 @@ function initPDFConverter() {
   async function convertPDFToImages(file, section) {
     // Verificar que pdf.js esté cargado
     if (typeof pdfjsLib === 'undefined') {
-      throw new Error('PDF.js no está cargado. Por favor recarga la página.');
+      throw new Error('PDF.js no está cargado');
     }
 
-    console.log('==========================================');
-    console.log('🔄 INICIANDO CONVERSIÓN DE PDF');
-    console.log('==========================================');
+    // Configurar worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    try {
-      // PASO 1: Leer archivo
-      showAlert('📖 Paso 1/5: Leyendo archivo PDF...', 'info');
-      updateProgress(0, 5, 'Leyendo archivo...');
-      
-      const arrayBuffer = await file.arrayBuffer();
-      console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength, 'bytes');
-      
-      // PASO 2: Validar PDF
-      showAlert('🔍 Paso 2/5: Validando formato PDF...', 'info');
-      updateProgress(1, 5, 'Validando PDF...');
-      
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const pdfHeader = String.fromCharCode(uint8Array[0], uint8Array[1], uint8Array[2], uint8Array[3]);
-      
-      if (pdfHeader !== '%PDF') {
-        throw new Error(`El archivo no es un PDF válido. Header: "${pdfHeader}"`);
+    // Cargar PDF
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({  arrayBuffer }).promise;
+    const totalPages = pdf.numPages;
+
+    console.log(`📄 PDF cargado: ${totalPages} páginas`);
+    progressText.textContent = `Procesando ${totalPages} páginas...`;
+
+    // Procesar páginas en lotes para evitar problemas de memoria
+    const batchSize = 5; // Procesar 5 páginas a la vez
+    let uploadedCount = 0;
+
+    for (let i = 0; i < totalPages; i += batchSize) {
+      const endPage = Math.min(i + batchSize, totalPages);
+      const batch = [];
+
+      for (let pageNum = i + 1; pageNum <= endPage; pageNum++) {
+        batch.push(processPage(pdf, pageNum, section, pageNum));
       }
-      console.log('✅ PDF válido detectado');
-      
-      // PASO 3: Cargar documento
-      showAlert('📥 Paso 3/5: Cargando documento PDF...', 'info');
-      updateProgress(2, 5, 'Cargando documento...');
-      
-      const loadingTask = pdfjsLib.getDocument({
-        data: uint8Array, // La clave correcta es 'data'
-        cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
-        cMapPacked: true,
-        verbosity: 1
-      });
-      
-      const pdf = await loadingTask.promise;
-      const totalPages = pdf.numPages;
-      console.log(`✅ PDF cargado: ${totalPages} páginas`);
-      
-      // PASO 4: Convertir páginas
-      showAlert(`🎨 Paso 4/5: Convirtiendo ${totalPages} páginas a imágenes...`, 'info');
 
-      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-        updateProgress(pageNum, totalPages, `Convirtiendo página ${pageNum}/${totalPages}...`);
+      // Procesar el lote
+      try {
+        await Promise.all(batch);
+        uploadedCount += batch.length;
+        updateProgress(uploadedCount, totalPages);
+        console.log(`✅ Lote completado: ${uploadedCount}/${totalPages}`);
         
-        showAlert(`🎨 Convirtiendo página ${pageNum} de ${totalPages}...`, 'info');
-
-        const page = await pdf.getPage(pageNum).catch(err => { throw new Error(`No se pudo cargar la página ${pageNum}: ${err.message}`); });
-        
-        const scale = 1.5;
-        const viewport = page.getViewport({ scale: scale });
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d', { 
-          willReadFrequently: false,
-          alpha: false
-        });
-        
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        await page.render({ 
-          canvasContext: context, 
-          viewport: viewport,
-          intent: 'print'
-        }).promise;
-
-        const blob = await new Promise(resolve => 
-          canvas.toBlob(resolve, 'image/jpeg', IMAGE_QUALITY)
-        );
-        
-        const sectionName = section.toLowerCase().replace(/\s+/g, '_');
-        const fileName = `${sectionName}_${pageNum - 1}.jpg`;
-
-        // PASO 5: Subir a Firebase
-        showAlert(`☁️ Subiendo ${fileName} a Firebase Storage...`, 'info');
-        await uploadToFirebase(blob, fileName, section);
-        
-        showAlert(`✅ ${fileName} subido correctamente (${(blob.size / 1024).toFixed(0)} KB)`, 'success');
-
-        // Crear preview
-        const img = document.createElement('img');
-        img.src = canvas.toDataURL('image/jpeg', IMAGE_QUALITY);
-        img.className = 'preview-image';
-        img.alt = `Página ${pageNum}`;
-        img.title = `${fileName} - ${(blob.size / 1024).toFixed(0)} KB`;
-        previewContainer.appendChild(img);
-        
-        // Limpiar memoria
-        canvas.width = 0;
-        canvas.height = 0;
-        page.cleanup();
+        // Pequeña pausa entre lotes para liberar memoria
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`❌ Error en lote ${i / batchSize + 1}:`, error);
+        throw error;
       }
-      
-      // PASO 5: Finalizar
-      updateProgress(5, 5, '¡Completado!');
-      showAlert(`🎉 Proceso completado: ${totalPages} imágenes convertidas y subidas`, 'success');
-
-      // pdf.cleanup() está obsoleto. La limpieza de memoria es ahora automática.
-      // Solo necesitamos destruir el objeto PDF.
-      pdf.destroy();
-      console.log('==========================================');
-      console.log('✅ CONVERSIÓN COMPLETADA EXITOSAMENTE');
-      console.log('==========================================\n');
-      
-    } catch (error) {
-      console.error('==========================================');
-      console.error('❌ ERROR EN CONVERSIÓN DE PDF');
-      console.error('==========================================');
-      console.error('Tipo de error:', error.name);
-      console.error('Mensaje:', error.message);
-      console.error('Stack completo:', error.stack);
-      console.error('==========================================\n');
-      throw new Error(`Error al procesar PDF: ${error.message}`);
     }
   }
 
-  async function uploadToFirebase(blob, fileName, section) {
-    // Esperar hasta 10 segundos a que Storage se inicialice
-    let attempts = 0;
-    while ((!storage || !storageModule) && attempts < 100) {
-      if (attempts === 0) {
-        showAlert('⏳ Esperando a que Firebase Storage esté listo...', 'info');
+  async function processPage(pdf, pageNum, section, displayNum) {
+    try {
+      const page = await pdf.getPage(pageNum);
+      
+      // REDUCIR ESCALA para archivos más pequeños y evitar problemas de memoria
+      // Cambiar de 2.0 a 1.5 o 1.0 si sigues teniendo problemas
+      const scale = 1.5;
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d', { willReadFrequently: false });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+      // Convertir a blob JPG con calidad reducida para móviles
+      const quality = 0.85; // Reducir de 0.95 a 0.85
+      const blob = await canvasToBlob(canvas, quality);
+      
+      // Nombre del archivo
+      const sectionName = section.toLowerCase().replace(/\s+/g, '_');
+      const fileName = `${sectionName}_${pageNum - 1}.jpg`;
+
+      // Subir a Firebase Storage con reintentos
+      await uploadToFirebaseWithRetry(blob, fileName, section, 3);
+
+      // Crear preview (solo para las primeras 10 páginas para no saturar)
+      if (pageNum <= 10) {
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/jpeg', quality);
+        img.className = 'preview-image';
+        img.alt = `Página ${displayNum}`;
+        previewContainer.appendChild(img);
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
+
+      // Limpiar canvas para liberar memoria
+      canvas.width = 0;
+      canvas.height = 0;
+      
+      console.log(`✅ Página ${displayNum} subida`);
+      
+    } catch (error) {
+      console.error(`❌ Error procesando página ${displayNum}:`, error);
+      throw new Error(`Error en página ${displayNum}: ${error.message}`);
+    }
+  }
+
+  // Función mejorada para convertir canvas a blob con soporte cross-browser
+  function canvasToBlob(canvas, quality) {
+    return new Promise((resolve, reject) => {
+      try {
+        // Intentar usar toBlob nativo
+        if (canvas.toBlob) {
+          canvas.toBlob(
+            blob => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                // Fallback a dataURL si toBlob falla
+                resolve(dataURLtoBlob(canvas.toDataURL('image/jpeg', quality)));
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        } else {
+          // Fallback para navegadores que no soportan toBlob
+          resolve(dataURLtoBlob(canvas.toDataURL('image/jpeg', quality)));
+        }
+      } catch (error) {
+        console.error('Error en canvasToBlob:', error);
+        reject(error);
+      }
+    });
+  }
+
+  // Convertir dataURL a Blob (fallback)
+  function dataURLtoBlob(dataURL) {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
+
+  // Subir con reintentos automáticos
+  async function uploadToFirebaseWithRetry(blob, fileName, section, maxRetries = 3) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await uploadToFirebase(blob, fileName, section);
+        return; // Éxito
+      } catch (error) {
+        lastError = error;
+        console.warn(`⚠️ Intento ${attempt}/${maxRetries} falló para ${fileName}: ${error.message}`);
+        
+        if (attempt < maxRetries) {
+          // Espera exponencial: 1s, 2s, 4s
+          const delay = Math.pow(2, attempt - 1) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
     
+    throw new Error(`Fallo después de ${maxRetries} intentos: ${lastError.message}`);
+  }
+
+  async function uploadToFirebase(blob, fileName, section) {
     if (!storage || !storageModule) {
-      throw new Error('Firebase Storage no pudo inicializarse. Recarga la página e intenta de nuevo.');
+      throw new Error('Firebase Storage no está inicializado');
     }
 
     const { ref, uploadBytes, getDownloadURL } = storageModule;
     
+    // Normalizar nombre de sección para usar como carpeta
     const folderName = section.toLowerCase().replace(/\s+/g, '_');
+    
+    // Crear referencia con estructura de carpetas: images/{seccion}/{archivo}
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
     
-    try {
-      const snapshot = await uploadBytes(storageRef, blob);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      console.log(`✅ Subido: images/${folderName}/${fileName}`);
-      console.log(`🔗 URL: ${downloadURL}`);
-      
-      return downloadURL;
-    } catch (error) {
-      console.error('❌ Error en uploadBytes:', error);
-      throw new Error(`Error al subir ${fileName}: ${error.message}`);
-    }
+    // Configurar metadata
+    const metadata = {
+      contentType: 'image/jpeg',
+      customMeta {
+        'uploadedAt': new Date().toISOString(),
+        'section': section
+      }
+    };
+    
+    // Subir archivo con timeout
+    const uploadPromise = uploadBytes(storageRef, blob, metadata);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout: La subida tardó más de 30 segundos')), 30000)
+    );
+    
+    const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
+    
+    // Obtener URL de descarga
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    console.log(`✅ Subido a: images/${folderName}/${fileName}`);
+    
+    return downloadURL;
   }
 
-  function updateProgress(current, total, message = '') {
+  function updateProgress(current, total) {
     const percent = Math.round((current / total) * 100);
     progressFill.style.width = percent + '%';
     progressFill.textContent = percent + '%';
-    progressText.textContent = message || `Procesando ${current} de ${total}...`;
+    progressText.textContent = `Subidas ${current} de ${total} páginas (${percent}%)`;
   }
 
   function showAlert(message, type) {
-    const timestamp = new Date().toLocaleTimeString('es-ES');
-    alertContainer.innerHTML = `
-      <div class="alert alert-${type}">
-        <strong>[${timestamp}]</strong> ${message}
-      </div>
-    `;
+    alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
     
-    // No ocultar automáticamente mensajes de éxito/error para que se vean
+    // Auto-ocultar solo para mensajes de info
     if (type === 'info') {
       setTimeout(() => {
-        // Solo limpiar si no hay otro mensaje más reciente
-        const currentAlert = alertContainer.querySelector('.alert-info');
-        if (currentAlert) {
-          alertContainer.innerHTML = '';
-        }
+        alertContainer.innerHTML = '';
       }, 3000);
     }
   }
 
   function loadSections() {
     const sections = [
-      "FOCOS",
-      "EEAA Y PUNTUACION",
-      "ORDEN DE MARCAS",
-      "FEM ALCAMPO",
-      "FEM CARREFOUR",
-      "FEM CARREFOUR MARKET",
-      "FEM SUPECO",
-      "FEM SORLI",
-      "FEM SCLAT BONPREU",
-      "FEM CAPRABO",
-      "FEM CONSUM",
-      "FEM CONDIS",
-      "FEM COVIRAN",
-      "IMPLANTACIONES",
-      "Coca Cola",
-      "Coca Cola Zero",
-      "coca cola light",
-      "Coca Cola Zero Zero",
-      "Coca Cola Sabores",
-      "Fanta naranja",
-      "Fanta limón",
-      "Fanta sabores",
-      "Sprite",
-      "Tónica",
-      "Burn",
-      "Energéticas",
-      "M.Maid",
-      "FUZE",
-      "Deportivas",
-      "Isotónicas",
-      "Appletiser",
-      "Aquabona",
-      "Alcoholes"
+      "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS",
+      "FEM ALCAMPO", "FEM CARREFOUR", "FEM CARREFOUR MARKET",
+      "FEM SUPECO", "FEM SORLI", "FEM SCLAT BONPREU",
+      "FEM CAPRABO", "FEM CONSUM", "FEM CONDIS", "FEM COVIRAN",
+      "IMPLANTACIONES", "Coca Cola", "Coca Cola Zero",
+      "coca cola light", "Coca Cola Zero Zero", "Coca Cola Sabores",
+      "Fanta naranja", "Fanta limón", "Fanta sabores",
+      "Sprite", "Tónica", "Burn", "Energéticas",
+      "M.Maid", "FUZE", "Deportivas", "Isotónicas",
+      "Appletiser", "Aquabona", "Alcoholes"
     ];
 
     sections.forEach(section => {
