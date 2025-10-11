@@ -12,7 +12,6 @@
       margin: 0 auto;
       padding: 20px;
     }
-
     .admin-section {
       background: white;
       border-radius: 12px;
@@ -20,14 +19,12 @@
       margin: 20px 0;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     .admin-section h2 {
       color: var(--color-primary);
       margin-bottom: 20px;
       padding-bottom: 10px;
       border-bottom: 2px solid var(--color-primary);
     }
-
     .upload-area {
       border: 3px dashed var(--color-primary);
       border-radius: 12px;
@@ -37,268 +34,80 @@
       cursor: pointer;
       transition: all 0.3s;
     }
-
-    .upload-area:hover {
-      background: #e9ecef;
-      border-color: var(--color-primary-hover);
-    }
-
-    .upload-area.dragover {
-      background: #d4edda;
-      border-color: #28a745;
-    }
-
+    .upload-area:hover { background: #e9ecef; border-color: var(--color-primary-hover); }
+    .upload-area.dragover { background: #d4edda; border-color: #28a745; }
     .section-select {
-      width: 100%;
-      padding: 12px;
-      font-size: 1rem;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      margin: 15px 0;
+      width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #ddd; border-radius: 8px; margin: 15px 0;
     }
-
-    .progress-container {
-      display: none;
-      margin: 20px 0;
-    }
-
+    .progress-container { display: none; margin: 20px 0; }
     .progress-bar {
-      width: 100%;
-      height: 30px;
-      background: #e9ecef;
-      border-radius: 15px;
-      overflow: hidden;
-      position: relative;
+      width: 100%; height: 30px; background: #e9ecef; border-radius: 15px; overflow: hidden; position: relative;
     }
-
     .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
-      width: 0%;
-      transition: width 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
+      height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+      width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
     }
-
     .btn-primary {
-      background: var(--color-primary);
-      color: white;
-      border: none;
-      padding: 12px 30px;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      margin: 10px 5px;
-      transition: all 0.3s;
+      background: var(--color-primary); color: white; border: none; padding: 12px 30px; border-radius: 8px;
+      font-size: 1.1rem; cursor: pointer; margin: 10px 5px; transition: all 0.3s;
     }
-
-    .btn-primary:hover {
-      background: var(--color-primary-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-
+    .btn-primary:hover { background: var(--color-primary-hover); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
     .btn-logout {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 10px 25px;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      background: #dc3545; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-size: 1rem;
+      cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;
     }
-
-    .btn-logout:hover {
-      background: #c82333;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-
-    .alert {
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      font-weight: 500;
-    }
-
-    .alert-success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .alert-error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    .alert-info {
-      background: #d1ecf1;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
-    }
-
-    .alert-warning {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeaa7;
-    }
-
+    .btn-logout:hover { background: #c82333; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .alert { padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: 500; }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
     .back-link {
-      display: inline-block;
-      margin: 20px 0;
-      color: var(--color-primary);
-      text-decoration: none;
-      font-weight: bold;
-      transition: all 0.3s;
-      font-size: 1.1rem;
+      display: inline-block; margin: 20px 0; color: var(--color-primary); text-decoration: none; font-weight: bold;
+      transition: all 0.3s; font-size: 1.1rem;
     }
-
-    .back-link:hover {
-      color: var(--color-primary-hover);
-      transform: translateX(-5px);
-    }
-
+    .back-link:hover { color: var(--color-primary-hover); transform: translateX(-5px); }
     .preview-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;
     }
-
     .preview-image {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 100%; height: 150px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-
-    .instruction-box {
-      background: #fff3cd;
-      border: 2px solid #ffc107;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-
-    .instruction-box h3 {
-      color: #856404;
-      margin-bottom: 10px;
-    }
-
-    .instruction-box ol {
-      margin-left: 20px;
-      color: #856404;
-    }
-
-    .instruction-box li {
-      margin: 8px 0;
-    }
-
-    .hidden {
-      display: none;
-    }
-
+    .instruction-box { background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0; }
+    .instruction-box h3 { color: #856404; margin-bottom: 10px; }
+    .instruction-box ol { margin-left: 20px; color: #856404; }
+    .instruction-box li { margin: 8px 0; }
+    .hidden { display: none; }
     #admin-login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-
     #admin-login-form {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      max-width: 400px;
-      width: 100%;
+      background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); max-width: 400px; width: 100%;
     }
-
-    #admin-login-form h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #333;
-    }
-
+    #admin-login-form h2 { text-align: center; margin-bottom: 30px; color: #333; }
     #admin-login-form input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      box-sizing: border-box;
+      width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box;
     }
-
-    #admin-login-form button {
-      width: 100%;
-      padding: 12px;
-      background: var(--color-primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    #admin-login-form button:hover {
-      background: var(--color-primary-hover);
-    }
-
-    /* Header con botón de logout */
+    #admin-login-form button { width: 100%; padding: 12px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-top: 10px; }
+    #admin-login-form button:hover { background: var(--color-primary-hover); }
     #admin-panel header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;
     }
-
-    .header-left {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    #admin-panel header h1 {
-      margin: 0;
-      font-size: 1.8rem;
-    }
-
-    #admin-panel header h2 {
-      margin: 5px 0 0 0;
-      font-size: 0.9rem;
-      color: #666;
-      font-weight: normal;
-    }
+    .header-left { display: flex; flex-direction: column; }
+    .header-right { display: flex; align-items: center; gap: 15px; }
+    #admin-panel header h1 { margin: 0; font-size: 1.8rem; }
+    #admin-panel header h2 { margin: 5px 0 0 0; font-size: 0.9rem; color: #666; font-weight: normal; }
   </style>
 </head>
 <body>
   <!-- LOGIN ADMIN -->
   <div id="admin-login-container">
-    <form id="admin-login-form">
+    <form id="admin-login-form" autocomplete="on">
       <h2>🔐 Acceso Administrador</h2>
-      <input type="email" id="admin-email" placeholder="Email de administrador" required>
-      <input type="password" id="admin-password" placeholder="Contraseña" required>
+      <input type="email" id="admin-email" placeholder="Email de administrador" autocomplete="username" required>
+      <input type="password" id="admin-password" placeholder="Contraseña" autocomplete="current-password" required>
       <button type="submit">Entrar</button>
     </form>
   </div>
@@ -311,9 +120,7 @@
         <h2 id="admin-username"></h2>
       </div>
       <div class="header-right">
-        <button id="logout-btn" class="btn-logout">
-          🚪 Cerrar Sesión
-        </button>
+        <button id="logout-btn" class="btn-logout" type="button">🚪 Cerrar Sesión</button>
       </div>
     </header>
 
@@ -335,24 +142,24 @@
           </ol>
         </div>
         
-        <select id="section-selector" class="section-select">
+        <select id="section-selector" class="section-select" aria-label="Sección destino">
           <option value="">Selecciona la sección...</option>
         </select>
 
-        <div id="drop-area" class="upload-area">
+        <div id="drop-area" class="upload-area" tabindex="0" role="button" aria-label="Zona para arrastrar PDF">
           <p style="font-size: 1.2rem; margin-bottom: 10px;">📁 Arrastra el PDF aquí</p>
           <p style="color: #666;">o haz clic para seleccionar</p>
           <input type="file" id="pdf-input" accept="application/pdf" style="display: none;">
         </div>
 
-        <div id="progress-container" class="progress-container">
+        <div id="progress-container" class="progress-container" aria-live="polite">
           <div class="progress-bar">
             <div id="progress-fill" class="progress-fill">0%</div>
           </div>
           <p id="progress-text" style="margin-top: 10px; text-align: center;"></p>
         </div>
 
-        <div id="alert-container"></div>
+        <div id="alert-container" aria-live="polite"></div>
 
         <div id="preview-container" class="preview-container"></div>
       </div>
@@ -372,7 +179,7 @@
           </ol>
         </div>
 
-        <select id="promotion-selector" class="section-select">
+        <select id="promotion-selector" class="section-select" aria-label="Promoción a editar">
           <option value="">Selecciona una promoción...</option>
         </select>
 
@@ -393,7 +200,7 @@
             <label for="promotion-active" style="font-weight: bold;">Promoción activa</label>
           </div>
 
-          <button id="save-promotion-btn" class="btn-primary">💾 Guardar Cambios</button>
+          <button id="save-promotion-btn" class="btn-primary" type="button">💾 Guardar Cambios</button>
           
           <div id="promotion-status" style="margin-top: 15px;"></div>
         </div>
@@ -409,11 +216,9 @@
 
   <!-- PDF.js Library - CRÍTICO: Cargar ANTES de los módulos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  
-  <!-- Configurar PDF.js worker inmediatamente después de cargarlo -->
   <script>
     if (typeof pdfjsLib !== 'undefined') {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       console.log('✅ PDF.js configurado, versión:', pdfjsLib.version);
     } else {
@@ -430,7 +235,7 @@
       apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
       authDomain: "cocacolaconsultas-20759.firebaseapp.com",
       projectId: "cocacolaconsultas-20759",
-      storageBucket: "cocacolaconsultas-20759.appspot.com",
+      storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
       messagingSenderId: "274074684363",
       appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
       measurementId: "G-29GJZ22GMM"
@@ -447,7 +252,6 @@
     const adminUsername = document.getElementById("admin-username");
     const logoutBtn = document.getElementById("logout-btn");
 
-    // Auth listener
     onAuthStateChanged(auth, user => {
       if (user && user.email === ADMIN_EMAIL) {
         loginContainer.style.display = "none";
@@ -456,23 +260,20 @@
         window.adminAuth = { user, auth };
         console.log('✅ Admin autenticado:', user.email);
       } else {
-        if (user) auth.signOut();
+        if (user) signOut(auth);
         loginContainer.style.display = "flex";
         adminPanel.classList.add("hidden");
       }
     });
 
-    // Login
     loginForm.addEventListener("submit", e => {
       e.preventDefault();
       const email = document.getElementById("admin-email").value.trim();
       const password = document.getElementById("admin-password").value;
-
       if (email !== ADMIN_EMAIL) {
         alert("❌ No tienes permisos de administrador");
         return;
       }
-
       signInWithEmailAndPassword(auth, email, password)
         .then(() => console.log("✅ Admin autenticado"))
         .catch(err => {
@@ -481,23 +282,21 @@
         });
     });
 
-    // Logout
     logoutBtn.addEventListener("click", async () => {
       const confirmed = confirm("¿Estás seguro de que quieres cerrar sesión?");
-      if (confirmed) {
-        try {
-          await signOut(auth);
-          console.log("✅ Sesión cerrada correctamente");
-        } catch (error) {
-          console.error("Error al cerrar sesión:", error);
-          alert("❌ Error al cerrar sesión");
-        }
+      if (!confirmed) return;
+      try {
+        await signOut(auth);
+        console.log("✅ Sesión cerrada correctamente");
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+        alert("❌ Error al cerrar sesión");
       }
     });
   </script>
 
+  <!-- Lógica del panel -->
   <script src="admin.js?v=FINAL2025101020" defer></script>
   <script src="admin-promotions.js?v=FINAL2025101020" defer></script>
-
 </body>
 </html>
