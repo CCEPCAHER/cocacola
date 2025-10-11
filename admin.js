@@ -1,22 +1,20 @@
 // =========================================================================
-// admin.js - Panel de Administración con Firebase Storage (OPTIMIZADO)
+// admin.js - Panel de Administración con Firebase Storage (OPTIMIZADO Y SEGURO)
 // =========================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-  initPDFConverter();
-});
-
 // =========================================================================
-// 1. CONFIGURACIÓN DE FIREBASE STORAGE
+// 1. CONFIGURACIÓN DE FIREBASE STORAGE Y UTILIDADES
 // =========================================================================
 let storage;
 let storageModule;
 
 // Esperar a que Firebase esté disponible
 const waitForFirebase = setInterval(() => {
+  // Asumo que 'adminAuth' ya está disponible en window con 'app' o 'auth'
   if (window.adminAuth && (window.adminAuth.app || window.adminAuth.auth)) {
     clearInterval(waitForFirebase);
 
+    // Cargar Firebase Storage dinámicamente
     import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js')
       .then(module => {
         const { getStorage, ref, uploadBytes, getDownloadURL, listAll } = module;
@@ -29,18 +27,33 @@ const waitForFirebase = setInterval(() => {
   }
 }, 100);
 
+
 // =========================================================================
 // 2. CONVERTIDOR DE PDF A IMÁGENES
 // =========================================================================
+
+// Elementos globales para que las funciones de progreso y alerta puedan acceder
+let progressText;
+let progressFill;
+let progressContainer;
+let previewContainer;
+let alertContainer;
+let sectionSelector; // Necesario para obtener el valor actual en handleFiles
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPDFConverter();
+});
+
 function initPDFConverter() {
-  const sectionSelector = document.getElementById('section-selector');
+  // Asignar elementos a variables globales/locales
+  sectionSelector = document.getElementById('section-selector');
   const dropArea = document.getElementById('drop-area');
   const pdfInput = document.getElementById('pdf-input');
-  const progressContainer = document.getElementById('progress-container');
-  const progressFill = document.getElementById('progress-fill');
-  const progressText = document.getElementById('progress-text');
-  const alertContainer = document.getElementById('alert-container');
-  const previewContainer = document.getElementById('preview-container');
+  progressContainer = document.getElementById('progress-container');
+  progressFill = document.getElementById('progress-fill');
+  progressText = document.getElementById('progress-text');
+  alertContainer = document.getElementById('alert-container');
+  previewContainer = document.getElementById('preview-container');
 
   // 🔍 Verificar elementos requeridos
   const requiredElements = {
@@ -66,7 +79,7 @@ function initPDFConverter() {
 
   // === Eventos Drag & Drop ===
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropArea.addEventListener(eventName, preventDefaults, false);
+    if (dropArea) dropArea.addEventListener(eventName, preventDefaults, false);
   });
 
   function preventDefaults(e) {
@@ -75,16 +88,18 @@ function initPDFConverter() {
   }
 
   ['dragenter', 'dragover'].forEach(eventName => {
-    dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+    if (dropArea) dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
   });
 
   ['dragleave', 'drop'].forEach(eventName => {
-    dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+    if (dropArea) dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
   });
 
-  dropArea.addEventListener('drop', handleDrop, false);
-  dropArea.addEventListener('click', () => pdfInput.click());
-  pdfInput.addEventListener('change', handleFileSelect);
+  if (dropArea) {
+    dropArea.addEventListener('drop', handleDrop, false);
+    dropArea.addEventListener('click', () => pdfInput && pdfInput.click());
+  }
+  if (pdfInput) pdfInput.addEventListener('change', handleFileSelect);
 
   function handleDrop(e) {
     const dt = e.dataTransfer;
@@ -120,28 +135,95 @@ function initPDFConverter() {
 
     try {
       showAlert('🔄 Procesando PDF...', 'info');
-      progressContainer.style.display = 'block';
-      previewContainer.innerHTML = '';
+      if (progressContainer) progressContainer.style.display = 'block';
+      if (previewContainer) previewContainer.innerHTML = '';
 
-      await convertPDFToImages(file, section);
+      // LLAMADA A LA FUNCIÓN DE CONVERSIÓN Y CARGA SEGURA
+      await convertAndUploadPDF(file, section);
 
       showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error en handleFiles:', error);
       showAlert(`❌ Error: ${error.message}`, 'error');
     } finally {
-      if (progressFill.textContent === '100%') {
+      if (progressContainer) {
+        // La actualización de progreso se hace dentro de convertAndUploadPDF
+        // Esta limpieza final se ejecuta solo si el proceso terminó (éxito o error)
         setTimeout(() => (progressContainer.style.display = 'none'), 2000);
-      } else {
-        progressContainer.style.display = 'none';
       }
-      progressFill.style.width = '0%';
-      progressFill.textContent = '0%';
-      pdfInput.value = '';
+      if (progressFill) {
+        progressFill.style.width = '0%';
+        progressFill.textContent = '0%';
+      }
+      if (pdfInput) pdfInput.value = ''; // Limpiar input
+    }
+  }
+  
+  // =========================================================================
+  // FUNCIONES PRINCIPALES DE CONVERSIÓN Y CARGA (VERSION SEGURA)
+  // =========================================================================
+
+  /**
+   * Procesa la página, la convierte a Blob (JPEG) y la sube a Firebase Storage.
+   * @param {Object} pdf - Objeto PDF cargado por pdf.js.
+   * @param {number} pageNum - Número de la página a procesar (base 1).
+   * @param {string} sectionSlug - El slug de la sección de destino.
+   * @param {number} totalPages - Número total de páginas.
+   * @returns {Promise<Blob | null>} El Blob de la imagen generada o null en caso de error/no preview.
+   */
+  async function processAndUploadPage(pdf, pageNum, sectionSlug, totalPages) {
+    try {
+      const page = await pdf.getPage(pageNum);
+      const scale = 1.5;
+      const viewport = page.getViewport({ scale });
+
+      // Crear y configurar el canvas
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      // Renderizar página en canvas
+      await page.render({ canvasContext: context, viewport }).promise;
+
+      // Convertir canvas a Blob (JPEG)
+      const blob = await canvasToBlob(canvas, 0.85);
+
+      // Subir a Firebase
+      const sectionName = sectionSlug.toLowerCase().replace(/\s+/g, '_');
+      // Usamos pageNum - 1 para que el índice sea base 0 en el nombre del archivo si es necesario,
+      // pero mantenemos el nombre de archivo con un número secuencial simple.
+      const fileName = `${sectionName}_${pageNum - 1}.jpg`; 
+      await uploadToFirebaseWithRetry(blob, fileName, sectionSlug, 3);
+      
+      // Actualizar progreso
+      updateProgress(pageNum, totalPages);
+      console.log(`✅ Página ${pageNum}/${totalPages} subida: ${fileName}`);
+
+      // Generar preview si es una de las primeras páginas
+      let previewBlob = null;
+      if (previewContainer && pageNum <= 10) {
+        // En este caso, el mismo blob subido sirve para el preview.
+        previewBlob = blob; 
+      }
+
+      // Limpiar recursos
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.remove();
+
+      return previewBlob;
+    } catch (error) {
+      console.error(`❌ Error procesando página ${pageNum}:`, error);
+      throw new Error(`Error en página ${pageNum}: ${error.message}`);
     }
   }
 
-  async function convertPDFToImages(file, section) {
+  /**
+   * Convierte y carga un archivo PDF página por página de forma segura.
+   * @param {File} file - El objeto File del PDF.
+   * @param {string} sectionSlug - El slug de la sección de destino.
+   */
+  async function convertAndUploadPDF(file, sectionSlug) {
     // Verificar pdf.js
     if (typeof pdfjsLib === 'undefined') {
       console.warn('📦 Cargando pdf.js dinámicamente...');
@@ -152,73 +234,68 @@ function initPDFConverter() {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+    // Leer a ArrayBuffer (SEGURO)
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ arrayBuffer }).promise;
-    const totalPages = pdf.numPages;
+    // Envolver SIEMPRE en Uint8Array (SEGURO para la carga de datos)
+    const uint8 = new Uint8Array(arrayBuffer);
 
-    console.log(`📄 PDF cargado: ${totalPages} páginas`);
-    progressText.textContent = `Procesando ${totalPages} páginas...`;
+    // Cargar el PDF con la forma correcta (usando 'data')
+    const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+    const pdf = await loadingTask.promise;
 
-    const batchSize = totalPages > 30 ? 3 : 5;
+    const numPages = pdf.numPages;
+    if (progressText) progressText.textContent = `Encontradas ${numPages} páginas. Convirtiendo...`;
+    
+    // Configuración de procesamiento concurrente (lotes)
+    const batchSize = numPages > 30 ? 3 : 5;
     let uploadedCount = 0;
+    
+    // Limpiar el contenedor de previsualización al inicio
+    if (previewContainer) previewContainer.innerHTML = ''; 
 
-    for (let i = 0; i < totalPages; i += batchSize) {
-      const endPage = Math.min(i + batchSize, totalPages);
-      const batch = [];
-
-      for (let pageNum = i + 1; pageNum <= endPage; pageNum++) {
-        batch.push(processPage(pdf, pageNum, section, pageNum));
+    for (let i = 1; i <= numPages; i += batchSize) {
+      const endPage = Math.min(i + batchSize - 1, numPages);
+      const batchPromises = [];
+      
+      for (let pageNum = i; pageNum <= endPage; pageNum++) {
+        batchPromises.push(processAndUploadPage(pdf, pageNum, sectionSlug, numPages));
       }
-
+      
       try {
-        await Promise.all(batch);
-        uploadedCount += batch.length;
-        updateProgress(uploadedCount, totalPages);
-        console.log(`✅ Lote completado: ${uploadedCount}/${totalPages}`);
-        await new Promise(resolve => setTimeout(resolve, 100));
+        const pageBlobs = await Promise.all(batchPromises);
+        uploadedCount += batchPromises.length;
+        
+        // Mostrar previews de las primeras páginas (si el blob fue devuelto)
+        pageBlobs.forEach((pageBlob, index) => {
+           const pageNum = i + index;
+           if (previewContainer && pageBlob) {
+             const imgUrl = URL.createObjectURL(pageBlob);
+             const img = document.createElement("img");
+             img.src = imgUrl;
+             img.className = 'preview-image';
+             img.alt = `Página ${pageNum}`;
+             previewContainer.appendChild(img);
+             // Liberar la URL de objeto después de un tiempo
+             setTimeout(() => URL.revokeObjectURL(imgUrl), 5000); 
+           }
+        });
+        
+        console.log(`✅ Lote completado: ${uploadedCount}/${numPages}`);
+        await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña pausa
+        
       } catch (error) {
-        console.error(`❌ Error en lote ${i / batchSize + 1}:`, error);
-        throw error;
+         console.error(`❌ Error en lote ${i / batchSize + 1}:`, error);
+         throw error; // Re-lanzar error para que handleFiles lo capture
       }
     }
+    
+    // Asegurar que el progreso se muestre al 100% al finalizar
+    updateProgress(numPages, numPages); 
   }
-
-  async function processPage(pdf, pageNum, section, displayNum) {
-    try {
-      const page = await pdf.getPage(pageNum);
-      const scale = 1.5;
-      const viewport = page.getViewport({ scale });
-
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({ canvasContext: context, viewport }).promise;
-
-      const blob = await canvasToBlob(canvas, 0.85);
-      const sectionName = section.toLowerCase().replace(/\s+/g, '_');
-      const fileName = `${sectionName}_${pageNum - 1}.jpg`;
-
-      await uploadToFirebaseWithRetry(blob, fileName, section, 3);
-
-      if (pageNum <= 10) {
-        const img = document.createElement('img');
-        img.src = canvas.toDataURL('image/jpeg', 0.85);
-        img.className = 'preview-image';
-        img.alt = `Página ${displayNum}`;
-        previewContainer.appendChild(img);
-      }
-
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.remove();
-
-      console.log(`✅ Página ${displayNum} subida`);
-    } catch (error) {
-      console.error(`❌ Error procesando página ${displayNum}:`, error);
-      throw new Error(`Error en página ${displayNum}: ${error.message}`);
-    }
-  }
+  
+  // =========================================================================
+  // FUNCIONES AUXILIARES
+  // =========================================================================
 
   function canvasToBlob(canvas, quality) {
     return new Promise((resolve, reject) => {
@@ -274,7 +351,7 @@ function initPDFConverter() {
       throw new Error('Firebase Storage no está inicializado');
     }
 
-    const { ref, uploadBytes, getDownloadURL } = storageModule;
+    const { ref, uploadBytes } = storageModule;
     const folderName = section.toLowerCase().replace(/\s+/g, '_');
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
 
@@ -292,24 +369,31 @@ function initPDFConverter() {
     );
 
     const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    console.log(`✅ Subido a: images/${folderName}/${fileName}`);
-    return downloadURL;
+    // El getDownloadURL no es estrictamente necesario para la subida
+    // Si se necesita la URL en el frontend:
+    // const downloadURL = await getDownloadURL(snapshot.ref); 
+    // console.log(`✅ Subido a: images/${folderName}/${fileName}`);
+    // return downloadURL;
+    return snapshot;
   }
 
   function updateProgress(current, total) {
-    const percent = Math.round((current / total) * 100);
-    progressFill.style.width = percent + '%';
-    progressFill.textContent = percent + '%';
-    progressText.textContent = `Subidas ${current} de ${total} páginas (${percent}%)`;
+    if (progressFill && progressText) {
+      const percent = Math.round((current / total) * 100);
+      progressFill.style.width = percent + '%';
+      progressFill.textContent = percent + '%';
+      progressText.textContent = `Subidas ${current} de ${total} páginas (${percent}%)`;
+    }
   }
 
   function showAlert(message, type) {
-    alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-    if (['info', 'success'].includes(type)) {
-      setTimeout(() => {
-        alertContainer.innerHTML = '';
-      }, 4000);
+    if (alertContainer) {
+      alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      if (['info', 'success'].includes(type)) {
+        setTimeout(() => {
+          alertContainer.innerHTML = '';
+        }, 4000);
+      }
     }
   }
 
@@ -330,13 +414,14 @@ function initPDFConverter() {
 
     console.log('📋 Cargando secciones...', sections.length);
 
-    sections.forEach(section => {
-      const option = document.createElement('option');
-      option.value = section;
-      option.textContent = section;
-      sectionSelector.appendChild(option);
-    });
-
-    console.log('✅ Secciones cargadas:', sectionSelector.options.length);
+    if (sectionSelector) {
+      sections.forEach(section => {
+        const option = document.createElement('option');
+        option.value = section;
+        option.textContent = section;
+        sectionSelector.appendChild(option);
+      });
+      console.log('✅ Secciones cargadas:', sectionSelector.options.length);
+    }
   }
 }
