@@ -136,7 +136,7 @@ function initPDFConverter() {
 
     // Cargar PDF
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({  arrayBuffer }).promise;
+    const pdf = await pdfjsLib.getDocument({ arrayBuffer }).promise;
     const totalPages = pdf.numPages;
 
     console.log(`📄 PDF cargado: ${totalPages} páginas`);
@@ -291,10 +291,10 @@ function initPDFConverter() {
     // Crear referencia con estructura de carpetas: images/{seccion}/{archivo}
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
     
-    // Configurar metadata
+    // Configurar metadata - CORRECCIÓN APLICADA
     const metadata = {
       contentType: 'image/jpeg',
-      customMeta {
+      customMeta : {
         'uploadedAt': new Date().toISOString(),
         'section': section
       }
