@@ -334,29 +334,50 @@
         <img data-src="${imagePath}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy">
         <h3>${p.name || 'Producto sin nombre'}</h3>`;
 
-      // Solo mostrar la etiqueta de oferta en el primer producto (índice 0)
+      // Mostrar días restantes + rango de fechas solo en el primer producto (índice 0)
 if (p.endDate && i === 0) {
   const endParts = p.endDate.split('-');
   const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
   fin.setHours(23, 59, 59, 999);
+  
   let ini = null;
   if (p.startDate) {
     const startParts = p.startDate.split('-');
     ini = new Date(startParts[0], startParts[1] - 1, startParts[2]);
     ini.setHours(0, 0, 0, 0);
   }
-  let txt = '', cls = '';
+  
+  let txtPrincipal = '', txtSecundario = '', cls = '';
+  
+  // Calcular días restantes
+  const diffTime = fin - today;
+  const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
   if (fin < today) {
-    txt = 'Oferta caducada';
+    txtPrincipal = 'Oferta caducada';
     cls = 'offer-expired';
   } else if (ini && ini > today) {
-    txt = `Próxima: ${ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})} - ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})}`;
+    // Oferta futura: calcular días hasta el inicio
+    const diffIni = ini - today;
+    const diasHastaInicio = Math.ceil(diffIni / (1000 * 60 * 60 * 24));
+    txtPrincipal = `Empieza en ${diasHastaInicio} ${diasHastaInicio === 1 ? 'día' : 'días'}`;
+    const inicioStr = ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+    const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+    txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
     cls = 'offer-upcoming';
   } else {
-    txt = `Activa hasta: ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
+    // Oferta activa: mostrar días restantes
+    txtPrincipal = diasRestantes === 1 ? 'Queda 1 día' : `Quedan ${diasRestantes} días`;
+    const inicioStr = ini ? ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'}) : '??';
+    const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+    txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
     cls = 'offer-active';
   }
-  html += `<p class="offer-tag ${cls}">${txt}</p>`;
+  
+  html += `<div class="offer-tag ${cls}">
+    <p class="offer-main">${txtPrincipal}</p>
+    ${txtSecundario ? `<p class="offer-dates">${txtSecundario}</p>` : ''}
+  </div>`;
 }
 
 
