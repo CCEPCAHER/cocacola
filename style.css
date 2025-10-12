@@ -191,65 +191,66 @@ header h2 {
 }
 
 /* ========================
-   ETIQUETA DE OFERTA (CENTRADA, TRANSPARENTE Y PARPADEO SUAVE)
+   ETIQUETA DE OFERTA (PEQUEÑA, ARRIBA Y ELEGANTE)
 ========================= */
 .offer-tag {
   position: absolute;
-  top: 50%;
+  top: 5px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 8px 14px;
-  border-radius: 12px;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 8px;
   text-align: center;
   z-index: 5;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-  animation: gentle-blink 3s ease-in-out infinite;
-  min-width: 150px;
-  max-width: 190px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  animation: gentle-blink 4s ease-in-out infinite;
+  min-width: 120px;
+  max-width: 160px;
 }
 
 .offer-tag.offer-active {
-  background: rgba(72, 187, 120, 0.85);
-  border: 2px solid rgba(47, 133, 90, 0.9);
+  background: rgba(72, 187, 120, 0.75);
+  border: 1.5px solid rgba(47, 133, 90, 0.8);
 }
 
 .offer-tag.offer-upcoming {
-  background: rgba(236, 201, 75, 0.85);
-  border: 2px solid rgba(183, 121, 31, 0.9);
+  background: rgba(236, 201, 75, 0.75);
+  border: 1.5px solid rgba(183, 121, 31, 0.8);
 }
 
 .offer-tag.offer-expired {
-  background: rgba(252, 129, 129, 0.85);
-  border: 2px solid rgba(197, 48, 48, 0.9);
+  background: rgba(252, 129, 129, 0.75);
+  border: 1.5px solid rgba(197, 48, 48, 0.8);
 }
 
 .offer-main {
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: bold;
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
   color: #fff;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-  letter-spacing: 0.3px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  letter-spacing: 0.2px;
 }
 
 .offer-dates {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: rgba(255,255,255,0.95);
   margin: 0;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-/* Animación de parpadeo suave y agradable */
+/* Animación de parpadeo muy suave (4 segundos) */
 @keyframes gentle-blink {
   0%, 100% {
-    opacity: 1;
+    opacity: 0.95;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.5;
   }
 }
+
 
 
 /* ========================
