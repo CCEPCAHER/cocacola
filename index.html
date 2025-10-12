@@ -176,56 +176,47 @@
     });
 
     /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE -------------------------- */
-    async function loadImagesFromStorage() {
-      try {
-        console.log('🔄 Cargando imágenes desde Firebase Storage...');
-        const imagesRef = ref(storage, 'images/');
-        const result = await listAll(imagesRef);                               // Lista raíz
+async function loadImagesFromStorage() {
+  try {
+    const imagesRef = ref(storage, 'images/');
+    const result = await listAll(imagesRef);
+    const imageUrls = {};
+    const getFullPath = (itemRef) => itemRef.fullPath; // clave: ruta completa
 
-        const imageUrls = {};
+    for (const itemRef of result.items) {
+      const url = await getDownloadURL(itemRef);
+      imageUrls[getFullPath(itemRef)] = url;
+    }
 
-        // Archivos en raíz (compatibilidad)
-        for (const itemRef of result.items) {
-          const url = await getDownloadURL(itemRef);
-          imageUrls[itemRef.name] = url;
-        }
-
-        // Subcarpetas (secciones)
-        for (const folderRef of result.prefixes) {
-          const folderResult = await listAll(folderRef);                       // Lista subcarpeta
-          for (const itemRef of folderResult.items) {
-            const url = await getDownloadURL(itemRef);
-            imageUrls[itemRef.name] = url;                                     // clave: nombre de archivo
-          }
-        }
-
-        window.firebaseImageUrls = imageUrls;
-        console.log('✅ Imágenes cargadas:', Object.keys(imageUrls).length);
-        updateProductImages();
-
-      } catch (error) {
-        console.error('❌ Error al cargar imágenes:', error);
-        window.firebaseImageUrls = {};
+    for (const folderRef of result.prefixes) {
+      const folderResult = await listAll(folderRef);
+      for (const itemRef of folderResult.items) {
+        const url = await getDownloadURL(itemRef);
+        imageUrls[getFullPath(itemRef)] = url;
       }
     }
 
-    /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS ----------------------------- */
-    function updateProductImages() {
-      if (!window.firebaseImageUrls) return;
-      document.querySelectorAll('.product img[data-src]').forEach(img => {
-        const originalSrc = img.dataset.src;              // p.ej. images/fem_carrefour/fem_carrefour_0.jpg
-        const fileName = originalSrc.split('/').pop();    // fem_carrefour_0.jpg
-        const url = window.firebaseImageUrls[fileName];
-        if (url) {
-          img.dataset.src = url;
-          if (!img.classList.contains('lazy')) {
-            img.src = url;
-          }
-        } else {
-          console.warn(`⚠️ Imagen no encontrada en Storage: ${fileName}`);
-        }
-      });
+    window.firebaseImageUrls = imageUrls;
+    updateProductImages();
+  } catch (error) {
+    window.firebaseImageUrls = {};
+  }
+}
+
+/* --- ACTUALIZAR IMÁGENES EN PRODUCTOS ----------------------------- */
+function updateProductImages() {
+  const map = window.firebaseImageUrls || {};
+  document.querySelectorAll('.product img[data-src]').forEach(img => {
+    const storagePath = img.dataset.src.trim(); // debe ser images/fem_carrefour/fem_carrefour_0.jpg
+    const url = map[storagePath];
+    if (url) {
+      img.dataset.full = url; // para fullscreen
+      if (!img.classList.contains('lazy')) img.src = url;
+    } else {
+      console.warn(`⚠️ No encontrada en Storage: ${storagePath}`);
     }
+  });
+}
 
     /* --- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------------- */
     window.sendOrderToFirestore = async function(orderItems){
