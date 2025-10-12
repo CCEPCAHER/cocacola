@@ -17,7 +17,7 @@ body{
   font-family:var(--font);
   background:linear-gradient(135deg,#f5f7fa,#c3cfe2);
   color:var(--color-text);
-  padding-bottom:120px; /* Espacio para elementos fijos */
+  padding-bottom:120px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -51,7 +51,7 @@ header h2 {
 }
 
 /* ========================
-   TOTAL VISIBLE FIJO (estilo caja registradora)
+   TOTAL VISIBLE FIJO
 ========================= */
 #total-display {
   position: fixed;
@@ -191,26 +191,66 @@ header h2 {
 }
 
 /* ========================
-   ETIQUETA DE OFERTA (SPAM)
+   ETIQUETA DE OFERTA (CENTRADA, TRANSPARENTE Y PARPADEO SUAVE)
 ========================= */
 .offer-tag {
   position: absolute;
-  top: 8px;
-  left: -5px;
-  background: linear-gradient(45deg, #ff416c, #ff4b2b);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-  border: 2px dashed yellow;
-  transform: rotate(-4deg);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 8px 14px;
+  border-radius: 12px;
+  text-align: center;
   z-index: 5;
-  animation: spam-shake-grow 1s infinite;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  animation: gentle-blink 3s ease-in-out infinite;
+  min-width: 150px;
+  max-width: 190px;
 }
+
+.offer-tag.offer-active {
+  background: rgba(72, 187, 120, 0.85);
+  border: 2px solid rgba(47, 133, 90, 0.9);
+}
+
+.offer-tag.offer-upcoming {
+  background: rgba(236, 201, 75, 0.85);
+  border: 2px solid rgba(183, 121, 31, 0.9);
+}
+
+.offer-tag.offer-expired {
+  background: rgba(252, 129, 129, 0.85);
+  border: 2px solid rgba(197, 48, 48, 0.9);
+}
+
+.offer-main {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  letter-spacing: 0.3px;
+}
+
+.offer-dates {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.95);
+  margin: 0;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Animación de parpadeo suave y agradable */
+@keyframes gentle-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
 
 /* ========================
    CONTROLES DE CANTIDAD
@@ -266,22 +306,28 @@ header h2 {
   cursor: default;
 }
 
-/* =======================================================================
+/* ========================
    MODAL CARRITO
------------------------------------------------------------------------- */
-#cart-modal{                          /* CERRADO */
-  pointer-events:none;                /* ← bloquea clics invisibles */
-  position:fixed;top:50%;left:50%;
-  transform:translate(-50%,-50%) scale(.8);
-  background:#fff;width:90%;max-width:500px;
-  border-radius:15px;padding:20px;
-  opacity:0;transition:transform .4s,opacity .4s;
-  z-index:1100;
+========================= */
+#cart-modal {
+  pointer-events: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) scale(.8);
+  background: #fff;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 15px;
+  padding: 20px;
+  opacity: 0;
+  transition: transform .4s, opacity .4s;
+  z-index: 1100;
 }
-#cart-modal.active{                   /* ABIERTO */
-  pointer-events:auto;                /* ← acepta toques */
-  transform:translate(-50%,-50%) scale(1);
-  opacity:1;
+#cart-modal.active {
+  pointer-events: auto;
+  transform: translate(-50%,-50%) scale(1);
+  opacity: 1;
 }
 #cart-modal-content {
   position: relative;
@@ -338,35 +384,52 @@ header h2 {
   margin: 12px 0;
 }
 
-/* =======================================================================
-   FULLSCREEN MODAL – AÑADIDO PARA ZOOM DE IMÁGENES
------------------------------------------------------------------------- */
-.fullscreen-modal-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.85);
-  display:flex;justify-content:center;align-items:center;
-  opacity:0;visibility:hidden;
-  transition:opacity .4s ease,visibility .4s ease;
-  z-index:2000;
+/* ========================
+   FULLSCREEN MODAL
+========================= */
+.fullscreen-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .4s ease, visibility .4s ease;
+  z-index: 2000;
 }
-.fullscreen-modal-overlay.active{
-  opacity:1;visibility:visible;
+.fullscreen-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
 }
-.close-fullscreen-modal{
-  position:absolute;top:20px;right:30px;
-  font-size:3rem;color:#fff;
-  cursor:pointer;z-index:2001;
-  transition:transform .3s;
+.close-fullscreen-modal {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 3rem;
+  color: #fff;
+  cursor: pointer;
+  z-index: 2001;
+  transition: transform .3s;
 }
-.close-fullscreen-modal:hover{transform:scale(1.2);}
-.fullscreen-modal-content{
-  width:90%;height:90%;display:flex;justify-content:center;align-items:center;
+.close-fullscreen-modal:hover {
+  transform: scale(1.2);
+}
+.fullscreen-modal-content {
+  width: 90%;
+  height: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .fullscreen-modal-content img,
-.fullscreen-modal-content iframe{
-  max-width:100%;max-height:100%;
-  border:3px solid #fff;border-radius:5px;
-  box-shadow:0 0 25px rgba(0,0,0,.5);
+.fullscreen-modal-content iframe {
+  max-width: 100%;
+  max-height: 100%;
+  border: 3px solid #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 25px rgba(0,0,0,.5);
 }
 .fullscreen-modal-content iframe {
   width: 100%;
@@ -394,7 +457,7 @@ header h2 {
 }
 
 /* ========================
-   BOTÓN DEL CARRITO (MOVIBLE)
+   BOTÓN DEL CARRITO
 ========================= */
 #cart-toggle {
   position: fixed;
@@ -539,7 +602,7 @@ header h2 {
 }
 #login-form button:hover {
   background: #C31A17;
-}       
+}
 
 /* ========================
    ETIQUETAS DE DESCUENTO
@@ -648,7 +711,7 @@ header h2 {
 }
 
 /* ========================
-   BOTÓN AÑADIR AL CARRITO (Genérico)
+   BOTÓN AÑADIR AL CARRITO
 ========================= */
 .add-to-cart {
   background-color: #28a745;
@@ -676,7 +739,7 @@ header h2 {
 }
 
 /* ========================
-   DROPDOWN FILTRO COMPACTO
+   DROPDOWN FILTRO
 ========================= */
 .dropdown-container {
   display: flex;
@@ -755,63 +818,12 @@ header h2 {
 }
 
 /* ========================
-   ETIQUETA RANGO DE FECHAS
+   SELECT TIENDAS
 ========================= */
 #store {
   max-height: 180px;
   overflow-y: auto;
   font-size: 0.95em;
-}
-.date-range-tag {
-  position: absolute;
-  top: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(145deg, #4a5568, #2d3748);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 0 0 15px 15px;
-  font-size: 12px;
-  z-index: 3;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  animation: float 3s ease-in-out infinite, pulse 2s infinite;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(3px);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-  clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
-}
-.date-range-tag::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  background: #48bb78;
-  border-radius: 50%;
-  animation: blink 1.5s infinite;
-  filter: drop-shadow(0 0 3px #48bb78);
-}
-@keyframes float {
-  0% { transform: translate(-50%, -15px); }
-  50% { transform: translate(-50%, -5px); }
-  100% { transform: translate(-50%, -15px); }
-}
-
-/* ========================
-   NUEVAS ANIMACIONES PARA OFERTAS
-========================= */
-@keyframes spam-shake-grow {
-  0%, 100% { transform: scale(1) rotate(-4deg); }
-  25% { transform: scale(1.15) rotate(4deg); }
-  50% { transform: scale(1.15) rotate(-4deg); }
-  75% { transform: scale(1.15) rotate(4deg); }
-}
-@keyframes spam-glow {
-  0%, 100% { box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 0 10px #ffdd00, 0 0 20px #ffdd00; }
-  50% { box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 25px #ff00de, 0 0 35px #ff00de; }
 }
 
 /* ========================
@@ -848,6 +860,71 @@ header h2 {
 }
 .hidden {
   display: none !important;
+}
+
+/* ========================
+   PANEL DE ADMINISTRACIÓN
+========================= */
+#admin-login-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: url('images/fotoapp.gif') no-repeat center center/cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+}
+#admin-login-form {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 90%;
+  max-width: 380px;
+}
+#admin-login-form h2 {
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+#admin-login-form input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+#admin-login-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(44, 122, 123, 0.1);
+}
+#admin-login-form button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  background: #E41A1C;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+#admin-login-form button:hover {
+  background: #C31A17;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+#admin-panel.hidden {
+  display: none;
 }
 
 /* ========================
@@ -894,87 +971,12 @@ header h2 {
   }
 }
 
-/* =======================================================================
-   TOUCH-FRIENDLY (reduce retardo y quita flash azul)
------------------------------------------------------------------------- */
-html,body {
-  touch-action:manipulation;
+/* ========================
+   TOUCH-FRIENDLY
+========================= */
+html, body {
+  touch-action: manipulation;
 }
-button,.product {
-  -webkit-tap-highlight-color:transparent;
-}
-/* =========================================================================
-   ESTILOS ADICIONALES PARA EL PANEL DE ADMINISTRACIÓN
-   Agrega esto AL FINAL de tu style.css existente
-   ========================================================================= */
-
-/* Login Admin Container */
-#admin-login-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background: url('images/fotoapp.gif') no-repeat center center/cover;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1500;
-}
-
-#admin-login-form {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  text-align: center;
-  width: 90%;
-  max-width: 380px;
-}
-
-#admin-login-form h2 {
-  color: var(--color-primary);
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-}
-
-#admin-login-form input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-#admin-login-form input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(44, 122, 123, 0.1);
-}
-
-#admin-login-form button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
-  background: #E41A1C;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-#admin-login-form button:hover {
-  background: #C31A17;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Panel Admin Hidden State */
-#admin-panel.hidden {
-  display: none;
+button, .product {
+  -webkit-tap-highlight-color: transparent;
 }
