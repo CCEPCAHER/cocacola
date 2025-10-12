@@ -35,9 +35,7 @@
     <main>
       <div class="dropdown-container"><div id="filter-container"></div></div>
       <section id="product-list" aria-live="polite"></section>
-
       <div id="total-display" aria-live="polite">Total: €0.00</div>
-
       <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
 
       <!-- Modal carrito -->
@@ -178,55 +176,43 @@
     /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE -------------------------- */
     async function loadImagesFromStorage() {
       try {
-        console.log('🔄 Cargando imágenes desde Firebase Storage...');
         const imagesRef = ref(storage, 'images/');
-        const result = await listAll(imagesRef);                               // Lista raíz
-
+        const result = await listAll(imagesRef);
         const imageUrls = {};
+        const getFullPath = (itemRef) => itemRef.fullPath; // <<< ESTA LÍNEA CLAVE
 
-        // Archivos en raíz (compatibilidad)
         for (const itemRef of result.items) {
           const url = await getDownloadURL(itemRef);
-          imageUrls[itemRef.name] = url;
+          imageUrls[getFullPath(itemRef)] = url;           // <<< CLAVE: ruta completa
         }
-
-        // Subcarpetas (secciones)
         for (const folderRef of result.prefixes) {
-          const folderResult = await listAll(folderRef);                       // Lista subcarpeta
+          const folderResult = await listAll(folderRef);
           for (const itemRef of folderResult.items) {
             const url = await getDownloadURL(itemRef);
-            imageUrls[itemRef.name] = url;                                     // clave: nombre de archivo
+            imageUrls[getFullPath(itemRef)] = url;
           }
         }
-
         window.firebaseImageUrls = imageUrls;
-        console.log('✅ Imágenes cargadas:', Object.keys(imageUrls).length);
         updateProductImages();
-
       } catch (error) {
-        console.error('❌ Error al cargar imágenes:', error);
         window.firebaseImageUrls = {};
       }
     }
 
     /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS ----------------------------- */
     function updateProductImages() {
-      if (!window.firebaseImageUrls) return;
+      const map = window.firebaseImageUrls || {};
       document.querySelectorAll('.product img[data-src]').forEach(img => {
-        const originalSrc = img.dataset.src;              // p.ej. images/fem_carrefour/fem_carrefour_0.jpg
-        const fileName = originalSrc.split('/').pop();    // fem_carrefour_0.jpg
-        const url = window.firebaseImageUrls[fileName];
+        const storagePath = img.dataset.src.trim(); // Debe ser images/fem_carrefour/fem_carrefour_0.jpg
+        const url = map[storagePath];
         if (url) {
-          img.dataset.src = url;
-          if (!img.classList.contains('lazy')) {
-            img.src = url;
-          }
+          img.dataset.full = url; // útil para fullscreen
+          if (!img.classList.contains('lazy')) img.src = url;
         } else {
-          console.warn(`⚠️ Imagen no encontrada en Storage: ${fileName}`);
+          console.warn(`⚠️ No encontrada en Storage: ${storagePath}`);
         }
       });
     }
-
 
     /* --- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------------- */
     window.sendOrderToFirestore = async function(orderItems){
@@ -255,8 +241,6 @@
     window.firebaseUploadBytes = uploadBytes;
     console.log('✅ Firebase expuesto globalmente');
   </script>
-
-  <!-- lógica principal -->
   <script src="script.js?v=2025101001"></script>
 </body>
 </html>
