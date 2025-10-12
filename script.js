@@ -74,7 +74,7 @@
 
   const sections = {
     "FOCOS": [
-      { "name": "Focos Producto 1", "price": 0.00, "startDate": "2025-08-01", "endDate": "2025-08-31", "offer": false, "staticOffer": true, "image": "images/focos/focos_0.jpg" },
+      { "name": "Focos Producto 1", "price": 0.00, "startDate": "2025-08-01", "endDate": "2025-08-31", "offer": true, "staticOffer": true, "image": "images/focos/focos_0.jpg" },
       { "name": "Focos Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/focos/focos_1.jpg" },
       { "name": "Focos Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/focos/focos_2.jpg" },
       { "name": "Focos Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/focos/focos_3.jpg" },
@@ -334,29 +334,31 @@
         <img data-src="${imagePath}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy">
         <h3>${p.name || 'Producto sin nombre'}</h3>`;
 
-      if (p.endDate) {
-        const endParts = p.endDate.split('-');
-        const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
-        fin.setHours(23, 59, 59, 999);
-        let ini = null;
-        if (p.startDate) {
-          const startParts = p.startDate.split('-');
-          ini = new Date(startParts[0], startParts[1] - 1, startParts[2]);
-          ini.setHours(0, 0, 0, 0);
-        }
-        let txt = '', cls = '';
-        if (fin < today) {
-          txt = 'Oferta caducada';
-          cls = 'offer-expired';
-        } else if (ini && ini > today) {
-          txt = `Próxima: ${ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})} - ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})}`;
-          cls = 'offer-upcoming';
-        } else {
-          txt = `Activa hasta: ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
-          cls = 'offer-active';
-        }
-        html += `<p class="offer-tag ${cls}">${txt}</p>`;
-      }
+      // Solo mostrar la etiqueta de oferta en el primer producto (índice 0)
+if (p.endDate && i === 0) {
+  const endParts = p.endDate.split('-');
+  const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+  fin.setHours(23, 59, 59, 999);
+  let ini = null;
+  if (p.startDate) {
+    const startParts = p.startDate.split('-');
+    ini = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+    ini.setHours(0, 0, 0, 0);
+  }
+  let txt = '', cls = '';
+  if (fin < today) {
+    txt = 'Oferta caducada';
+    cls = 'offer-expired';
+  } else if (ini && ini > today) {
+    txt = `Próxima: ${ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})} - ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'})}`;
+    cls = 'offer-upcoming';
+  } else {
+    txt = `Activa hasta: ${fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
+    cls = 'offer-active';
+  }
+  html += `<p class="offer-tag ${cls}">${txt}</p>`;
+}
+
 
       if (!p.staticOffer && typeof p.price === 'number') {
         const qs = PRODUCT_QUANTITIES[p.name] || [];
