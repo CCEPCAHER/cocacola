@@ -51,8 +51,6 @@
     </main>
   </div>
 
-  <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
-
   <!-- VISOR FULLSCREEN (IMAGEN / PDF) -->
   <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
     <span class="close-fullscreen-modal">&times;</span>
@@ -179,11 +177,11 @@
         const imagesRef = ref(storage, 'images/');
         const result = await listAll(imagesRef);
         const imageUrls = {};
-        const getFullPath = (itemRef) => itemRef.fullPath; // <<< ESTA LÍNEA CLAVE
+        const getFullPath = (itemRef) => itemRef.fullPath;
 
         for (const itemRef of result.items) {
           const url = await getDownloadURL(itemRef);
-          imageUrls[getFullPath(itemRef)] = url;           // <<< CLAVE: ruta completa
+          imageUrls[getFullPath(itemRef)] = url;
         }
         for (const folderRef of result.prefixes) {
           const folderResult = await listAll(folderRef);
@@ -203,16 +201,57 @@
     function updateProductImages() {
       const map = window.firebaseImageUrls || {};
       document.querySelectorAll('.product img[data-src]').forEach(img => {
-        const storagePath = img.dataset.src.trim(); // Debe ser images/fem_carrefour/fem_carrefour_0.jpg
+        const storagePath = img.dataset.src.trim();
         const url = map[storagePath];
         if (url) {
-          img.dataset.full = url; // útil para fullscreen
+          img.dataset.full = url;
           if (!img.classList.contains('lazy')) img.src = url;
         } else {
           console.warn(`⚠️ No encontrada en Storage: ${storagePath}`);
         }
       });
     }
+
+    /* --- Visor fullscreen robusto (asegura la URL real para el modal) --- */
+    function initFullscreenModal() {
+      const productList   = document.getElementById('product-list');
+      const modal         = document.getElementById('fullscreen-modal');
+      const modalContent  = modal.querySelector('.fullscreen-modal-content');
+      const closeBtn      = modal.querySelector('.close-fullscreen-modal');
+      function openModal(card) {
+        const img = card.querySelector('img[data-full]');
+        const src = img?.dataset.full || img?.src;
+        if (!src) return;
+        modalContent.innerHTML = '';
+        const bigImg = document.createElement('img');
+        bigImg.src = src;
+        modalContent.appendChild(bigImg);
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeModal() {
+        modal.classList.remove('active');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          modalContent.innerHTML = '';
+          document.body.style.overflow = '';
+        }, 400);
+      }
+      productList.addEventListener('click', e => {
+        const card = e.target.closest('.product');
+        if (card && !e.target.closest('button,input,a')) {
+          e.preventDefault();
+          openModal(card);
+        }
+      });
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+      });
+    }
+    document.addEventListener('DOMContentLoaded', initFullscreenModal);
 
     /* --- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------------- */
     window.sendOrderToFirestore = async function(orderItems){
