@@ -4087,22 +4087,26 @@ function initFullscreenModal() {
 
   /* abrir */
   function openModal(card) {
-    const src = card.dataset.fullviewSrc || card.querySelector('img')?.src;
+    // Buscar la miniatura de producto dentro de la card
+    const img = card.querySelector('img[data-full]');
+    // Usar SIEMPRE la URL real de Firebase, nunca la ruta local/data-src
+    const src = img?.dataset.full || img?.src || card.dataset.fullviewSrc;
     if (!src) return;
 
-    modalContent.innerHTML = '';                         // limpia
+    modalContent.innerHTML = ''; // limpia
+
     if (src.toLowerCase().endsWith('.pdf')) {
-      const iframe = document.createElement('iframe');   // PDF
+      const iframe = document.createElement('iframe');
       iframe.src = src;
       modalContent.appendChild(iframe);
     } else {
-      const img = document.createElement('img');         // JPG / PNG …
-      img.src = src;
-      modalContent.appendChild(img);
+      const bigImg = document.createElement('img');
+      bigImg.src = src;
+      modalContent.appendChild(bigImg);
     }
-    modal.classList.remove('hidden');  // la clase .hidden suele tener display:none
-    modal.classList.add('active');     // activa transiciones CSS
-    document.body.style.overflow = 'hidden';             // bloquea scroll fondo
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
 
   /* cerrar */
@@ -4112,13 +4116,13 @@ function initFullscreenModal() {
       modal.classList.add('hidden');
       modalContent.innerHTML = '';
       document.body.style.overflow = '';
-    }, 400);                                             // mismo tiempo que la transición
+    }, 400);
   }
 
-  /* ─── Delegación de eventos ─── */
+  // --- Delegación de eventos ---
   productList.addEventListener('click', e => {
     const card = e.target.closest('.product');
-    if (card && !e.target.closest('button,input,a')) {   // no disparar sobre controles
+    if (card && !e.target.closest('button,input,a')) {
       e.preventDefault();
       openModal(card);
     }
@@ -4129,6 +4133,7 @@ function initFullscreenModal() {
     if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
   });
 }
+
 
 /* -----------------------------------------------------------------------
      2. RENDERIZADO DE LA TIENDA
