@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PEDIDOS - Coca-Cola</title>
+  <title>CONSULTAS - Coca-Cola</title>
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
-</head>
+  </head>
 <body>
 
-  <!-- LOGIN -->
   <div id="login-container">
     <form id="login-form">
       <h2>Iniciar Sesión</h2>
@@ -25,7 +24,6 @@
     </form>
   </div>
 
-  <!-- CONTENIDO PRIVADO -->
   <div id="contenido" class="hidden">
     <header>
       <h1>CONSULTAS</h1>
@@ -38,7 +36,6 @@
       <div id="total-display" aria-live="polite">Total: €0.00</div>
       <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
 
-      <!-- Modal carrito -->
       <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
         <div id="cart-modal-content">
           <h2 id="cart-modal-title">Tu Pedido</h2>
@@ -51,16 +48,15 @@
     </main>
   </div>
 
-  <!-- VISOR FULLSCREEN (IMAGEN / PDF) -->
+  <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
+
   <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
     <span class="close-fullscreen-modal">&times;</span>
     <div class="fullscreen-modal-content"></div>
   </div>
 
-  <!-- librería Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- Firebase + Storage + Auth -->
   <script type="module">
     import { initializeApp }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth,
@@ -74,8 +70,7 @@
     import { getStorage,
              ref,
              getDownloadURL,
-             listAll,
-             uploadBytes }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+             listAll }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     /* --- CONFIG FIREBASE ------------------------------------------------- */
     const firebaseConfig = {
@@ -171,65 +166,84 @@
       }
     });
 
-    /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE -------------------------- */
+    /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE (CLAVE: RUTA COMPLETA) --- */
     async function loadImagesFromStorage() {
       try {
+        console.log('🔄 Cargando imágenes desde Firebase Storage...');
         const imagesRef = ref(storage, 'images/');
         const result = await listAll(imagesRef);
         const imageUrls = {};
-        const getFullPath = (itemRef) => itemRef.fullPath;
-
+        
+        // Archivos en raíz (ej: 'images/file.jpg')
         for (const itemRef of result.items) {
           const url = await getDownloadURL(itemRef);
-          imageUrls[getFullPath(itemRef)] = url;
+          imageUrls[itemRef.fullPath] = url;
         }
+
+        // Subcarpetas (ej: 'images/fem_alcampo/fem_alcampo_0.jpg')
         for (const folderRef of result.prefixes) {
           const folderResult = await listAll(folderRef);
           for (const itemRef of folderResult.items) {
             const url = await getDownloadURL(itemRef);
-            imageUrls[getFullPath(itemRef)] = url;
+            imageUrls[itemRef.fullPath] = url; 
           }
         }
+
         window.firebaseImageUrls = imageUrls;
+        console.log('✅ Imágenes cargadas:', Object.keys(imageUrls).length);
         updateProductImages();
       } catch (error) {
+        console.error('❌ Error al cargar imágenes desde Storage:', error);
         window.firebaseImageUrls = {};
       }
     }
 
-    /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS ----------------------------- */
+    /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS (USA data-full para la URL) --- */
     function updateProductImages() {
       const map = window.firebaseImageUrls || {};
       document.querySelectorAll('.product img[data-src]').forEach(img => {
+        // data-src debe contener la ruta completa del Storage (ej: images/fem_alcampo/fem_alcampo_0.jpg)
         const storagePath = img.dataset.src.trim();
         const url = map[storagePath];
         if (url) {
-          img.dataset.full = url;
-          if (!img.classList.contains('lazy')) img.src = url;
+          // Asigna la URL real de descarga a un atributo data-full para el visor
+          img.dataset.full = url; 
+          
+          // Asigna la URL al src solo si no es de carga perezosa
+          if (!img.classList.contains('lazy')) {
+            img.src = url;
+          }
         } else {
-          console.warn(`⚠️ No encontrada en Storage: ${storagePath}`);
+          console.warn(`⚠️ Imagen no encontrada en Storage: ${storagePath}`);
         }
       });
     }
 
-    /* --- Visor fullscreen robusto (asegura la URL real para el modal) --- */
+    /* --- Visor fullscreen robusto (usa data-full para la URL real) --- */
     function initFullscreenModal() {
       const productList   = document.getElementById('product-list');
       const modal         = document.getElementById('fullscreen-modal');
       const modalContent  = modal.querySelector('.fullscreen-modal-content');
       const closeBtn      = modal.querySelector('.close-fullscreen-modal');
+
       function openModal(card) {
+        // Busca la URL de alta resolución en data-full (establecida por updateProductImages)
         const img = card.querySelector('img[data-full]');
-        const src = img?.dataset.full || img?.src;
+        const src = img?.dataset.full || img?.src; 
+        
         if (!src) return;
+
         modalContent.innerHTML = '';
         const bigImg = document.createElement('img');
         bigImg.src = src;
+        bigImg.alt = img.alt || 'Imagen de consulta';
         modalContent.appendChild(bigImg);
+        
         modal.classList.remove('hidden');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
+
       function closeModal() {
         modal.classList.remove('active');
         setTimeout(() => {
@@ -238,13 +252,16 @@
           document.body.style.overflow = '';
         }, 400);
       }
+
       productList.addEventListener('click', e => {
         const card = e.target.closest('.product');
+        // Previene la apertura del modal si se hace clic en botones o enlaces dentro de la tarjeta
         if (card && !e.target.closest('button,input,a')) {
           e.preventDefault();
           openModal(card);
         }
       });
+
       closeBtn.addEventListener('click', closeModal);
       modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
       document.addEventListener('keydown', e => {
@@ -252,6 +269,7 @@
       });
     }
     document.addEventListener('DOMContentLoaded', initFullscreenModal);
+
 
     /* --- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------------- */
     window.sendOrderToFirestore = async function(orderItems){
@@ -274,12 +292,9 @@
     window.firebaseApp = app;
     window.db = db;
     window.firebaseStorage = storage;
-    window.firebaseStorageRef = ref;
-    window.firebaseGetDownloadURL = getDownloadURL;
-    window.firebaseListAll = listAll;
-    window.firebaseUploadBytes = uploadBytes;
     console.log('✅ Firebase expuesto globalmente');
   </script>
+
   <script src="script.js?v=2025101001"></script>
 </body>
 </html>
