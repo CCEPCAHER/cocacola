@@ -4,11 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CONSULTAS - Coca-Cola</title>
-
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
-  </head>
+</head>
 <body>
 
   <div id="login-container">
@@ -29,13 +28,11 @@
       <h1>CONSULTAS</h1>
       <button id="logout-btn" class="btn-logout" aria-label="Cerrar sesión">🚪 Cerrar Sesión</button>
     </header>
-
     <main>
       <div class="dropdown-container"><div id="filter-container"></div></div>
       <section id="product-list" aria-live="polite"></section>
       <div id="total-display" aria-live="polite">Total: €0.00</div>
       <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
-
       <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
         <div id="cart-modal-content">
           <h2 id="cart-modal-title">Tu Pedido</h2>
@@ -48,8 +45,6 @@
     </main>
   </div>
 
-  <audio id="add-sound" src="beep.mp3" preload="auto"></audio>
-
   <div id="fullscreen-modal" class="fullscreen-modal-overlay hidden">
     <span class="close-fullscreen-modal">&times;</span>
     <div class="fullscreen-modal-content"></div>
@@ -58,187 +53,186 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script type="module">
-    import { initializeApp }            from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth,
-             signInWithEmailAndPassword,
-             onAuthStateChanged,
-             signOut }                  from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore,
-             collection,
-             addDoc,
-             serverTimestamp }          from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getStorage,
-             ref,
-             getDownloadURL,
-             listAll }              from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getStorage, ref, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
-    /* --- CONFIG FIREBASE ------------------------------------------------- */
     const firebaseConfig = {
-      apiKey:            "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
-      authDomain:        "cocacolaconsultas-20759.firebaseapp.com",
-      projectId:         "cocacolaconsultas-20759",
-      storageBucket:     "cocacolaconsultas-20759.firebasestorage.app",
+      apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
+      authDomain: "cocacolaconsultas-20759.firebaseapp.com",
+      projectId: "cocacolaconsultas-20759",
+      storageBucket: "cocacolaconsultas-20759.firebasestorage.app",
       messagingSenderId: "274074684363",
-      appId:             "1:274074684363:web:b988c76c7e74f9e1e3444e",
-      measurementId:     "G-29GJZ22GMM"
+      appId: "1:274074684363:web:b988c76c7e74f9e1e3444e",
+      measurementId: "G-29GJZ22GMM"
     };
     
-    const app  = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db   = getFirestore(app);
+    const db = getFirestore(app);
     const storage = getStorage(app);
 
-    /* --- ELEMENTOS DOM --------------------------------------------------- */
     const loginContainer = document.getElementById("login-container");
-    const contenidoDiv   = document.getElementById("contenido");
-    const loginForm      = document.getElementById("login-form");
-    const storeSelect    = document.getElementById("store");
-    const headerH1       = document.querySelector("#contenido header h1");
-    const logoutBtn      = document.getElementById("logout-btn");
+    const contenidoDiv = document.getElementById("contenido");
+    const loginForm = document.getElementById("login-form");
+    const storeSelect = document.getElementById("store");
+    const headerH1 = document.querySelector("#contenido header h1");
+    const logoutBtn = document.getElementById("logout-btn");
 
-    /* --- HELPER: mostrar contenido privado ------------------------------- */
-    function mostrarContenido(storeName){
+    function mostrarContenido(storeName) {
       loginContainer.style.display = "none";
       contenidoDiv.classList.remove("hidden");
-      if (storeName && !headerH1.textContent.includes(storeName)){
+      if (storeName && !headerH1.textContent.includes(storeName)) {
         headerH1.textContent += ` - ${storeName}`;
       }
     }
 
-    /* --- AUTH LISTENER --------------------------------------------------- */
-    onAuthStateChanged(auth, user=>{
-      if (user){
+    onAuthStateChanged(auth, user => {
+      if (user) {
         const userStore = localStorage.getItem("userStore");
         mostrarContenido(userStore);
         localStorage.setItem("loggedInUser", user.email);
-        // Cargar imágenes desde Firebase Storage
-        loadImagesFromStorage();
-      }else{
+        loadImagesFromStorageBatched();
+      } else {
         loginContainer.style.display = "flex";
         contenidoDiv.classList.add("hidden");
       }
     });
 
-    /* --- CARGAR SELECT DE TIENDAS ---------------------------------------- */
-    document.addEventListener("DOMContentLoaded",()=>{
+    document.addEventListener("DOMContentLoaded", () => {
       const stores = ["CAT21","CAT22","CAT23","CAT24","CAT25","EJE4",
                       "Alcampo Sant Quirze","Carrefour Sant Cugat","Carrefour Barbera"];
-      stores.forEach(s=>{
+      stores.forEach(s => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = s;
         storeSelect.appendChild(opt);
       });
     });
 
-    /* --- LOGIN ----------------------------------------------------------- */
-    loginForm.addEventListener("submit",e=>{
+    loginForm.addEventListener("submit", e => {
       e.preventDefault();
-      const store    = storeSelect.value;
-      const email    = document.getElementById("username").value.trim();
+      const store = storeSelect.value;
+      const email = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
-
-      if (!store){ alert("Por favor selecciona un supermercado."); return; }
-
-      signInWithEmailAndPassword(auth,email,password)
-        .then(()=>{
-          localStorage.setItem("userStore",store);
-          mostrarContenido(store);
-        })
-        .catch(err=>{
-          console.error(err);
-          alert("Credenciales incorrectas. Verifica tu email y contraseña.");
-        });
+      if (!store) { alert("Por favor selecciona un supermercado."); return; }
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => { localStorage.setItem("userStore", store); mostrarContenido(store); })
+        .catch(err => { console.error(err); alert("Credenciales incorrectas."); });
     });
 
-    /* --- LOGOUT ---------------------------------------------------------- */
     logoutBtn.addEventListener("click", async () => {
-      const confirmed = confirm("¿Estás seguro de que quieres cerrar sesión?");
-      if (confirmed) {
-        try {
-          await signOut(auth);
-          localStorage.removeItem("userStore");
-          localStorage.removeItem("loggedInUser");
-          console.log("✅ Sesión cerrada correctamente");
-        } catch (error) {
-          console.error("Error al cerrar sesión:", error);
-          alert("❌ Error al cerrar sesión");
-        }
+      if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
+      try {
+        await signOut(auth);
+        localStorage.removeItem("userStore");
+        localStorage.removeItem("loggedInUser");
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+        alert("❌ Error al cerrar sesión");
       }
     });
 
-    /* --- CARGAR IMÁGENES DESDE FIREBASE STORAGE (CLAVE: RUTA COMPLETA) --- */
-    async function loadImagesFromStorage() {
+    // CARGA POR LOTES (optimizada)
+    async function loadImagesFromStorageBatched() {
       try {
-        console.log('🔄 Cargando imágenes desde Firebase Storage...');
-        const imagesRef = ref(storage, 'images/');
-        const result = await listAll(imagesRef);
-        const imageUrls = {};
-        
-        // Archivos en raíz (ej: 'images/file.jpg')
-        for (const itemRef of result.items) {
-          const url = await getDownloadURL(itemRef);
-          imageUrls[itemRef.fullPath] = url;
+        const map = window.firebaseImageUrls = window.firebaseImageUrls || {};
+        const baseRef = ref(storage, 'images/');
+        const top = await listAll(baseRef);
+
+        for (const itemRef of top.items) {
+          map[itemRef.fullPath] = await getDownloadURL(itemRef);
         }
 
-        // Subcarpetas (ej: 'images/fem_alcampo/fem_alcampo_0.jpg')
-        for (const folderRef of result.prefixes) {
-          const folderResult = await listAll(folderRef);
-          for (const itemRef of folderResult.items) {
-            const url = await getDownloadURL(itemRef);
-            imageUrls[itemRef.fullPath] = url; 
-          }
+        const folders = top.prefixes || [];
+        const chunkSize = 4;
+        for (let i = 0; i < folders.length; i += chunkSize) {
+          const batch = folders.slice(i, i + chunkSize);
+          await Promise.all(batch.map(async folderRef => {
+            const fr = await listAll(folderRef);
+            for (const itemRef of fr.items) {
+              map[itemRef.fullPath] = await getDownloadURL(itemRef);
+            }
+          }));
+          await new Promise(r => setTimeout(r, 0));
         }
 
-        window.firebaseImageUrls = imageUrls;
-        console.log('✅ Imágenes cargadas:', Object.keys(imageUrls).length);
-        updateProductImages();
-      } catch (error) {
-        console.error('❌ Error al cargar imágenes desde Storage:', error);
-        window.firebaseImageUrls = {};
+        if (typeof window.updateProductImages === 'function') {
+          window.updateProductImages();
+        }
+      } catch (e) {
+        console.error('Error en carga por lotes:', e);
       }
     }
 
-    /* --- ACTUALIZAR IMÁGENES EN PRODUCTOS (USA data-full para la URL) --- */
-    function updateProductImages() {
+    // ACTUALIZAR IMÁGENES (asigna data-full)
+    window.updateProductImages = function() {
       const map = window.firebaseImageUrls || {};
       document.querySelectorAll('.product img[data-src]').forEach(img => {
-        // data-src debe contener la ruta completa del Storage (ej: images/fem_alcampo/fem_alcampo_0.jpg)
         const storagePath = img.dataset.src.trim();
         const url = map[storagePath];
         if (url) {
-          // Asigna la URL real de descarga a un atributo data-full para el visor
-          img.dataset.full = url; 
-          
-          // Asigna la URL al src solo si no es de carga perezosa
-          if (!img.classList.contains('lazy')) {
-            img.src = url;
-          }
-        } else {
-          console.warn(`⚠️ Imagen no encontrada en Storage: ${storagePath}`);
+          img.dataset.full = url;
+          if (!img.classList.contains('lazy')) img.src = url;
         }
       });
-    }
+    };
 
-    /* --- Visor fullscreen robusto (usa data-full para la URL real) --- */
-    function initFullscreenModal() {
-      const productList   = document.getElementById('product-list');
-      const modal         = document.getElementById('fullscreen-modal');
-      const modalContent  = modal.querySelector('.fullscreen-modal-content');
-      const closeBtn      = modal.querySelector('.close-fullscreen-modal');
+    // LAZY LOADING ON-DEMAND
+    window.lazyLoadImages = function() {
+      const imgs = Array.from(document.querySelectorAll('img.lazy'));
+      if (!imgs.length) return;
+
+      const map = window.firebaseImageUrls = window.firebaseImageUrls || {};
+
+      async function ensureUrl(key) {
+        if (map[key]) return map[key];
+        try {
+          const url = await getDownloadURL(ref(storage, key));
+          map[key] = url;
+          return url;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      async function loadOne(img) {
+        const key = (img.dataset.src || '').trim();
+        if (!key) return;
+        const url = await ensureUrl(key);
+        if (url) {
+          img.dataset.full = url;
+          img.src = url;
+          img.classList.remove('lazy');
+          if (observer) observer.unobserve(img);
+        }
+      }
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(e => { if (e.isIntersecting) loadOne(e.target); });
+        }, { rootMargin: '200px 0px', threshold: 0.01 });
+        imgs.forEach(img => observer.observe(img));
+      } else {
+        imgs.forEach(loadOne);
+      }
+    };
+
+    // FULLSCREEN MODAL
+    window.initFullscreenModal = function() {
+      const productList = document.getElementById('product-list');
+      const modal = document.getElementById('fullscreen-modal');
+      const modalContent = modal.querySelector('.fullscreen-modal-content');
+      const closeBtn = modal.querySelector('.close-fullscreen-modal');
 
       function openModal(card) {
-        // Busca la URL de alta resolución en data-full (establecida por updateProductImages)
         const img = card.querySelector('img[data-full]');
-        const src = img?.dataset.full || img?.src; 
-        
+        const src = img?.dataset.full || img?.src;
         if (!src) return;
-
         modalContent.innerHTML = '';
-        const bigImg = document.createElement('img');
-        bigImg.src = src;
-        bigImg.alt = img.alt || 'Imagen de consulta';
-        modalContent.appendChild(bigImg);
-        
+        const big = document.createElement('img');
+        big.src = src;
+        modalContent.appendChild(big);
         modal.classList.remove('hidden');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -255,46 +249,40 @@
 
       productList.addEventListener('click', e => {
         const card = e.target.closest('.product');
-        // Previene la apertura del modal si se hace clic en botones o enlaces dentro de la tarjeta
         if (card && !e.target.closest('button,input,a')) {
           e.preventDefault();
           openModal(card);
         }
       });
-
       closeBtn.addEventListener('click', closeModal);
       modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
       document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
       });
-    }
-    document.addEventListener('DOMContentLoaded', initFullscreenModal);
+    };
 
-
-    /* --- FUNCIÓN GLOBAL: guardar pedido en Firestore -------------------- */
-    window.sendOrderToFirestore = async function(orderItems){
-      try{
-        const docRef = await addDoc(collection(db,"orders"),{
-          store   : localStorage.getItem("userStore")   || "Sin tienda",
-          user    : localStorage.getItem("loggedInUser")|| "Anónimo",
-          created : serverTimestamp(),
-          items   : orderItems
+    // FIRESTORE: guardar pedido
+    window.sendOrderToFirestore = async function(orderItems) {
+      try {
+        const docRef = await addDoc(collection(db, "orders"), {
+          store: localStorage.getItem("userStore") || "Sin tienda",
+          user: localStorage.getItem("loggedInUser") || "Anónimo",
+          created: serverTimestamp(),
+          items: orderItems
         });
         console.log("✅ Pedido guardado con ID:", docRef.id);
-      }catch(e){
-        console.error("❌ Error al guardar pedido:",e);
+      } catch (e) {
+        console.error("❌ Error al guardar pedido:", e);
         alert("⚠️ El pedido no pudo guardarse en la nube.");
       }
     };
 
-    /* --- Exponer global (debug) ---------------------------------------- */
     window.auth = auth;
     window.firebaseApp = app;
     window.db = db;
     window.firebaseStorage = storage;
-    console.log('✅ Firebase expuesto globalmente');
   </script>
 
-  <script src="script.js?v=2025101001"></script>
+  <script src="script.js?v=2025101201"></script>
 </body>
 </html>
