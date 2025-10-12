@@ -3969,16 +3969,13 @@ function initFullscreenModal() {
   const modalContent  = modal.querySelector('.fullscreen-modal-content');
   const closeBtn      = modal.querySelector('.close-fullscreen-modal');
 
-  /* abrir */
   function openModal(card) {
-    // Buscar la miniatura de producto dentro de la card
     const img = card.querySelector('img[data-full]');
-    // Usar SIEMPRE la URL real de Firebase, nunca la ruta local/data-src
-    const src = img?.dataset.full || img?.src || card.dataset.fullviewSrc;
+    // SIEMPRE coger la URL Firebase del atributo data-full
+    const src = img?.dataset.full || img?.src;
     if (!src) return;
 
-    modalContent.innerHTML = ''; // limpia
-
+    modalContent.innerHTML = '';
     if (src.toLowerCase().endsWith('.pdf')) {
       const iframe = document.createElement('iframe');
       iframe.src = src;
@@ -3993,7 +3990,6 @@ function initFullscreenModal() {
     document.body.style.overflow = 'hidden';
   }
 
-  /* cerrar */
   function closeModal() {
     modal.classList.remove('active');
     setTimeout(() => {
@@ -4003,7 +3999,6 @@ function initFullscreenModal() {
     }, 400);
   }
 
-  // --- Delegación de eventos ---
   productList.addEventListener('click', e => {
     const card = e.target.closest('.product');
     if (card && !e.target.closest('button,input,a')) {
@@ -4017,6 +4012,7 @@ function initFullscreenModal() {
     if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
   });
 }
+
 
 
 /* -----------------------------------------------------------------------
