@@ -31,17 +31,6 @@
     <main>
       <div class="dropdown-container"><div id="filter-container"></div></div>
       <section id="product-list" aria-live="polite"></section>
-      <div id="total-display" aria-live="polite">Total: €0.00</div>
-      <button id="cart-toggle" aria-label="Ver carrito">🛒</button>
-      <div id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title">
-        <div id="cart-modal-content">
-          <h2 id="cart-modal-title">Tu Pedido</h2>
-          <button id="close-modal" aria-label="Cerrar carrito">✖</button>
-          <div id="cart-items-modal">No hay productos añadidos.</div>
-          <div id="modal-total">Total: €0.00</div>
-          <button id="submit-order">Enviar Pedido</button>
-        </div>
-      </div>
     </main>
   </div>
 
@@ -50,12 +39,10 @@
     <div class="fullscreen-modal-content"></div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getStorage, ref, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -218,27 +205,68 @@
       }
     };
 
-    // FULLSCREEN MODAL
+    // FULLSCREEN MODAL CON NAVEGACIÓN SWIPE/FLECHAS
     window.initFullscreenModal = function() {
       const productList = document.getElementById('product-list');
       const modal = document.getElementById('fullscreen-modal');
       const modalContent = modal.querySelector('.fullscreen-modal-content');
       const closeBtn = modal.querySelector('.close-fullscreen-modal');
 
+      let currentSection = [];
+      let currentIndex = 0;
+
       function openModal(card) {
-        const img = card.querySelector('img[data-full]');
-        const src = img?.dataset.full || img?.src;
-        if (!src) return;
-        modalContent.innerHTML = '';
-        const big = document.createElement('img');
-        big.src = src;
-        modalContent.appendChild(big);
+        const section = card.closest('.section');
+        const allCards = Array.from(section.querySelectorAll('.product[data-section-name]'));
+        currentSection = allCards.filter(c => c.querySelector('img[data-full]'));
+        currentIndex = currentSection.indexOf(card);
+
+        showImage(currentIndex);
         modal.classList.remove('hidden');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
 
+      function showImage(index) {
+        if (index < 0 || index >= currentSection.length) return;
+        
+        const card = currentSection[index];
+        const img = card.querySelector('img[data-full]');
+        const src = img?.dataset.full || img?.src;
+        if (!src) return;
+
+        const prevDisabled = index === 0 ? 'style="opacity:0.3;pointer-events:none;"' : '';
+        const nextDisabled = index === currentSection.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : '';
+
+        modalContent.innerHTML = `
+          <button class="modal-nav modal-nav-prev" ${prevDisabled}>‹</button>
+          <img src="${src}" alt="Imagen ${index + 1}" title="Clic para pantalla completa">
+          <button class="modal-nav modal-nav-next" ${nextDisabled}>›</button>
+          <div class="modal-counter">${index + 1} / ${currentSection.length}</div>
+        `;
+
+        modalContent.querySelector('.modal-nav-prev')?.addEventListener('click', () => navigate(-1));
+        modalContent.querySelector('.modal-nav-next')?.addEventListener('click', () => navigate(1));
+
+        // Pantalla completa al hacer clic en imagen
+        const bigImg = modalContent.querySelector('img');
+        if (bigImg) {
+          bigImg.addEventListener('click', toggleRealFullscreen);
+        }
+      }
+
+      function navigate(direction) {
+        const newIndex = currentIndex + direction;
+        if (newIndex >= 0 && newIndex < currentSection.length) {
+          currentIndex = newIndex;
+          showImage(currentIndex);
+        }
+      }
+
       function closeModal() {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        }
         modal.classList.remove('active');
         setTimeout(() => {
           modal.classList.add('hidden');
@@ -247,34 +275,84 @@
         }, 400);
       }
 
+      async function toggleRealFullscreen(e) {
+        const img = e.target;
+        if (!img) return;
+
+        try {
+          if (!document.fullscreenElement) {
+            if (img.requestFullscreen) {
+              await img.requestFullscreen();
+            } else if (img.webkitRequestFullscreen) {
+              await img.webkitRequestFullscreen();
+            } else if (img.msRequestFullscreen) {
+              await img.msRequestFullscreen();
+            }
+            img.classList.add('in-fullscreen');
+          } else {
+            if (document.exitFullscreen) {
+              await document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+              await document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+              await document.msExitFullscreen();
+            }
+            img.classList.remove('in-fullscreen');
+          }
+        } catch (err) {
+          console.error('Error al cambiar pantalla completa:', err);
+        }
+      }
+
+      document.addEventListener('fullscreenchange', () => {
+        const img = modalContent.querySelector('img');
+        if (img && !document.fullscreenElement) {
+          img.classList.remove('in-fullscreen');
+        }
+      });
+
+      // Touch/Swipe support
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      modalContent.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      modalContent.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        if (touchStartX - touchEndX > swipeThreshold) {
+          navigate(1);
+        } else if (touchEndX - touchStartX > swipeThreshold) {
+          navigate(-1);
+        }
+      }
+
+      // Teclado
+      document.addEventListener('keydown', e => {
+        if (!modal.classList.contains('active')) return;
+        if (e.key === 'ArrowLeft') navigate(-1);
+        if (e.key === 'ArrowRight') navigate(1);
+        if (e.key === 'Escape') closeModal();
+      });
+
       productList.addEventListener('click', e => {
         const card = e.target.closest('.product');
-        if (card && !e.target.closest('button,input,a')) {
+        if (card && card.querySelector('img[data-full]') && !e.target.closest('button,input,a')) {
           e.preventDefault();
           openModal(card);
         }
       });
-      closeBtn.addEventListener('click', closeModal);
-      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-      });
-    };
 
-    // FIRESTORE: guardar pedido
-    window.sendOrderToFirestore = async function(orderItems) {
-      try {
-        const docRef = await addDoc(collection(db, "orders"), {
-          store: localStorage.getItem("userStore") || "Sin tienda",
-          user: localStorage.getItem("loggedInUser") || "Anónimo",
-          created: serverTimestamp(),
-          items: orderItems
-        });
-        console.log("✅ Pedido guardado con ID:", docRef.id);
-      } catch (e) {
-        console.error("❌ Error al guardar pedido:", e);
-        alert("⚠️ El pedido no pudo guardarse en la nube.");
-      }
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => {
+        if (e.target === modal) closeModal();
+      });
     };
 
     window.auth = auth;
@@ -283,6 +361,6 @@
     window.firebaseStorage = storage;
   </script>
 
-  <script src="script.js?v=2025101201"></script>
+  <script src="script.js?v=2025101301"></script>
 </body>
 </html>
