@@ -172,15 +172,14 @@
       { "name": "Carrefour Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour/fem_carrefour_8.jpg" },
       { "name": "Carrefour Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour/fem_carrefour_9.jpg" }
     ],
-
-  "ACUERDO NACIONAL 2025": [
-      { "name": "Acuerdo Producto 1", "startDate": "2025-10-01", "endDate": "2025-10-31", "image": "images/ACUERDO_NACIONAL_2025/ACUERDO_NACIONAL_2025_0.jpg" },
-      { "name": "Acuerdo Producto 2", "image": "images/ACUERDO_NACIONAL_2025/ACUERDO_NACIONAL_2025_1.jpg" },
-      { "name": "Acuerdo Producto 3", "image": "images/ACUERDO_NACIONAL_2025/ACUERDO_NACIONAL_2025_2.jpg" },
-      { "name": "Acuerdo Producto 4", "image": "images/ACUERDO_NACIONAL_2025/ACUERDO_NACIONAL_2025_3.jpg" },
-      { "name": "Acuerdo Producto 5", "image": "images/ACUERDO_NACIONAL_2025/ACUERDO_NACIONAL_2025_4.jpg" },
-      { "name": "Acuerdo Producto 6", "image": "images/ACUERDO_NACIONAL_2025/ACUERDO_NACIONAL_2025_5.jpg" }
-    ],
+ "acuerdo nacional 2025": [
+  { "name": "acuerdo producto 1", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_0.jpg" },
+  { "name": "acuerdo producto 2", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_1.jpg" },
+  { "name": "acuerdo producto 3", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_2.jpg" },
+  { "name": "acuerdo producto 4", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_3.jpg" },
+  { "name": "acuerdo producto 5", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_4.jpg" },
+  { "name": "acuerdo producto 6", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_5.jpg" }
+],
     "FEM CARREFOUR MARKET": [
       { "name": "C. Market Producto 1", "price": 0.00, "startDate": "2025-07-24", "endDate": "2025-08-07", "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market/fem_carrefour_market_0.jpg" },
       { "name": "C. Market Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market/fem_carrefour_market_1.jpg" },
