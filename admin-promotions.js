@@ -41,7 +41,7 @@ function initPromotionManager() {
 
   // Lista de promociones disponibles
   const promotions = [
-    { id: 'MONSTER_BLITZ_2025', name: 'MONSTER BLITZ 2025' },
+    { id: 'ACUERDO_NACIONAL_2025', name: 'ACUERDO NACIONAL 2025' },
     { id: 'FOCOS', name: 'FOCOS' },
     { id: 'FEM_ALCAMPO', name: 'FEM ALCAMPO' },
     { id: 'FEM_CARREFOUR', name: 'FEM CARREFOUR' },
@@ -247,7 +247,7 @@ function initPromotionManager() {
       'FEM_CONSUM': { startDate: '2025-07-24', endDate: '2025-08-27', active: true },
       'FEM_CONDIS': { startDate: '2025-07-30', endDate: '2025-08-19', active: true },
       'FEM_COVIRAN': { startDate: '2025-07-29', endDate: '2025-08-09', active: true },
-      'MONSTER_BLITZ_2025': { startDate: '2025-08-01', endDate: '2025-08-31', active: true },
+      'ACUERDO_NACIONAL_2025': { startDate: '2025-08-01', endDate: '2025-08-31', active: true },
       'FOCOS': { startDate: '2025-08-01', endDate: '2025-08-31', active: true }
     };
 
