@@ -401,15 +401,10 @@ function initPDFConverter() {
   function loadSections() {
     const sections = [
       "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS",
-      "FEM ALCAMPO", "FEM CARREFOUR", "FEM CARREFOUR MARKET",
+      "FEM ALCAMPO", "FEM CARREFOUR", "ACUERDO NACIONAL 2025", "FEM CARREFOUR MARKET",
       "FEM SUPECO", "FEM SORLI", "FEM SCLAT BONPREU",
       "FEM CAPRABO", "FEM CONSUM", "FEM CONDIS", "FEM COVIRAN",
-      "IMPLANTACIONES", "Coca Cola", "Coca Cola Zero",
-      "Coca Cola Light", "Coca Cola Zero Zero", "Coca Cola Sabores",
-      "Fanta Naranja", "Fanta Limón", "Fanta Sabores",
-      "Sprite", "Tónica", "Burn", "Energéticas",
-      "M.Maid", "FUZE", "Deportivas", "Isotónicas",
-      "Appletiser", "Aquabona", "Alcoholes"
+      "IMPLANTACIONES"
     ];
 
     console.log('📋 Cargando secciones...', sections.length);
