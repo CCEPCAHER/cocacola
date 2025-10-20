@@ -727,3 +727,13 @@ html, body {
 button, .product {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ========================
+   OCULTAR FLECHAS EN MÓVILES
+========================= */
+@media (max-width: 768px) {
+  .modal-nav-prev,
+  .modal-nav-next {
+    display: none !important;
+  }
+}
