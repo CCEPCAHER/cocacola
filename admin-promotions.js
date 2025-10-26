@@ -40,6 +40,7 @@ function initPromotionManager() {
   }
 
   // Lista de promociones disponibles
+  // NOTA: "ORDEN DE MARCAS" y "EEAA Y PUNTUACION" no tienen fechas de promoción
   const promotions = [
     { id: 'ACUERDO_NACIONAL_2025', name: 'ACUERDO NACIONAL 2025' },
     { id: 'FOCOS', name: 'FOCOS' },

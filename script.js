@@ -8,6 +8,7 @@
       let attempts = 0;
       let firebaseApp = null;
       
+      // Esperar a que Firebase esté disponible
       while (attempts < 150) {
         if (window.firebaseApp) {
           firebaseApp = window.firebaseApp;
@@ -22,9 +23,11 @@
       }
 
       if (!firebaseApp) {
-        console.warn('Firebase no disponible. Las fechas no se cargarán.');
+        console.warn('Firebase no disponible después de 150 intentos. Las fechas no se cargarán.');
         return;
       }
+
+      console.log('Firebase disponible, cargando fechas de promociones...');
 
       const { getFirestore, collection, getDocs } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
@@ -38,10 +41,15 @@
         return;
       }
       
+      console.log(`Se encontraron ${querySnapshot.size} promociones en Firestore`);
+      
       querySnapshot.forEach((doc) => {
-        promotionDates[doc.id] = doc.data();
+        const data = doc.data();
+        promotionDates[doc.id] = data;
+        console.log(`Cargada promoción ${doc.id}:`, data);
       });
       
+      console.log('Fechas cargadas:', promotionDates);
       applyPromotionDatesToSections();
       
     } catch (error) {
@@ -50,25 +58,46 @@
   }
 
   function applyPromotionDatesToSections() {
-    if (Object.keys(promotionDates).length === 0) return;
+    if (Object.keys(promotionDates).length === 0) {
+      console.log('No hay fechas de promociones cargadas desde Firestore');
+      return;
+    }
+
+    console.log('Aplicando fechas de promociones desde Firestore:', promotionDates);
+
+    // Secciones que NO deben tener fechas
+    const sectionsWithoutDates = ['ORDEN DE MARCAS', 'EEAA Y PUNTUACION'];
 
     Object.keys(sections).forEach(sectionKey => {
+      // Saltar secciones que no deben tener fechas
+      if (sectionsWithoutDates.includes(sectionKey)) {
+        console.log(`Saltando ${sectionKey} - no debe tener fechas`);
+        return;
+      }
+
       const normalizedKey = sectionKey.toUpperCase().replace(/\s+/g, '_');
       
       if (promotionDates[normalizedKey]) {
         const promo = promotionDates[normalizedKey];
+        console.log(`Aplicando fechas para ${sectionKey} (${normalizedKey}):`, promo);
+        
         sections[sectionKey].forEach(product => {
           if (promo.active) {
             product.startDate = promo.startDate;
             product.endDate = promo.endDate;
+            console.log(`Actualizado producto ${product.name}: ${promo.startDate} - ${promo.endDate}`);
           } else {
             delete product.startDate;
             delete product.endDate;
+            console.log(`Promoción ${sectionKey} desactivada, eliminando fechas`);
           }
         });
+      } else {
+        console.log(`No se encontraron fechas para ${sectionKey} (${normalizedKey})`);
       }
     });
     
+    // Forzar actualización de la lista de productos
     updateProductList();
   }
 
@@ -439,7 +468,11 @@
     createFilterDropdown();
     addEventListeners();
     if (window.initFullscreenModal) window.initFullscreenModal();
-    setTimeout(loadPromotionDatesFromFirestore, 2000);
+    
+    // Cargar fechas de promociones inmediatamente y también con retraso como respaldo
+    loadPromotionDatesFromFirestore();
+    setTimeout(loadPromotionDatesFromFirestore, 1000);
+    setTimeout(loadPromotionDatesFromFirestore, 3000);
   }
 
   function updateProductList() {
@@ -493,6 +526,10 @@
     const baseName = sectionName.toLowerCase().replace(/\s+/g, '_');
     const imageCount = sectionImageCounts[sectionName] || 5; // Default a 5 si no está configurado
     
+    // Secciones que NO deben tener fechas
+    const sectionsWithoutDates = ['ORDEN DE MARCAS', 'EEAA Y PUNTUACION'];
+    const hasDates = !sectionsWithoutDates.includes(sectionName);
+    
     // Generar productos basándose en las imágenes disponibles
     for (let i = 0; i < imageCount; i++) {
       const imagePath = `images/${baseName}/${baseName}_${i}.jpg`;
@@ -506,9 +543,9 @@
         offer: false,
         staticOffer: true,
         image: imagePath,
-        // Solo el primer producto tendrá fechas
-        startDate: i === 0 ? getDefaultStartDate(sectionName) : null,
-        endDate: i === 0 ? getDefaultEndDate(sectionName) : null
+        // Solo el primer producto tendrá fechas si la sección las permite
+        startDate: (i === 0 && hasDates) ? getDefaultStartDate(sectionName) : null,
+        endDate: (i === 0 && hasDates) ? getDefaultEndDate(sectionName) : null
       });
     }
     
@@ -516,8 +553,9 @@
   }
 
   // Función para obtener fechas por defecto basándose en el nombre de la sección
+  // Estas fechas se sobrescribirán con las fechas del administrador cuando estén disponibles
   function getDefaultStartDate(sectionName) {
-    const today = new Date();
+    // Fechas por defecto que coinciden con las del administrador
     const dateMap = {
       'FEM ALCAMPO': '2025-10-23',
       'FEM ALCAMPO SIGUIENTE': '2025-11-06',
@@ -539,12 +577,14 @@
       'FEM CONDIS SIGUIENTE': '2025-11-05',
       'FEM COVIRAN': '2025-10-21',
       'FEM COVIRAN SIGUIENTE': '2025-11-04',
-      'ACUERDO NACIONAL 2025': '2025-10-01'
+      'ACUERDO NACIONAL 2025': '2025-10-01',
+      'FOCOS': '2025-10-01'
     };
     return dateMap[sectionName] || '2025-10-20';
   }
 
   function getDefaultEndDate(sectionName) {
+    // Fechas por defecto que coinciden con las del administrador
     const dateMap = {
       'FEM ALCAMPO': '2025-11-05',
       'FEM ALCAMPO SIGUIENTE': '2025-11-19',
@@ -566,7 +606,8 @@
       'FEM CONDIS SIGUIENTE': '2025-11-18',
       'FEM COVIRAN': '2025-11-03',
       'FEM COVIRAN SIGUIENTE': '2025-11-17',
-      'ACUERDO NACIONAL 2025': '2025-10-31'
+      'ACUERDO NACIONAL 2025': '2025-10-31',
+      'FOCOS': '2025-10-31'
     };
     return dateMap[sectionName] || '2025-11-10';
   }
@@ -587,6 +628,8 @@
 
       // Mostrar días restantes + rango de fechas solo en el primer producto (índice 0)
 if (p.endDate && i === 0) {
+  console.log(`Procesando fechas para ${p.name}: inicio=${p.startDate}, fin=${p.endDate}`);
+  
   const endParts = p.endDate.split('-');
   const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
   fin.setHours(23, 59, 59, 999);
@@ -604,6 +647,8 @@ if (p.endDate && i === 0) {
   const diffTime = fin - today;
   const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
+  console.log(`Fecha actual: ${today.toISOString().split('T')[0]}, Fin: ${fin.toISOString().split('T')[0]}, Días restantes: ${diasRestantes}`);
+  
   if (fin < today) {
     txtPrincipal = 'Oferta caducada';
     cls = 'offer-expired';
@@ -616,6 +661,7 @@ if (p.endDate && i === 0) {
     const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
     txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
     cls = 'offer-upcoming';
+    console.log(`Oferta futura: empieza en ${diasHastaInicio} días`);
   } else {
     // Oferta activa: mostrar días restantes
     txtPrincipal = diasRestantes === 1 ? 'Queda 1 día' : `Quedan ${diasRestantes} días`;
@@ -623,6 +669,7 @@ if (p.endDate && i === 0) {
     const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
     txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
     cls = 'offer-active';
+    console.log(`Oferta activa: quedan ${diasRestantes} días`);
   }
   
   html += `<div class="offer-tag ${cls}">
