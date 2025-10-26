@@ -101,6 +101,22 @@
     updateProductList();
   }
 
+  // Función para obtener fechas desde Firestore (con prioridad sobre fechas por defecto)
+  function getFirestoreDate(sectionName, dateType) {
+    const normalizedKey = sectionName.toUpperCase().replace(/\s+/g, '_');
+    const promo = promotionDates[normalizedKey];
+    
+    if (promo && promo.active) {
+      console.log(`📅 Usando fecha de Firestore para ${sectionName} (${dateType}): ${promo[dateType]}`);
+      return promo[dateType];
+    }
+    
+    // Si no hay fecha de Firestore, usar fecha por defecto
+    const defaultDate = dateType === 'startDate' ? getDefaultStartDate(sectionName) : getDefaultEndDate(sectionName);
+    console.log(`📅 Usando fecha por defecto para ${sectionName} (${dateType}): ${defaultDate}`);
+    return defaultDate;
+  }
+
   const sections = {
     "FOCOS": [
   { "name": "Focos Producto 1", "price": 0.00, "startDate": "2025-08-01", "endDate": "2025-08-31", "offer": false, "staticOffer": true, "image": "images/focos/focos_0.jpg" },
@@ -463,14 +479,17 @@
     });
   }
 
-  function initializeApp() {
+  async function initializeApp() {
+    // Cargar fechas de promociones primero
+    await loadPromotionDatesFromFirestore();
+    
+    // Luego actualizar la lista de productos con las fechas correctas
     updateProductList();
     createFilterDropdown();
     addEventListeners();
     if (window.initFullscreenModal) window.initFullscreenModal();
     
-    // Cargar fechas de promociones inmediatamente y también con retraso como respaldo
-    loadPromotionDatesFromFirestore();
+    // Cargar fechas de promociones con retraso como respaldo
     setTimeout(loadPromotionDatesFromFirestore, 1000);
     setTimeout(loadPromotionDatesFromFirestore, 3000);
   }
@@ -544,8 +563,9 @@
         staticOffer: true,
         image: imagePath,
         // Solo el primer producto tendrá fechas si la sección las permite
-        startDate: (i === 0 && hasDates) ? getDefaultStartDate(sectionName) : null,
-        endDate: (i === 0 && hasDates) ? getDefaultEndDate(sectionName) : null
+        // Usar fechas de Firestore si están disponibles, sino fechas por defecto
+        startDate: (i === 0 && hasDates) ? getFirestoreDate(sectionName, 'startDate') : null,
+        endDate: (i === 0 && hasDates) ? getFirestoreDate(sectionName, 'endDate') : null
       });
     }
     

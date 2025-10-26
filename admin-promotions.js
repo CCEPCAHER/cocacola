@@ -114,7 +114,22 @@ function initPromotionManager() {
     }
 
     try {
-      await savePromotionData(promoId, { startDate, endDate, active });
+      // Validar y formatear fechas antes de guardar
+      const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
+      const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
+      
+      console.log(`📅 Guardando fechas para ${promoId}:`, {
+        originalStartDate: startDate,
+        formattedStartDate,
+        originalEndDate: endDate,
+        formattedEndDate
+      });
+      
+      await savePromotionData(promoId, { 
+        startDate: formattedStartDate, 
+        endDate: formattedEndDate, 
+        active 
+      });
       showPromotionStatus('✅ Promoción guardada exitosamente', 'success');
       loadActivePromotions();
     } catch (error) {
@@ -137,9 +152,47 @@ function initPromotionManager() {
 
       if (docSnap.exists()) {
         const data = docSnap.data();
-        startDateInput.value = data.startDate || '';
-        endDateInput.value = data.endDate || '';
+        
+        // Función helper para convertir fechas a formato YYYY-MM-DD
+        const formatDateForInput = (dateValue) => {
+          if (!dateValue) return '';
+          
+          // Si es un Timestamp de Firestore
+          if (dateValue && typeof dateValue.toDate === 'function') {
+            return dateValue.toDate().toISOString().split('T')[0];
+          }
+          
+          // Si es un string de fecha
+          if (typeof dateValue === 'string') {
+            // Verificar si ya está en formato YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+              return dateValue;
+            }
+            // Convertir otros formatos de fecha
+            const date = new Date(dateValue);
+            if (!isNaN(date.getTime())) {
+              return date.toISOString().split('T')[0];
+            }
+          }
+          
+          // Si es un objeto Date
+          if (dateValue instanceof Date) {
+            return dateValue.toISOString().split('T')[0];
+          }
+          
+          return '';
+        };
+        
+        startDateInput.value = formatDateForInput(data.startDate);
+        endDateInput.value = formatDateForInput(data.endDate);
         activeCheckbox.checked = data.active !== false;
+        
+        console.log(`📅 Fechas cargadas para ${promoId}:`, {
+          startDate: data.startDate,
+          formattedStartDate: startDateInput.value,
+          endDate: data.endDate,
+          formattedEndDate: endDateInput.value
+        });
         
         showPromotionStatus(`✅ Datos cargados de Firestore`, 'success');
       } else {
@@ -165,10 +218,17 @@ function initPromotionManager() {
     const { doc, setDoc, serverTimestamp } = dbModule;
     const docRef = doc(db, 'promotions', promoId);
 
-    await setDoc(docRef, {
-      ...data,
+    // Asegurar que las fechas se guarden como strings en formato YYYY-MM-DD
+    const dataToSave = {
+      startDate: data.startDate,
+      endDate: data.endDate,
+      active: data.active,
       lastUpdated: serverTimestamp()
-    }, { merge: true });
+    };
+
+    console.log(`💾 Guardando promoción ${promoId}:`, dataToSave);
+
+    await setDoc(docRef, dataToSave, { merge: true });
 
     console.log(`✅ Promoción ${promoId} guardada en Firestore`);
   }
@@ -212,6 +272,32 @@ function initPromotionManager() {
         const status = data.active ? '🟢 Activa' : '🔴 Inactiva';
         const statusColor = data.active ? '#28a745' : '#dc3545';
         
+        // Función helper para formatear fechas para mostrar
+        const formatDateForDisplay = (dateValue) => {
+          if (!dateValue) return 'Sin fecha';
+          
+          // Si es un Timestamp de Firestore
+          if (dateValue && typeof dateValue.toDate === 'function') {
+            return dateValue.toDate().toLocaleDateString('es-ES');
+          }
+          
+          // Si es un string de fecha
+          if (typeof dateValue === 'string') {
+            const date = new Date(dateValue);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString('es-ES');
+            }
+            return dateValue; // Si ya está formateado
+          }
+          
+          // Si es un objeto Date
+          if (dateValue instanceof Date) {
+            return dateValue.toLocaleDateString('es-ES');
+          }
+          
+          return 'Sin fecha';
+        };
+        
         html += `
           <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid ${statusColor};">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -219,7 +305,7 @@ function initPromotionManager() {
               <span style="color: ${statusColor}; font-weight: bold;">${status}</span>
             </div>
             <div style="margin-top: 8px; color: #666;">
-              📅 ${data.startDate || 'Sin fecha'} → ${data.endDate || 'Sin fecha'}
+              📅 ${formatDateForDisplay(data.startDate)} → ${formatDateForDisplay(data.endDate)}
             </div>
           </div>
         `;
