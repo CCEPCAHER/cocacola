@@ -44,15 +44,25 @@ function initPromotionManager() {
     { id: 'ACUERDO_NACIONAL_2025', name: 'ACUERDO NACIONAL 2025' },
     { id: 'FOCOS', name: 'FOCOS' },
     { id: 'FEM_ALCAMPO', name: 'FEM ALCAMPO' },
+    { id: 'FEM_ALCAMPO_SIGUIENTE', name: 'FEM ALCAMPO SIGUIENTE' },
     { id: 'FEM_CARREFOUR', name: 'FEM CARREFOUR' },
+    { id: 'FEM_CARREFOUR_SIGUIENTE', name: 'FEM CARREFOUR SIGUIENTE' },
     { id: 'FEM_CARREFOUR_MARKET', name: 'FEM CARREFOUR MARKET' },
+    { id: 'FEM_CARREFOUR_MARKET_SIGUIENTE', name: 'FEM CARREFOUR MARKET SIGUIENTE' },
     { id: 'FEM_SUPECO', name: 'FEM SUPECO' },
+    { id: 'FEM_SUPECO_SIGUIENTE', name: 'FEM SUPECO SIGUIENTE' },
     { id: 'FEM_SORLI', name: 'FEM SORLI' },
+    { id: 'FEM_SORLI_SIGUIENTE', name: 'FEM SORLI SIGUIENTE' },
     { id: 'FEM_SCLAT_BONPREU', name: 'FEM SCLAT BONPREU' },
+    { id: 'FEM_SCLAT_BONPREU_SIGUIENTE', name: 'FEM SCLAT BONPREU SIGUIENTE' },
     { id: 'FEM_CAPRABO', name: 'FEM CAPRABO' },
+    { id: 'FEM_CAPRABO_SIGUIENTE', name: 'FEM CAPRABO SIGUIENTE' },
     { id: 'FEM_CONSUM', name: 'FEM CONSUM' },
+    { id: 'FEM_CONSUM_SIGUIENTE', name: 'FEM CONSUM SIGUIENTE' },
     { id: 'FEM_CONDIS', name: 'FEM CONDIS' },
-    { id: 'FEM_COVIRAN', name: 'FEM COVIRAN' }
+    { id: 'FEM_CONDIS_SIGUIENTE', name: 'FEM CONDIS SIGUIENTE' },
+    { id: 'FEM_COVIRAN', name: 'FEM COVIRAN' },
+    { id: 'FEM_COVIRAN_SIGUIENTE', name: 'FEM COVIRAN SIGUIENTE' }
   ];
 
   // Poblar selector de promociones
@@ -237,18 +247,28 @@ function initPromotionManager() {
     const { doc, setDoc, serverTimestamp } = dbModule;
 
     const promotionsData = {
-      'FEM_ALCAMPO': { startDate: '2025-08-14', endDate: '2025-08-27', active: true },
-      'FEM_CARREFOUR': { startDate: '2025-08-26', endDate: '2025-09-10', active: true },
-      'FEM_CARREFOUR_MARKET': { startDate: '2025-07-24', endDate: '2025-08-07', active: true },
-      'FEM_SUPECO': { startDate: '2025-07-31', endDate: '2025-08-25', active: true },
-      'FEM_SORLI': { startDate: '2025-07-30', endDate: '2025-08-26', active: true },
-      'FEM_SCLAT_BONPREU': { startDate: '2025-06-10', endDate: '2025-08-25', active: true },
-      'FEM_CAPRABO': { startDate: '2025-08-14', endDate: '2025-08-27', active: true },
-      'FEM_CONSUM': { startDate: '2025-07-24', endDate: '2025-08-27', active: true },
-      'FEM_CONDIS': { startDate: '2025-07-30', endDate: '2025-08-19', active: true },
-      'FEM_COVIRAN': { startDate: '2025-07-29', endDate: '2025-08-09', active: true },
-      'ACUERDO_NACIONAL_2025': { startDate: '2025-08-01', endDate: '2025-08-31', active: true },
-      'FOCOS': { startDate: '2025-08-01', endDate: '2025-08-31', active: true }
+      'FEM_ALCAMPO': { startDate: '2025-10-23', endDate: '2025-11-05', active: true },
+      'FEM_ALCAMPO_SIGUIENTE': { startDate: '2025-11-06', endDate: '2025-11-19', active: true },
+      'FEM_CARREFOUR': { startDate: '2025-10-28', endDate: '2025-11-13', active: true },
+      'FEM_CARREFOUR_SIGUIENTE': { startDate: '2025-11-14', endDate: '2025-11-28', active: true },
+      'FEM_CARREFOUR_MARKET': { startDate: '2025-10-14', endDate: '2025-10-27', active: true },
+      'FEM_CARREFOUR_MARKET_SIGUIENTE': { startDate: '2025-10-28', endDate: '2025-11-11', active: true },
+      'FEM_SUPECO': { startDate: '2025-10-25', endDate: '2025-11-08', active: true },
+      'FEM_SUPECO_SIGUIENTE': { startDate: '2025-11-08', endDate: '2025-11-22', active: true },
+      'FEM_SORLI': { startDate: '2025-10-20', endDate: '2025-11-02', active: true },
+      'FEM_SORLI_SIGUIENTE': { startDate: '2025-11-03', endDate: '2025-11-16', active: true },
+      'FEM_SCLAT_BONPREU': { startDate: '2025-10-18', endDate: '2025-10-31', active: true },
+      'FEM_SCLAT_BONPREU_SIGUIENTE': { startDate: '2025-11-01', endDate: '2025-11-14', active: true },
+      'FEM_CAPRABO': { startDate: '2025-10-16', endDate: '2025-10-29', active: true },
+      'FEM_CAPRABO_SIGUIENTE': { startDate: '2025-10-30', endDate: '2025-11-12', active: true },
+      'FEM_CONSUM': { startDate: '2025-10-22', endDate: '2025-11-04', active: true },
+      'FEM_CONSUM_SIGUIENTE': { startDate: '2025-11-05', endDate: '2025-11-18', active: true },
+      'FEM_CONDIS': { startDate: '2025-10-22', endDate: '2025-11-04', active: true },
+      'FEM_CONDIS_SIGUIENTE': { startDate: '2025-11-05', endDate: '2025-11-18', active: true },
+      'FEM_COVIRAN': { startDate: '2025-10-21', endDate: '2025-11-03', active: true },
+      'FEM_COVIRAN_SIGUIENTE': { startDate: '2025-11-04', endDate: '2025-11-17', active: true },
+      'ACUERDO_NACIONAL_2025': { startDate: '2025-10-01', endDate: '2025-10-31', active: true },
+      'FOCOS': { startDate: '2025-10-01', endDate: '2025-10-31', active: true }
     };
 
     try {

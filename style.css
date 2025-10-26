@@ -109,25 +109,53 @@ header h2 {
   margin: 20px 0 10px;
 }
 
-.section-title:nth-of-type(1) { background: #c0392b; }
-.section-title:nth-of-type(2) { background: #34495e; }
-.section-title:nth-of-type(3) { background: #7f8c8d; }
-.section-title:nth-of-type(4) { background: #8e44ad; }
-.section-title:nth-of-type(5) { background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet); }
-.section-title:nth-of-type(6) { background: #e67e22; }
-.section-title:nth-of-type(7) { background: #f1c40f; }
-.section-title:nth-of-type(8) { background: linear-gradient(45deg, pink, violet, magenta); }
-.section-title:nth-of-type(9) { background: #27ae60; }
-.section-title:nth-of-type(10) { background: #bdc3c7; }
-.section-title:nth-of-type(11) { background: #2c3e50; }
-.section-title:nth-of-type(12) { background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet); }
-.section-title:nth-of-type(13) { background: #fff; color: #333; }
-.section-title:nth-of-type(14) { background: #2ecc71; }
-.section-title:nth-of-type(15) { background: #2980b9; }
-.section-title:nth-of-type(16) { background: #87ceeb; }
-.section-title:nth-of-type(17) { background: #98FB98; }
-.section-title:nth-of-type(18) { background: #87ceeb; }
-.section-title:nth-of-type(19) { background: repeating-linear-gradient(45deg, #000, #000 5px, #008000 5px, #008000 10px); }
+/* Colores específicos para cada sección - mismas secciones original y siguiente tienen el mismo color */
+.section[data-section="FOCOS"] .section-title { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
+.section[data-section="EEAA Y PUNTUACION"] .section-title { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+.section[data-section="ORDEN DE MARCAS"] .section-title { background: linear-gradient(135deg, #45b7d1, #96c93d); }
+.section[data-section="ACUERDO NACIONAL 2025"] .section-title { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+/* FEM ALCAMPO - mismo color para original y siguiente */
+.section[data-section="FEM ALCAMPO"] .section-title,
+.section[data-section="FEM ALCAMPO SIGUIENTE"] .section-title { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+/* FEM CARREFOUR - mismo color para original y siguiente */
+.section[data-section="FEM CARREFOUR"] .section-title,
+.section[data-section="FEM CARREFOUR SIGUIENTE"] .section-title { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+/* FEM CARREFOUR MARKET - mismo color para original y siguiente */
+.section[data-section="FEM CARREFOUR MARKET"] .section-title,
+.section[data-section="FEM CARREFOUR MARKET SIGUIENTE"] .section-title { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+
+/* FEM SUPECO - mismo color para original y siguiente */
+.section[data-section="FEM SUPECO"] .section-title,
+.section[data-section="FEM SUPECO SIGUIENTE"] .section-title { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+/* FEM SORLI - mismo color para original y siguiente */
+.section[data-section="FEM SORLI"] .section-title,
+.section[data-section="FEM SORLI SIGUIENTE"] .section-title { background: linear-gradient(135deg, #a8caba, #5d4e75); }
+
+/* FEM SCLAT BONPREU - mismo color para original y siguiente */
+.section[data-section="FEM SCLAT BONPREU"] .section-title,
+.section[data-section="FEM SCLAT BONPREU SIGUIENTE"] .section-title { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
+
+/* FEM CAPRABO - mismo color para original y siguiente */
+.section[data-section="FEM CAPRABO"] .section-title,
+.section[data-section="FEM CAPRABO SIGUIENTE"] .section-title { background: linear-gradient(135deg, #ff9a56, #ffad56); }
+
+/* FEM CONSUM - mismo color para original y siguiente */
+.section[data-section="FEM CONSUM"] .section-title,
+.section[data-section="FEM CONSUM SIGUIENTE"] .section-title { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+/* FEM CONDIS - mismo color para original y siguiente */
+.section[data-section="FEM CONDIS"] .section-title,
+.section[data-section="FEM CONDIS SIGUIENTE"] .section-title { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+/* FEM COVIRAN - mismo color para original y siguiente */
+.section[data-section="FEM COVIRAN"] .section-title,
+.section[data-section="FEM COVIRAN SIGUIENTE"] .section-title { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+
+.section[data-section="IMPLANTACIONES"] .section-title { background: linear-gradient(135deg, #667eea, #764ba2); }
 
 /* ========================
    CARRUSEL DE PRODUCTOS
@@ -648,6 +676,7 @@ header h2 {
   overflow-y: auto;
   font-size: 0.95em;
 }
+
 
 /* ========================
    CLASE HIDDEN

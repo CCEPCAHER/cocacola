@@ -164,6 +164,14 @@
       { "name": "Marcas Producto 18", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/orden_de_marcas/orden_de_marcas_17.jpg" },
       { "name": "Marcas Producto 19", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/orden_de_marcas/orden_de_marcas_18.jpg" }
     ],
+    "ACUERDO NACIONAL 2025": [
+      { "name": "Acuerdo Producto 1", "price": 0.00, "startDate": "2025-08-01", "endDate": "2025-08-31", "offer": false, "staticOffer": true, "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_0.jpg" },
+      { "name": "Acuerdo Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_1.jpg" },
+      { "name": "Acuerdo Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_2.jpg" },
+      { "name": "Acuerdo Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_3.jpg" },
+      { "name": "Acuerdo Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_4.jpg" },
+      { "name": "Acuerdo Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_5.jpg" }
+    ],
     "FEM ALCAMPO": [
       { "name": "Alcampo Producto 1", "price": 0.00, "startDate": "2025-08-14", "endDate": "2025-08-27", "offer": false, "staticOffer": true, "image": "images/fem_alcampo/fem_alcampo_0.jpg" },
       { "name": "Alcampo Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo/fem_alcampo_1.jpg" },
@@ -182,6 +190,24 @@
       { "name": "Alcampo Producto 15", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo/fem_alcampo_14.jpg" },
       { "name": "Alcampo Producto 16", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo/fem_alcampo_15.jpg" }
     ],
+    "FEM ALCAMPO SIGUIENTE": [
+      { "name": "Alcampo Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-28", "endDate": "2025-09-10", "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_0.jpg" },
+      { "name": "Alcampo Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_1.jpg" },
+      { "name": "Alcampo Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_2.jpg" },
+      { "name": "Alcampo Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_3.jpg" },
+      { "name": "Alcampo Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_4.jpg" },
+      { "name": "Alcampo Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_5.jpg" },
+      { "name": "Alcampo Siguiente Producto 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_6.jpg" },
+      { "name": "Alcampo Siguiente Producto 8", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_7.jpg" },
+      { "name": "Alcampo Siguiente Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_8.jpg" },
+      { "name": "Alcampo Siguiente Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_9.jpg" },
+      { "name": "Alcampo Siguiente Producto 11", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_10.jpg" },
+      { "name": "Alcampo Siguiente Producto 12", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_11.jpg" },
+      { "name": "Alcampo Siguiente Producto 13", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_12.jpg" },
+      { "name": "Alcampo Siguiente Producto 14", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_13.jpg" },
+      { "name": "Alcampo Siguiente Producto 15", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_14.jpg" },
+      { "name": "Alcampo Siguiente Producto 16", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_alcampo_siguiente/fem_alcampo_siguiente_15.jpg" }
+    ],
     "FEM CARREFOUR": [
       { "name": "Carrefour Producto 1", "price": 0.00, "startDate": "2025-08-26", "endDate": "2025-09-10", "offer": false, "staticOffer": true, "image": "images/fem_carrefour/fem_carrefour_0.jpg" },
       { "name": "Carrefour Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour/fem_carrefour_1.jpg" },
@@ -194,14 +220,18 @@
       { "name": "Carrefour Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour/fem_carrefour_8.jpg" },
       { "name": "Carrefour Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour/fem_carrefour_9.jpg" }
     ],
- "acuerdo nacional 2025": [
-  { "name": "acuerdo producto 1", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_0.jpg" },
-  { "name": "acuerdo producto 2", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_1.jpg" },
-  { "name": "acuerdo producto 3", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_2.jpg" },
-  { "name": "acuerdo producto 4", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_3.jpg" },
-  { "name": "acuerdo producto 5", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_4.jpg" },
-  { "name": "acuerdo producto 6", "image": "images/acuerdo_nacional_2025/acuerdo_nacional_2025_5.jpg" }
-],
+    "FEM CARREFOUR SIGUIENTE": [
+      { "name": "Carrefour Siguiente Producto 1", "price": 0.00, "startDate": "2025-09-11", "endDate": "2025-09-25", "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_0.jpg" },
+      { "name": "Carrefour Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_1.jpg" },
+      { "name": "Carrefour Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_2.jpg" },
+      { "name": "Carrefour Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_3.jpg" },
+      { "name": "Carrefour Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_4.jpg" },
+      { "name": "Carrefour Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_5.jpg" },
+      { "name": "Carrefour Siguiente Producto 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_6.jpg" },
+      { "name": "Carrefour Siguiente Producto 8", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_7.jpg" },
+      { "name": "Carrefour Siguiente Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_8.jpg" },
+      { "name": "Carrefour Siguiente Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_siguiente/fem_carrefour_siguiente_9.jpg" }
+    ],
     "FEM CARREFOUR MARKET": [
       { "name": "C. Market Producto 1", "price": 0.00, "startDate": "2025-07-24", "endDate": "2025-08-07", "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market/fem_carrefour_market_0.jpg" },
       { "name": "C. Market Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market/fem_carrefour_market_1.jpg" },
@@ -216,6 +246,20 @@
       { "name": "C. Market Producto 11", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market/fem_carrefour_market_10.jpg" },
       { "name": "C. Market Producto 12", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market/fem_carrefour_market_11.jpg" }
     ],
+    "FEM CARREFOUR MARKET SIGUIENTE": [
+      { "name": "C. Market Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-08", "endDate": "2025-08-22", "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_0.jpg" },
+      { "name": "C. Market Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_1.jpg" },
+      { "name": "C. Market Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_2.jpg" },
+      { "name": "C. Market Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_3.jpg" },
+      { "name": "C. Market Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_4.jpg" },
+      { "name": "C. Market Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_5.jpg" },
+      { "name": "C. Market Siguiente Producto 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_6.jpg" },
+      { "name": "C. Market Siguiente Producto 8", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_7.jpg" },
+      { "name": "C. Market Siguiente Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_8.jpg" },
+      { "name": "C. Market Siguiente Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_9.jpg" },
+      { "name": "C. Market Siguiente Producto 11", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_10.jpg" },
+      { "name": "C. Market Siguiente Producto 12", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_carrefour_market_siguiente/fem_carrefour_market_siguiente_11.jpg" }
+    ],
     "FEM SUPECO": [
       { "name": "Supeco Producto 1", "price": 0.00, "startDate": "2025-07-31", "endDate": "2025-08-25", "offer": false, "staticOffer": true, "image": "images/fem_supeco/fem_supeco_0.jpg" },
       { "name": "Supeco Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco/fem_supeco_1.jpg" },
@@ -225,10 +269,24 @@
       { "name": "Supeco Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco/fem_supeco_5.jpg" },
       { "name": "Supeco Producto 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco/fem_supeco_6.jpg" }
     ],
+    "FEM SUPECO SIGUIENTE": [
+      { "name": "Supeco Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-26", "endDate": "2025-09-10", "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_0.jpg" },
+      { "name": "Supeco Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_1.jpg" },
+      { "name": "Supeco Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_2.jpg" },
+      { "name": "Supeco Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_3.jpg" },
+      { "name": "Supeco Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_4.jpg" },
+      { "name": "Supeco Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_5.jpg" },
+      { "name": "Supeco Siguiente Producto 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_supeco_siguiente/fem_supeco_siguiente_6.jpg" }
+    ],
     "FEM SORLI": [
       { "name": "Sorli Producto 1", "price": 0.00, "startDate": "2025-07-30", "endDate": "2025-08-26", "offer": false, "staticOffer": true, "image": "images/fem_sorli/fem_sorli_0.jpg" },
       { "name": "Sorli Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sorli/fem_sorli_1.jpg" },
       { "name": "Sorli Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sorli/fem_sorli_2.jpg" }
+    ],
+    "FEM SORLI SIGUIENTE": [
+      { "name": "Sorli Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-27", "endDate": "2025-09-12", "offer": false, "staticOffer": true, "image": "images/fem_sorli_siguiente/fem_sorli_siguiente_0.jpg" },
+      { "name": "Sorli Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sorli_siguiente/fem_sorli_siguiente_1.jpg" },
+      { "name": "Sorli Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sorli_siguiente/fem_sorli_siguiente_2.jpg" }
     ],
     "FEM SCLAT BONPREU": [
       { "name": "SCLAT Bonpreu 1", "price": 0.00, "startDate": "2025-06-10", "endDate": "2025-08-25", "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu/fem_sclat_bonpreu_0.jpg" },
@@ -242,6 +300,18 @@
       { "name": "SCLAT Bonpreu 9", "price": 0.00, "startDate": "2025-07-29", "endDate": "2025-08-25", "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu/fem_sclat_bonpreu_8.jpg" },
       { "name": "SCLAT Bonpreu 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu/fem_sclat_bonpreu_9.jpg" }
     ],
+    "FEM SCLAT BONPREU SIGUIENTE": [
+      { "name": "SCLAT Bonpreu Siguiente 1", "price": 0.00, "startDate": "2025-08-26", "endDate": "2025-09-15", "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_0.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_1.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_2.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_3.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_4.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_5.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_6.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 8", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_7.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_8.jpg" },
+      { "name": "SCLAT Bonpreu Siguiente 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_sclat_bonpreu_siguiente/fem_sclat_bonpreu_siguiente_9.jpg" }
+    ],
     "FEM CAPRABO": [
       { "name": "Caprabo Producto 1", "price": 0.00, "startDate": "2025-08-14", "endDate": "2025-08-27", "offer": false, "staticOffer": true, "image": "images/fem_caprabo/fem_caprabo_0.jpg" },
       { "name": "Caprabo Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo/fem_caprabo_1.jpg" },
@@ -254,6 +324,18 @@
       { "name": "Caprabo Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo/fem_caprabo_8.jpg" },
       { "name": "Caprabo Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo/fem_caprabo_9.jpg" }
     ],
+    "FEM CAPRABO SIGUIENTE": [
+      { "name": "Caprabo Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-28", "endDate": "2025-09-10", "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_0.jpg" },
+      { "name": "Caprabo Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_1.jpg" },
+      { "name": "Caprabo Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_2.jpg" },
+      { "name": "Caprabo Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_3.jpg" },
+      { "name": "Caprabo Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_4.jpg" },
+      { "name": "Caprabo Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_5.jpg" },
+      { "name": "Caprabo Siguiente Producto 7", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_6.jpg" },
+      { "name": "Caprabo Siguiente Producto 8", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_7.jpg" },
+      { "name": "Caprabo Siguiente Producto 9", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_8.jpg" },
+      { "name": "Caprabo Siguiente Producto 10", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_caprabo_siguiente/fem_caprabo_siguiente_9.jpg" }
+    ],
     "FEM CONSUM": [
       { "name": "Consum Producto 1", "price": 0.00, "startDate": "2025-07-24", "endDate": "2025-08-27", "offer": false, "staticOffer": true, "image": "images/fem_consum/fem_consum_0.jpg" },
       { "name": "Consum Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum/fem_consum_1.jpg" },
@@ -262,8 +344,23 @@
       { "name": "Consum Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum/fem_consum_4.jpg" },
       { "name": "Consum Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum/fem_consum_5.jpg" }
     ],
+    "FEM CONSUM SIGUIENTE": [
+      { "name": "Consum Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-28", "endDate": "2025-09-10", "offer": false, "staticOffer": true, "image": "images/fem_consum_siguiente/fem_consum_siguiente_0.jpg" },
+      { "name": "Consum Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum_siguiente/fem_consum_siguiente_1.jpg" },
+      { "name": "Consum Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum_siguiente/fem_consum_siguiente_2.jpg" },
+      { "name": "Consum Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum_siguiente/fem_consum_siguiente_3.jpg" },
+      { "name": "Consum Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum_siguiente/fem_consum_siguiente_4.jpg" },
+      { "name": "Consum Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_consum_siguiente/fem_consum_siguiente_5.jpg" }
+    ],
     "FEM CONDIS": [
       { "name": "Condis Producto 1", "price": 0.00, "startDate": "2025-07-30", "endDate": "2025-08-19", "offer": false, "staticOffer": true, "image": "images/fem_condis/fem_condis_0.jpg" }
+    ],
+    "FEM CONDIS SIGUIENTE": [
+      { "name": "Condis Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-20", "endDate": "2025-09-05", "offer": false, "staticOffer": true, "image": "images/fem_condis_siguiente/fem_condis_siguiente_0.jpg" },
+      { "name": "Condis Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_condis_siguiente/fem_condis_siguiente_1.jpg" },
+      { "name": "Condis Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_condis_siguiente/fem_condis_siguiente_2.jpg" },
+      { "name": "Condis Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_condis_siguiente/fem_condis_siguiente_3.jpg" },
+      { "name": "Condis Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_condis_siguiente/fem_condis_siguiente_4.jpg" }
     ],
     "FEM COVIRAN": [
       { "name": "Coviran Producto 1", "price": 0.00, "startDate": "2025-07-29", "endDate": "2025-08-09", "offer": false, "staticOffer": true, "image": "images/fem_coviran/fem_coviran_0.jpg" },
@@ -272,6 +369,14 @@
       { "name": "Coviran Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran/fem_coviran_3.jpg" },
       { "name": "Coviran Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran/fem_coviran_4.jpg" },
       { "name": "Coviran Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran/fem_coviran_5.jpg" }
+    ],
+    "FEM COVIRAN SIGUIENTE": [
+      { "name": "Coviran Siguiente Producto 1", "price": 0.00, "startDate": "2025-08-10", "endDate": "2025-08-25", "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_0.jpg" },
+      { "name": "Coviran Siguiente Producto 2", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_1.jpg" },
+      { "name": "Coviran Siguiente Producto 3", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_2.jpg" },
+      { "name": "Coviran Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_3.jpg" },
+      { "name": "Coviran Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_4.jpg" },
+      { "name": "Coviran Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_5.jpg" }
     ]
   };
 
@@ -342,12 +447,128 @@
     if (!productListElem) return;
 
     productListElem.innerHTML = Object.entries(sections)
-      .map(([sectionName, products]) =>
-        `<div class="section" data-section="${sectionName}">${createSection(sectionName, products)}</div>`
-      ).join('');
+      .map(([sectionName, products]) => {
+        // Generar productos dinámicamente basándose en las imágenes disponibles
+        const dynamicProducts = generateProductsFromImages(sectionName);
+        return `<div class="section" data-section="${sectionName}">${createSection(sectionName, dynamicProducts)}</div>`;
+      }).join('');
 
     if (window.updateProductImages) window.updateProductImages();
     if (window.lazyLoadImages) window.lazyLoadImages();
+  }
+
+
+  // Configuración de cuántas imágenes tiene cada sección
+  const sectionImageCounts = {
+    'FOCOS': 10,
+    'EEAA Y PUNTUACION': 26,
+    'ORDEN DE MARCAS': 19,
+    'ACUERDO NACIONAL 2025': 6,
+    'FEM ALCAMPO': 5,
+    'FEM ALCAMPO SIGUIENTE': 5,
+    'FEM CARREFOUR': 10,
+    'FEM CARREFOUR SIGUIENTE': 10,
+    'FEM CARREFOUR MARKET': 12,
+    'FEM CARREFOUR MARKET SIGUIENTE': 12,
+    'FEM SUPECO': 7,
+    'FEM SUPECO SIGUIENTE': 7,
+    'FEM SORLI': 3,
+    'FEM SORLI SIGUIENTE': 3,
+    'FEM SCLAT BONPREU': 15,
+    'FEM SCLAT BONPREU SIGUIENTE': 15,
+    'FEM CAPRABO': 8,
+    'FEM CAPRABO SIGUIENTE': 8,
+    'FEM CONSUM': 6,
+    'FEM CONSUM SIGUIENTE': 6,
+    'FEM CONDIS': 1,
+    'FEM CONDIS SIGUIENTE': 5,
+    'FEM COVIRAN': 4,
+    'FEM COVIRAN SIGUIENTE': 4,
+    'IMPLANTACIONES': 5
+  };
+
+  // Función para generar productos dinámicamente basándose en las imágenes disponibles
+  function generateProductsFromImages(sectionName) {
+    const products = [];
+    const baseName = sectionName.toLowerCase().replace(/\s+/g, '_');
+    const imageCount = sectionImageCounts[sectionName] || 5; // Default a 5 si no está configurado
+    
+    // Generar productos basándose en las imágenes disponibles
+    for (let i = 0; i < imageCount; i++) {
+      const imagePath = `images/${baseName}/${baseName}_${i}.jpg`;
+      const productName = sectionName.includes('SIGUIENTE') 
+        ? `${sectionName.replace(' SIGUIENTE', '')} Siguiente Producto ${i + 1}`
+        : `${sectionName} Producto ${i + 1}`;
+      
+      products.push({
+        name: productName,
+        price: 0.00,
+        offer: false,
+        staticOffer: true,
+        image: imagePath,
+        // Solo el primer producto tendrá fechas
+        startDate: i === 0 ? getDefaultStartDate(sectionName) : null,
+        endDate: i === 0 ? getDefaultEndDate(sectionName) : null
+      });
+    }
+    
+    return products;
+  }
+
+  // Función para obtener fechas por defecto basándose en el nombre de la sección
+  function getDefaultStartDate(sectionName) {
+    const today = new Date();
+    const dateMap = {
+      'FEM ALCAMPO': '2025-10-23',
+      'FEM ALCAMPO SIGUIENTE': '2025-11-06',
+      'FEM CARREFOUR': '2025-10-28',
+      'FEM CARREFOUR SIGUIENTE': '2025-11-14',
+      'FEM CARREFOUR MARKET': '2025-10-14',
+      'FEM CARREFOUR MARKET SIGUIENTE': '2025-10-28',
+      'FEM SUPECO': '2025-10-25',
+      'FEM SUPECO SIGUIENTE': '2025-11-08',
+      'FEM SORLI': '2025-10-20',
+      'FEM SORLI SIGUIENTE': '2025-11-03',
+      'FEM SCLAT BONPREU': '2025-10-18',
+      'FEM SCLAT BONPREU SIGUIENTE': '2025-11-01',
+      'FEM CAPRABO': '2025-10-16',
+      'FEM CAPRABO SIGUIENTE': '2025-10-30',
+      'FEM CONSUM': '2025-10-22',
+      'FEM CONSUM SIGUIENTE': '2025-11-05',
+      'FEM CONDIS': '2025-10-22',
+      'FEM CONDIS SIGUIENTE': '2025-11-05',
+      'FEM COVIRAN': '2025-10-21',
+      'FEM COVIRAN SIGUIENTE': '2025-11-04',
+      'ACUERDO NACIONAL 2025': '2025-10-01'
+    };
+    return dateMap[sectionName] || '2025-10-20';
+  }
+
+  function getDefaultEndDate(sectionName) {
+    const dateMap = {
+      'FEM ALCAMPO': '2025-11-05',
+      'FEM ALCAMPO SIGUIENTE': '2025-11-19',
+      'FEM CARREFOUR': '2025-11-13',
+      'FEM CARREFOUR SIGUIENTE': '2025-11-28',
+      'FEM CARREFOUR MARKET': '2025-10-27',
+      'FEM CARREFOUR MARKET SIGUIENTE': '2025-11-11',
+      'FEM SUPECO': '2025-11-08',
+      'FEM SUPECO SIGUIENTE': '2025-11-22',
+      'FEM SORLI': '2025-11-02',
+      'FEM SORLI SIGUIENTE': '2025-11-16',
+      'FEM SCLAT BONPREU': '2025-10-31',
+      'FEM SCLAT BONPREU SIGUIENTE': '2025-11-14',
+      'FEM CAPRABO': '2025-10-29',
+      'FEM CAPRABO SIGUIENTE': '2025-11-12',
+      'FEM CONSUM': '2025-11-04',
+      'FEM CONSUM SIGUIENTE': '2025-11-18',
+      'FEM CONDIS': '2025-11-04',
+      'FEM CONDIS SIGUIENTE': '2025-11-18',
+      'FEM COVIRAN': '2025-11-03',
+      'FEM COVIRAN SIGUIENTE': '2025-11-17',
+      'ACUERDO NACIONAL 2025': '2025-10-31'
+    };
+    return dateMap[sectionName] || '2025-11-10';
   }
 
   function createSection(sectionName, products) {
@@ -603,11 +824,15 @@ if (p.endDate && i === 0) {
     const select = document.createElement('select');
     select.id = 'section-filter';
     select.innerHTML = '<option value="">Todas las secciones</option>';
+    
+    // Solo mostrar las secciones principales (sin SIGUIENTE) en el dropdown
     Object.keys(sections).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = s;
-      select.appendChild(opt);
+      if (!s.includes('SIGUIENTE')) {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+      }
     });
     select.addEventListener('change', filterSections);
     container.appendChild(select);
@@ -616,7 +841,17 @@ if (p.endDate && i === 0) {
   function filterSections() {
     const selected = document.getElementById('section-filter').value;
     document.querySelectorAll('.section').forEach(s => {
-      s.style.display = (!selected || s.dataset.section === selected) ? 'block' : 'none';
+      const sectionName = s.dataset.section;
+      
+      if (!selected) {
+        // Si no hay filtro seleccionado, mostrar todas las secciones
+        s.style.display = 'block';
+      } else {
+        // Si hay filtro seleccionado, mostrar la sección principal y su versión SIGUIENTE
+        const shouldShow = sectionName === selected || 
+                          sectionName === selected + ' SIGUIENTE';
+        s.style.display = shouldShow ? 'block' : 'none';
+      }
     });
   }
 
@@ -625,6 +860,7 @@ if (p.endDate && i === 0) {
     document.getElementById('close-modal')?.addEventListener('click', toggleCart);
     document.getElementById('submit-order')?.addEventListener('click', submitOrder);
   }
+
 
   window.setQuantity = setQuantity;
   window.validateInput = validateInput;
