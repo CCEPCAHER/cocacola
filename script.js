@@ -512,7 +512,7 @@
 
   // Configuración de cuántas imágenes tiene cada sección
   const sectionImageCounts = {
-    'FOCOS': 10,
+    'FOCOS': 90,
     'EEAA Y PUNTUACION': 26,
     'ORDEN DE MARCAS': 19,
     'ACUERDO NACIONAL 2025': 6,
@@ -526,14 +526,14 @@
     'FEM SUPECO SIGUIENTE': 7,
     'FEM SORLI': 3,
     'FEM SORLI SIGUIENTE': 3,
-    'FEM SCLAT BONPREU': 15,
-    'FEM SCLAT BONPREU SIGUIENTE': 15,
+    'FEM SCLAT BONPREU': 2,
+    'FEM SCLAT BONPREU SIGUIENTE': 2,
     'FEM CAPRABO': 8,
     'FEM CAPRABO SIGUIENTE': 8,
     'FEM CONSUM': 6,
     'FEM CONSUM SIGUIENTE': 6,
     'FEM CONDIS': 1,
-    'FEM CONDIS SIGUIENTE': 5,
+    'FEM CONDIS SIGUIENTE': 1,
     'FEM COVIRAN': 4,
     'FEM COVIRAN SIGUIENTE': 4,
     'IMPLANTACIONES': 5
