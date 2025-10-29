@@ -341,11 +341,40 @@
         if (e.key === 'Escape') closeModal();
       });
 
+      // Variables para controlar la sensibilidad del modal
+      let lastClickTime = 0;
+      let clickTimeout = null;
+      const DOUBLE_CLICK_DELAY = 300; // ms entre clics para considerar doble clic
+      const MIN_CLICK_DELAY = 200; // ms mínimo entre clics para evitar activaciones accidentales
+
       productList.addEventListener('click', e => {
         const card = e.target.closest('.product');
         if (card && card.querySelector('img[data-full]') && !e.target.closest('button,input,a')) {
           e.preventDefault();
-          openModal(card);
+          
+          const currentTime = Date.now();
+          
+          // Evitar clics muy rápidos (accidentales)
+          if (currentTime - lastClickTime < MIN_CLICK_DELAY) {
+            return;
+          }
+          
+          // Si es el primer clic, esperar un poco para ver si hay un segundo clic
+          if (currentTime - lastClickTime > DOUBLE_CLICK_DELAY) {
+            clickTimeout = setTimeout(() => {
+              // Solo un clic - abrir modal después de un pequeño delay
+              setTimeout(() => openModal(card), 100);
+            }, DOUBLE_CLICK_DELAY);
+          } else {
+            // Segundo clic dentro del tiempo - cancelar timeout y abrir inmediatamente
+            if (clickTimeout) {
+              clearTimeout(clickTimeout);
+              clickTimeout = null;
+            }
+            openModal(card);
+          }
+          
+          lastClickTime = currentTime;
         }
       });
 

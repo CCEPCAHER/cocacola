@@ -465,11 +465,40 @@
       }, 400);
     }
 
+    // Variables para controlar la sensibilidad del modal
+    let lastClickTime = 0;
+    let clickTimeout = null;
+    const DOUBLE_CLICK_DELAY = 300; // ms entre clics para considerar doble clic
+    const MIN_CLICK_DELAY = 200; // ms mínimo entre clics para evitar activaciones accidentales
+
     productList.addEventListener('click', e => {
       const card = e.target.closest('.product');
       if (card && card.querySelector('img[data-full]') && !e.target.closest('button,input,a')) {
         e.preventDefault();
-        openModal(card);
+        
+        const currentTime = Date.now();
+        
+        // Evitar clics muy rápidos (accidentales)
+        if (currentTime - lastClickTime < MIN_CLICK_DELAY) {
+          return;
+        }
+        
+        // Si es el primer clic, esperar un poco para ver si hay un segundo clic
+        if (currentTime - lastClickTime > DOUBLE_CLICK_DELAY) {
+          clickTimeout = setTimeout(() => {
+            // Solo un clic - abrir modal después de un pequeño delay
+            setTimeout(() => openModal(card), 100);
+          }, DOUBLE_CLICK_DELAY);
+        } else {
+          // Segundo clic dentro del tiempo - cancelar timeout y abrir inmediatamente
+          if (clickTimeout) {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
+          }
+          openModal(card);
+        }
+        
+        lastClickTime = currentTime;
       }
     });
     closeBtn.addEventListener('click', closeModal);
@@ -512,7 +541,7 @@
 
   // Configuración de cuántas imágenes tiene cada sección
   const sectionImageCounts = {
-    'FOCOS': 90,
+    'FOCOS': 10,
     'EEAA Y PUNTUACION': 26,
     'ORDEN DE MARCAS': 19,
     'ACUERDO NACIONAL 2025': 6,
@@ -526,14 +555,14 @@
     'FEM SUPECO SIGUIENTE': 7,
     'FEM SORLI': 3,
     'FEM SORLI SIGUIENTE': 3,
-    'FEM SCLAT BONPREU': 2,
-    'FEM SCLAT BONPREU SIGUIENTE': 2,
+    'FEM SCLAT BONPREU': 15,
+    'FEM SCLAT BONPREU SIGUIENTE': 15,
     'FEM CAPRABO': 8,
     'FEM CAPRABO SIGUIENTE': 8,
     'FEM CONSUM': 6,
     'FEM CONSUM SIGUIENTE': 6,
-    'FEM CONDIS': 3,
-    'FEM CONDIS SIGUIENTE': 3,
+    'FEM CONDIS': 1,
+    'FEM CONDIS SIGUIENTE': 5,
     'FEM COVIRAN': 4,
     'FEM COVIRAN SIGUIENTE': 4,
     'IMPLANTACIONES': 5
