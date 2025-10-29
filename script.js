@@ -541,7 +541,7 @@
 
   // Configuración de cuántas imágenes tiene cada sección
   const sectionImageCounts = {
-    'FOCOS': 10,
+    'FOCOS': 90,
     'EEAA Y PUNTUACION': 26,
     'ORDEN DE MARCAS': 19,
     'ACUERDO NACIONAL 2025': 6,
