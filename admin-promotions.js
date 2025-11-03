@@ -63,7 +63,9 @@ function initPromotionManager() {
     { id: 'FEM_CONDIS', name: 'FEM CONDIS' },
     { id: 'FEM_CONDIS_SIGUIENTE', name: 'FEM CONDIS SIGUIENTE' },
     { id: 'FEM_COVIRAN', name: 'FEM COVIRAN' },
-    { id: 'FEM_COVIRAN_SIGUIENTE', name: 'FEM COVIRAN SIGUIENTE' }
+    { id: 'FEM_COVIRAN_SIGUIENTE', name: 'FEM COVIRAN SIGUIENTE' },
+    { id: 'FEM_ECI', name: 'FEM ECI' },
+    { id: 'FEM_ECI_SIGUIENTE', name: 'FEM ECI SIGUIENTE' }
   ];
 
   // Poblar selector de promociones
@@ -354,6 +356,8 @@ function initPromotionManager() {
       'FEM_CONDIS_SIGUIENTE': { startDate: '2025-11-05', endDate: '2025-11-18', active: true },
       'FEM_COVIRAN': { startDate: '2025-10-21', endDate: '2025-11-03', active: true },
       'FEM_COVIRAN_SIGUIENTE': { startDate: '2025-11-04', endDate: '2025-11-17', active: true },
+      'FEM_ECI': { startDate: '2025-10-24', endDate: '2025-11-06', active: true },
+      'FEM_ECI_SIGUIENTE': { startDate: '2025-11-07', endDate: '2025-11-20', active: true },
       'ACUERDO_NACIONAL_2025': { startDate: '2025-10-01', endDate: '2025-10-31', active: true },
       'FOCOS': { startDate: '2025-10-01', endDate: '2025-10-31', active: true }
     };

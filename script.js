@@ -422,6 +422,12 @@
       { "name": "Coviran Siguiente Producto 4", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_3.jpg" },
       { "name": "Coviran Siguiente Producto 5", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_4.jpg" },
       { "name": "Coviran Siguiente Producto 6", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_coviran_siguiente/fem_coviran_siguiente_5.jpg" }
+    ],
+    "FEM ECI": [
+      { "name": "ECI Producto 1", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_eci/fem_eci_0.jpg" }
+    ],
+    "FEM ECI SIGUIENTE": [
+      { "name": "ECI Siguiente Producto 1", "price": 0.00, "offer": false, "staticOffer": true, "image": "images/fem_eci_siguiente/fem_eci_siguiente_0.jpg" }
     ]
   };
 
@@ -441,7 +447,16 @@
     function openModal(card) {
       const src = card.querySelector('img')?.dataset.full;
       if (!src) return;
+      
+      // Limpiar contenido anterior para liberar memoria
+      const oldContent = modalContent.querySelectorAll('img, iframe');
+      oldContent.forEach(el => {
+        if (el.tagName === 'IMG') el.src = '';
+        if (el.tagName === 'IFRAME') el.src = '';
+        el.remove();
+      });
       modalContent.innerHTML = '';
+      
       if (src.toLowerCase().endsWith('.pdf')) {
         const iframe = document.createElement('iframe');
         iframe.src = src;
@@ -449,6 +464,7 @@
       } else {
         const img = document.createElement('img');
         img.src = src;
+        img.loading = 'eager';
         modalContent.appendChild(img);
       }
       modal.classList.remove('hidden');
@@ -459,7 +475,12 @@
     function closeModal() {
       modal.classList.remove('active');
       setTimeout(() => {
-        modal.classList.add('hidden');
+        // Limpiar imágenes del modal para liberar memoria
+        const imgs = modalContent.querySelectorAll('img');
+        imgs.forEach(img => {
+          img.src = '';
+          img.remove();
+        });
         modalContent.innerHTML = '';
         document.body.style.overflow = '';
       }, 400);
@@ -545,26 +566,28 @@
     'EEAA Y PUNTUACION': 26,
     'ORDEN DE MARCAS': 19,
     'ACUERDO NACIONAL 2025': 6,
-    'FEM ALCAMPO': 5,
-    'FEM ALCAMPO SIGUIENTE': 5,
-    'FEM CARREFOUR': 10,
-    'FEM CARREFOUR SIGUIENTE': 10,
+    'FEM ALCAMPO': 15,
+    'FEM ALCAMPO SIGUIENTE': 15,
+    'FEM CARREFOUR': 15,
+    'FEM CARREFOUR SIGUIENTE': 15,
     'FEM CARREFOUR MARKET': 12,
     'FEM CARREFOUR MARKET SIGUIENTE': 12,
-    'FEM SUPECO': 7,
-    'FEM SUPECO SIGUIENTE': 7,
+    'FEM SUPECO':17,
+    'FEM SUPECO SIGUIENTE': 17,
     'FEM SORLI': 3,
     'FEM SORLI SIGUIENTE': 3,
-    'FEM SCLAT BONPREU': 15,
-    'FEM SCLAT BONPREU SIGUIENTE': 15,
-    'FEM CAPRABO': 8,
-    'FEM CAPRABO SIGUIENTE': 8,
-    'FEM CONSUM': 6,
-    'FEM CONSUM SIGUIENTE': 6,
-    'FEM CONDIS': 1,
-    'FEM CONDIS SIGUIENTE': 5,
+    'FEM SCLAT BONPREU': 8,
+    'FEM SCLAT BONPREU SIGUIENTE': 8,
+    'FEM CAPRABO': 15,
+    'FEM CAPRABO SIGUIENTE':158,
+    'FEM CONSUM': 10,
+    'FEM CONSUM SIGUIENTE': 10,
+    'FEM CONDIS': 3,
+    'FEM CONDIS SIGUIENTE': 3,
     'FEM COVIRAN': 4,
     'FEM COVIRAN SIGUIENTE': 4,
+    'FEM ECI': 10,
+    'FEM ECI SIGUIENTE': 10,
     'IMPLANTACIONES': 5
   };
 
@@ -626,6 +649,8 @@
       'FEM CONDIS SIGUIENTE': '2025-11-05',
       'FEM COVIRAN': '2025-10-21',
       'FEM COVIRAN SIGUIENTE': '2025-11-04',
+      'FEM ECI': '2025-10-24',
+      'FEM ECI SIGUIENTE': '2025-11-07',
       'ACUERDO NACIONAL 2025': '2025-10-01',
       'FOCOS': '2025-10-01'
     };
@@ -655,6 +680,8 @@
       'FEM CONDIS SIGUIENTE': '2025-11-18',
       'FEM COVIRAN': '2025-11-03',
       'FEM COVIRAN SIGUIENTE': '2025-11-17',
+      'FEM ECI': '2025-11-06',
+      'FEM ECI SIGUIENTE': '2025-11-20',
       'ACUERDO NACIONAL 2025': '2025-10-31',
       'FOCOS': '2025-10-31'
     };
@@ -863,10 +890,11 @@ if (p.endDate && i === 0) {
 
   function exportToExcel(order) {
     if (!order || !order.length) return;
-    const store = localStorage.getItem('userStore') || 'Tienda';
     const user = localStorage.getItem('loggedInUser') || 'Usuario';
     const date = new Date().toLocaleDateString('es-ES');
-    const file = `Pedido_${store.replace(/\s/g, '_')}_${date.replace(/\//g, '-')}.xlsx`;
+    // Usar email del usuario para el nombre del archivo (sin @ y dominio)
+    const userSlug = user.split('@')[0] || 'Usuario';
+    const file = `Pedido_${userSlug}_${date.replace(/\//g, '-')}.xlsx`;
 
     const grouped = order.reduce((a, i) => {
       (a[i.section] = a[i.section] || []).push(i);
@@ -874,7 +902,6 @@ if (p.endDate && i === 0) {
     }, {});
 
     const sheet = [
-      [`Pedido para: ${store}`],
       [`Realizado por: ${user}`],
       [`Fecha: ${date}`],
       []

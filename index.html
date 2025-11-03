@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CONSULTAS - Coca-Cola</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -13,9 +13,6 @@
   <div id="login-container">
     <form id="login-form">
       <h2>Iniciar Sesión</h2>
-      <select id="store" name="store" required>
-        <option value="" disabled selected>Selecciona tu supermercado</option>
-      </select>
       <input type="text" id="username" name="username" placeholder="Usuario (email)" autocomplete="username" required>
       <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
       <button type="submit">Entrar</button>
@@ -63,22 +60,17 @@
     const loginContainer = document.getElementById("login-container");
     const contenidoDiv = document.getElementById("contenido");
     const loginForm = document.getElementById("login-form");
-    const storeSelect = document.getElementById("store");
     const headerH1 = document.querySelector("#contenido header h1");
     const logoutBtn = document.getElementById("logout-btn");
 
-    function mostrarContenido(storeName) {
+    function mostrarContenido() {
       loginContainer.style.display = "none";
       contenidoDiv.classList.remove("hidden");
-      if (storeName && !headerH1.textContent.includes(storeName)) {
-        headerH1.textContent += ` - ${storeName}`;
-      }
     }
 
     onAuthStateChanged(auth, user => {
       if (user) {
-        const userStore = localStorage.getItem("userStore");
-        mostrarContenido(userStore);
+        mostrarContenido();
         localStorage.setItem("loggedInUser", user.email);
         loadImagesFromStorageBatched();
       } else {
@@ -87,32 +79,31 @@
       }
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const stores = ["CAT21","CAT22","CAT23","CAT24","CAT25","EJE4",
-                      "Alcampo Sant Quirze","Carrefour Sant Cugat","Carrefour Barbera"];
-      stores.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = opt.textContent = s;
-        storeSelect.appendChild(opt);
-      });
-    });
-
     loginForm.addEventListener("submit", e => {
       e.preventDefault();
-      const store = storeSelect.value;
       const email = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
-      if (!store) { alert("Por favor selecciona un supermercado."); return; }
+      
+      if (!email || !password) {
+        alert("Por favor ingresa usuario y contraseña.");
+        return;
+      }
+      
       signInWithEmailAndPassword(auth, email, password)
-        .then(() => { localStorage.setItem("userStore", store); mostrarContenido(store); })
-        .catch(err => { console.error(err); alert("Credenciales incorrectas."); });
+        .then(() => {
+          console.log("✅ Login exitoso");
+          mostrarContenido();
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Credenciales incorrectas.");
+        });
     });
 
     logoutBtn.addEventListener("click", async () => {
       if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
       try {
         await signOut(auth);
-        localStorage.removeItem("userStore");
         localStorage.removeItem("loggedInUser");
       } catch (error) {
         console.error("Error al cerrar sesión:", error);
@@ -120,30 +111,27 @@
       }
     });
 
-    // CARGA POR LOTES (optimizada)
+    // CARGA BAJO DEMANDA (optimizada para memoria)
+    // Solo cargamos las URLs cuando se necesitan, no todas de una vez
     async function loadImagesFromStorageBatched() {
       try {
-        const map = window.firebaseImageUrls = window.firebaseImageUrls || {};
+        // Inicializar mapa vacío - las URLs se cargarán bajo demanda
+        window.firebaseImageUrls = window.firebaseImageUrls || {};
+        window.firebaseImageFolders = window.firebaseImageFolders || {};
+        
+        // Solo cachear la estructura de carpetas, no las URLs
         const baseRef = ref(storage, 'images/');
         const top = await listAll(baseRef);
-
-        for (const itemRef of top.items) {
-          map[itemRef.fullPath] = await getDownloadURL(itemRef);
-        }
-
+        
+        // Guardar referencias de carpetas para carga bajo demanda
         const folders = top.prefixes || [];
-        const chunkSize = 4;
-        for (let i = 0; i < folders.length; i += chunkSize) {
-          const batch = folders.slice(i, i + chunkSize);
-          await Promise.all(batch.map(async folderRef => {
-            const fr = await listAll(folderRef);
-            for (const itemRef of fr.items) {
-              map[itemRef.fullPath] = await getDownloadURL(itemRef);
-            }
-          }));
-          await new Promise(r => setTimeout(r, 0));
+        for (const folderRef of folders) {
+          const folderName = folderRef.name;
+          window.firebaseImageFolders[folderName] = folderRef;
         }
-
+        
+        console.log(`✅ Estructura de carpetas cargada: ${folders.length} carpetas`);
+        
         if (typeof window.updateProductImages === 'function') {
           window.updateProductImages();
         }
@@ -152,11 +140,14 @@
       }
     }
 
-    // ACTUALIZAR IMÁGENES (asigna data-full)
+    // ACTUALIZAR IMÁGENES (asigna data-full bajo demanda)
     window.updateProductImages = function() {
-      const map = window.firebaseImageUrls || {};
+      // No precargar todas las URLs aquí
+      // El lazy loading se encargará de cargarlas cuando se necesiten
       document.querySelectorAll('.product img[data-src]').forEach(img => {
+        // Solo asignar si ya está en caché
         const storagePath = img.dataset.src.trim();
+        const map = window.firebaseImageUrls || {};
         const url = map[storagePath];
         if (url) {
           img.dataset.full = url;
@@ -165,27 +156,58 @@
       });
     };
 
-    // LAZY LOADING ON-DEMAND
+    // LAZY LOADING ON-DEMAND OPTIMIZADO (con límites de memoria)
     window.lazyLoadImages = function() {
       const imgs = Array.from(document.querySelectorAll('img.lazy'));
       if (!imgs.length) return;
 
       const map = window.firebaseImageUrls = window.firebaseImageUrls || {};
+      
+      // Límite de imágenes cargadas simultáneamente
+      let activeLoads = 0;
+      const MAX_CONCURRENT_LOADS = 3; // Reducido para evitar sobrecarga
+      const MAX_CACHE_SIZE = 200; // Máximo de URLs en caché
+      
+      // Limpiar caché si excede el límite (mantener las más recientes)
+      function cleanupCache() {
+        const keys = Object.keys(map);
+        if (keys.length > MAX_CACHE_SIZE) {
+          // Eliminar las más antiguas (más de MAX_CACHE_SIZE)
+          const toRemove = keys.slice(0, keys.length - MAX_CACHE_SIZE);
+          toRemove.forEach(key => delete map[key]);
+          console.log(`🧹 Limpieza de caché: ${toRemove.length} URLs eliminadas`);
+        }
+      }
 
       async function ensureUrl(key) {
         if (map[key]) return map[key];
+        
+        // Esperar si hay demasiadas cargas activas
+        while (activeLoads >= MAX_CONCURRENT_LOADS) {
+          await new Promise(r => setTimeout(r, 50));
+        }
+        
         try {
+          activeLoads++;
           const url = await getDownloadURL(ref(storage, key));
           map[key] = url;
+          cleanupCache(); // Limpiar si es necesario
           return url;
         } catch (e) {
+          console.error(`Error cargando imagen ${key}:`, e);
           return null;
+        } finally {
+          activeLoads--;
         }
       }
 
       async function loadOne(img) {
+        // Si ya tiene src, no cargar de nuevo
+        if (img.src && !img.src.includes('data:')) return;
+        
         const key = (img.dataset.src || '').trim();
         if (!key) return;
+        
         const url = await ensureUrl(key);
         if (url) {
           img.dataset.full = url;
@@ -195,13 +217,43 @@
         }
       }
 
+      // IntersectionObserver con rootMargin reducido para cargar menos imágenes a la vez
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver((entries) => {
-          entries.forEach(e => { if (e.isIntersecting) loadOne(e.target); });
-        }, { rootMargin: '200px 0px', threshold: 0.01 });
+          // Procesar solo las visibles (una a la vez para evitar sobrecarga)
+          entries.forEach(e => {
+            if (e.isIntersecting && e.target.classList.contains('lazy')) {
+              // Cargar con un pequeño delay para evitar picos de memoria
+              setTimeout(() => loadOne(e.target), Math.random() * 100);
+            } else if (!e.isIntersecting && !e.target.classList.contains('lazy')) {
+              // Si la imagen sale del viewport, liberar memoria (opcional, más agresivo)
+              // Solo liberar si hay muchas imágenes cargadas para evitar recargas constantes
+              const allLoaded = document.querySelectorAll('img:not(.lazy)').length;
+              if (allLoaded > 50) {
+                const img = e.target;
+                if (img.dataset.full && !img.closest('.fullscreen-modal-overlay')) {
+                  // No liberar si está en el modal
+                  img.src = '';
+                  img.classList.add('lazy');
+                  observer.observe(img);
+                }
+              }
+            }
+          });
+        }, { 
+          rootMargin: '100px 0px', // Reducido de 200px para cargar menos imágenes
+          threshold: 0.01 
+        });
+        
         imgs.forEach(img => observer.observe(img));
+        
+        // Limpiar observador cuando ya no se necesite
+        window.imageObserver = observer;
       } else {
-        imgs.forEach(loadOne);
+        // Fallback: cargar una por vez con delay
+        imgs.forEach((img, index) => {
+          setTimeout(() => loadOne(img), index * 100);
+        });
       }
     };
 
@@ -214,12 +266,30 @@
 
       let currentSection = [];
       let currentIndex = 0;
+      
+      // Variables para zoom táctil
+      let currentZoom = 1;
+      let currentPanX = 0;
+      let currentPanY = 0;
+      let isZooming = false;
+      let initialDistance = 0;
+      let initialZoom = 1;
+      let initialPanX = 0;
+      let initialPanY = 0;
+      let lastTouchX = 0;
+      let lastTouchY = 0;
+      let isPanning = false;
 
       function openModal(card) {
         const section = card.closest('.section');
         const allCards = Array.from(section.querySelectorAll('.product[data-section-name]'));
         currentSection = allCards.filter(c => c.querySelector('img[data-full]'));
         currentIndex = currentSection.indexOf(card);
+
+        // Resetear zoom al abrir nueva imagen
+        currentZoom = 1;
+        currentPanX = 0;
+        currentPanY = 0;
 
         showImage(currentIndex);
         modal.classList.remove('hidden');
@@ -231,36 +301,193 @@
         if (index < 0 || index >= currentSection.length) return;
         
         const card = currentSection[index];
-        const img = card.querySelector('img[data-full]');
-        const src = img?.dataset.full || img?.src;
+        const cardImg = card.querySelector('img[data-full]');
+        const src = cardImg?.dataset.full || cardImg?.src;
         if (!src) return;
 
         const prevDisabled = index === 0 ? 'style="opacity:0.3;pointer-events:none;"' : '';
         const nextDisabled = index === currentSection.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : '';
 
+        // Limpiar imagen anterior para liberar memoria antes de cargar nueva
+        const oldImg = modalContent.querySelector('img');
+        if (oldImg) {
+          oldImg.src = '';
+          oldImg.remove();
+        }
+        
+        // Limpiar zoom al cambiar imagen
+        currentZoom = 1;
+        currentPanX = 0;
+        currentPanY = 0;
+        
+        // Crear nueva imagen y precargar
+        const newImg = document.createElement('img');
+        newImg.src = src;
+        newImg.alt = `Imagen ${index + 1}`;
+        newImg.title = 'Doble toque para ampliar / Pellizca para zoom';
+        newImg.loading = 'eager'; // Cargar inmediatamente en modal
+        newImg.className = 'zoomable-image';
+        newImg.style.transform = `translate(${currentPanX}px, ${currentPanY}px) scale(${currentZoom})`;
+        newImg.style.transformOrigin = 'center center';
+        newImg.style.transition = currentZoom === 1 ? 'transform 0.3s ease' : 'none';
+        
         modalContent.innerHTML = `
           <button class="modal-nav modal-nav-prev" ${prevDisabled}>‹</button>
-          <img src="${src}" alt="Imagen ${index + 1}" title="Clic para pantalla completa">
           <button class="modal-nav modal-nav-next" ${nextDisabled}>›</button>
           <div class="modal-counter">${index + 1} / ${currentSection.length}</div>
         `;
+        
+        modalContent.appendChild(newImg);
 
         modalContent.querySelector('.modal-nav-prev')?.addEventListener('click', () => navigate(-1));
         modalContent.querySelector('.modal-nav-next')?.addEventListener('click', () => navigate(1));
 
-        // Pantalla completa al hacer clic en imagen
-        const bigImg = modalContent.querySelector('img');
-        if (bigImg) {
-          bigImg.addEventListener('click', toggleRealFullscreen);
-        }
+        // Zoom y navegación
+        setupImageZoom(newImg);
+        
+        // Pantalla completa al hacer doble clic en imagen
+        let clickTimer = null;
+        newImg.addEventListener('click', (e) => {
+          if (e.detail === 1) {
+            clickTimer = setTimeout(() => {
+              // Solo clic simple después de delay
+              if (currentZoom === 1) {
+                toggleRealFullscreen(e);
+              }
+            }, 300);
+          } else if (e.detail === 2) {
+            clearTimeout(clickTimer);
+            toggleZoom(e);
+          }
+        });
       }
 
       function navigate(direction) {
+        // No navegar si está haciendo zoom
+        if (isZooming) return;
+        
         const newIndex = currentIndex + direction;
         if (newIndex >= 0 && newIndex < currentSection.length) {
           currentIndex = newIndex;
           showImage(currentIndex);
         }
+      }
+      
+      function setupImageZoom(img) {
+        // Resetear zoom variables
+        isZooming = false;
+        isPanning = false;
+        
+        // Touch events para zoom con pellizco
+        img.addEventListener('touchstart', handleTouchStart, { passive: false });
+        img.addEventListener('touchmove', handleTouchMove, { passive: false });
+        img.addEventListener('touchend', handleTouchEnd, { passive: false });
+      }
+      
+      function handleTouchStart(e) {
+        if (e.touches.length === 2) {
+          // Gestos de pellizco (zoom)
+          isZooming = true;
+          e.preventDefault();
+          
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          
+          initialDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          
+          initialZoom = currentZoom;
+          initialPanX = currentPanX;
+          initialPanY = currentPanY;
+        } else if (e.touches.length === 1 && currentZoom > 1) {
+          // Pan cuando está ampliada
+          isPanning = true;
+          e.preventDefault();
+          
+          lastTouchX = e.touches[0].clientX;
+          lastTouchY = e.touches[0].clientY;
+        }
+      }
+      
+      function handleTouchMove(e) {
+        if (e.touches.length === 2 && isZooming) {
+          // Calcular zoom con pellizco
+          e.preventDefault();
+          
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          
+          const currentDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          
+          const scale = currentDistance / initialDistance;
+          currentZoom = Math.max(1, Math.min(initialZoom * scale, 5)); // Límite entre 1x y 5x
+          
+          const img = modalContent.querySelector('.zoomable-image');
+          if (img) {
+            img.style.transition = 'none';
+            img.style.transform = `translate(${currentPanX}px, ${currentPanY}px) scale(${currentZoom})`;
+          }
+        } else if (e.touches.length === 1 && isPanning && currentZoom > 1) {
+          // Pan cuando está ampliada
+          e.preventDefault();
+          
+          const touch = e.touches[0];
+          const deltaX = touch.clientX - lastTouchX;
+          const deltaY = touch.clientY - lastTouchY;
+          
+          // Límites para el pan basados en el zoom
+          const maxPan = (currentZoom - 1) * 200;
+          currentPanX = Math.max(-maxPan, Math.min(maxPan, currentPanX + deltaX));
+          currentPanY = Math.max(-maxPan, Math.min(maxPan, currentPanY + deltaY));
+          
+          const img = modalContent.querySelector('.zoomable-image');
+          if (img) {
+            img.style.transition = 'none';
+            img.style.transform = `translate(${currentPanX}px, ${currentPanY}px) scale(${currentZoom})`;
+          }
+          
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+        }
+      }
+      
+      function handleTouchEnd(e) {
+        if (e.touches.length === 0) {
+          isZooming = false;
+          isPanning = false;
+          
+          // Resetear si el zoom es muy pequeño
+          if (currentZoom < 1.1) {
+            currentZoom = 1;
+            currentPanX = 0;
+            currentPanY = 0;
+            
+            const img = modalContent.querySelector('.zoomable-image');
+            if (img) {
+              img.style.transition = 'transform 0.3s ease';
+              img.style.transform = 'translate(0px, 0px) scale(1)';
+            }
+          }
+        }
+      }
+      
+      function toggleZoom(e) {
+        const img = e.target;
+        if (currentZoom === 1) {
+          currentZoom = 2;
+        } else {
+          currentZoom = 1;
+          currentPanX = 0;
+          currentPanY = 0;
+        }
+        
+        img.style.transition = 'transform 0.3s ease';
+        img.style.transform = `translate(${currentPanX}px, ${currentPanY}px) scale(${currentZoom})`;
       }
 
       function closeModal() {
@@ -311,25 +538,95 @@
         }
       });
 
-      // Touch/Swipe support
+      // Touch/Swipe support con protección contra gestos de pellizco y zoom
       let touchStartX = 0;
       let touchEndX = 0;
+      let touchStartY = 0;
+      let touchEndY = 0;
+      let isPinchGesture = false;
+      let touchCount = 0;
 
+      // Detectar si es un gesto de pellizco (2 dedos) o swipe
       modalContent.addEventListener('touchstart', e => {
+        // No procesar swipe si está sobre la imagen y hay zoom activo o gestos de pellizco
+        const img = e.target.closest('.zoomable-image');
+        if (img && (e.touches.length >= 2 || currentZoom > 1)) {
+          return; // Dejar que los handlers de zoom se encarguen
+        }
+        
+        touchCount = e.touches.length;
+        
+        // Si hay 2 o más dedos, es un gesto de pellizco - no hacer swipe
+        if (touchCount >= 2) {
+          isPinchGesture = true;
+          return;
+        }
+        
+        // Solo un dedo - guardar posición inicial
+        isPinchGesture = false;
         touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      modalContent.addEventListener('touchmove', e => {
+        // No procesar swipe si está sobre la imagen ampliada
+        const img = e.target.closest('.zoomable-image');
+        if (img && currentZoom > 1) {
+          return;
+        }
+        
+        if (e.touches.length >= 2) {
+          isPinchGesture = true;
+        }
       }, { passive: true });
 
       modalContent.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+        // No procesar swipe si está sobre la imagen ampliada o hubo pellizco
+        const img = e.target.closest('.zoomable-image');
+        if (img && currentZoom > 1) {
+          return;
+        }
+        
+        touchCount = e.touches.length;
+        
+        if (isPinchGesture) {
+          if (touchCount >= 1) {
+            return;
+          }
+          setTimeout(() => {
+            isPinchGesture = false;
+            touchCount = 0;
+          }, 100);
+          return;
+        }
+        
+        if (touchCount === 0 && e.changedTouches.length === 1) {
+          touchEndX = e.changedTouches[0].screenX;
+          touchEndY = e.changedTouches[0].screenY;
+          handleSwipe();
+        }
+        
+        if (touchCount === 0) {
+          isPinchGesture = false;
+        }
       }, { passive: true });
 
       function handleSwipe() {
+        // No hacer swipe si hay zoom activo o fue un pellizco
+        if (isPinchGesture || currentZoom > 1 || isZooming) return;
+        
+        const deltaX = Math.abs(touchStartX - touchEndX);
+        const deltaY = Math.abs(touchStartY - touchEndY);
+        
         const swipeThreshold = 50;
-        if (touchStartX - touchEndX > swipeThreshold) {
-          navigate(1);
-        } else if (touchEndX - touchStartX > swipeThreshold) {
-          navigate(-1);
+        const minVerticalRatio = 2;
+        
+        if (deltaX > swipeThreshold && deltaX > deltaY * minVerticalRatio) {
+          if (touchStartX - touchEndX > swipeThreshold) {
+            navigate(1);
+          } else if (touchEndX - touchStartX > swipeThreshold) {
+            navigate(-1);
+          }
         }
       }
 

@@ -155,6 +155,10 @@ header h2 {
 .section[data-section="FEM COVIRAN"] .section-title,
 .section[data-section="FEM COVIRAN SIGUIENTE"] .section-title { background: linear-gradient(135deg, #a8edea, #fed6e3); }
 
+/* FEM ECI - mismo color para original y siguiente */
+.section[data-section="FEM ECI"] .section-title,
+.section[data-section="FEM ECI SIGUIENTE"] .section-title { background: linear-gradient(135deg, #ffd89b, #19547b); }
+
 .section[data-section="IMPLANTACIONES"] .section-title { background: linear-gradient(135deg, #667eea, #764ba2); }
 
 /* ========================
@@ -208,6 +212,11 @@ header h2 {
   background: var(--bg-light);
   transition: opacity 0.3s, transform 0.2s ease;
   pointer-events: none;
+  /* Optimizaciones de memoria y rendimiento */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  will-change: auto; /* Solo cuando sea necesario */
+  contain: layout style paint; /* Optimización de rendering */
 }
 
 /* Indicador visual de que la imagen es clickeable */
@@ -489,6 +498,21 @@ header h2 {
   user-select: none;
   cursor: zoom-in;
   transition: cursor 0.3s;
+  /* Optimizaciones de memoria para imágenes grandes */
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  will-change: transform;
+  transform: translateZ(0); /* Aceleración GPU */
+  touch-action: none; /* Prevenir scroll mientras se hace zoom */
+}
+
+.fullscreen-modal-content img.zoomable-image {
+  cursor: grab;
+  transform-origin: center center;
+}
+
+.fullscreen-modal-content img.zoomable-image:active {
+  cursor: grabbing;
 }
 
 .fullscreen-modal-content img.in-fullscreen {
@@ -781,6 +805,14 @@ header h2 {
 ========================= */
 html, body {
   touch-action: manipulation;
+}
+
+/* Prevenir zoom con pellizco en el modal y en las imágenes */
+.fullscreen-modal-overlay,
+.fullscreen-modal-content,
+.fullscreen-modal-content img {
+  touch-action: pan-x pan-y; /* Permitir pan pero no pinch-zoom */
+  -ms-touch-action: pan-x pan-y;
 }
 
 button, .product {
