@@ -1,16 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
 /* ========================
    VARIABLES Y RESET
 ========================= */
 :root {
-  --color-primary: #2c7a7b;
-  --color-primary-hover: #285e61;
+  --color-primary: #e6192b; /* Coca-Cola Red */
+  --color-primary-hover: #c91423;
   --color-alert: #d69e2e;
   --color-error: #e53e3e;
-  --color-text: #333;
+  --color-text: #1a202c;
+  --color-text-muted: #4a5568;
   --color-offer: #e53e3e;
-  --transition: 0.3s ease;
-  --bg-light: #f0f4f8;
-  --font: 'Arial', sans-serif;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg-main: #f0f4f8;
+  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 1);
+  --bg-glass: rgba(255, 255, 255, 0.6);
+  --border-glass: rgba(255, 255, 255, 0.5);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --font: 'Inter', 'Segoe UI', sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-primary: #ff4757;
+  --color-primary-hover: #ff6b81;
+  --color-text: #f8fafc;
+  --color-text-muted: #cbd5e1;
+  --bg-main: #0f172a;
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --bg-card: rgba(30, 41, 59, 0.85);
+  --bg-card-hover: rgba(30, 41, 59, 1);
+  --bg-glass: rgba(15, 23, 42, 0.7);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -21,11 +44,13 @@
 
 body {
   font-family: var(--font);
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  background: var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--color-text);
   padding-bottom: 120px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
 html {
@@ -37,13 +62,18 @@ html {
    HEADER CON BOTÓN DE CERRAR SESIÓN
 ========================= */
 header {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-glass);
   text-align: center;
   padding: 24px 16px;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  border-bottom: 3px solid var(--color-primary-hover);
-  position: relative;
+  color: var(--color-text);
+  box-shadow: var(--shadow-glass);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: var(--transition);
 }
 
 header h1 {
@@ -51,32 +81,67 @@ header h1 {
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  color: var(--color-primary);
+  font-weight: 800;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
 header h2 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   margin-top: 0.5rem;
-  color: #e0e0e0;
+  color: var(--color-text-muted);
+  font-weight: 600;
 }
 
-/* BOTÓN CERRAR SESIÓN */
-.btn-logout {
+/* ========================
+   CONTROLES DEL HEADER (Instalar / Dark Mode)
+========================= */
+.header-controls {
   position: absolute;
   top: 50%;
   right: 20px;
   transform: translateY(-50%);
-  background: rgba(228, 26, 28, 0.9);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* BOTONES HEADER */
+.btn-header {
+  background: var(--bg-card);
+  color: var(--color-text);
+  border: 1px solid var(--border-glass);
   border-radius: 8px;
-  padding: 10px 18px;
+  padding: 10px 14px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   backdrop-filter: blur(5px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-header:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.btn-header:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-logout {
+  background: rgba(228, 26, 28, 0.9);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-logout:hover {
+  background: rgba(195, 26, 23, 1);
 }
 
 .btn-logout:hover {
@@ -184,31 +249,35 @@ header h2 {
    TARJETAS DE PRODUCTO
 ========================= */
 .product {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 8px;
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  box-shadow: var(--shadow-glass);
+  padding: 12px;
   flex: 0 0 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: var(--transition);
   overflow: visible;
   cursor: pointer;
 }
 
 .product:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  background: var(--bg-card-hover);
 }
 
 .product img {
   width: 100%;
   height: 190px;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  margin-bottom: 12px;
   background: var(--bg-light);
   transition: opacity 0.3s, transform 0.2s ease;
   pointer-events: none;
@@ -666,12 +735,14 @@ header h2 {
   align-items: center;
   margin: 1.5rem auto;
   padding: 1.2rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 14px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: var(--shadow-glass);
   width: 95%;
   max-width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-glass);
 }
 
 #filter-container {

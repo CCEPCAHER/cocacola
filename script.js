@@ -613,7 +613,8 @@
         price: 0.00,
         offer: false,
         staticOffer: true,
-        image: imagePath,
+        image: `images/${baseName}/${baseName}_${i}_thumb.jpg`,
+        fullImage: `images/${baseName}/${baseName}_${i}.jpg`,
         // Solo el primer producto tendrá fechas si la sección las permite
         // Usar fechas de Firestore si están disponibles, sino fechas por defecto
         startDate: (i === 0 && hasDates) ? getFirestoreDate(sectionName, 'startDate') : null,
@@ -699,7 +700,7 @@
       today.setHours(0, 0, 0, 0);
 
       html += `<div class="product" data-section-name="${escapeHTML(sectionName)}">
-        <img data-src="${imagePath}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy">
+        <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy">
         <h3>${p.name || 'Producto sin nombre'}</h3>`;
 
       // Mostrar días restantes + rango de fechas solo en el primer producto (índice 0)

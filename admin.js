@@ -186,15 +186,30 @@ function initPDFConverter() {
       // Renderizar página en canvas
       await page.render({ canvasContext: context, viewport }).promise;
 
-      // Convertir canvas a Blob (JPEG)
+      // Convertir canvas a Blob (JPEG) - Alta Resolución
       const blob = await canvasToBlob(canvas, 0.85);
+
+      // --- CREAR THUMBNAIL ---
+      const thumbCanvas = document.createElement('canvas');
+      const thumbContext = thumbCanvas.getContext('2d');
+      const thumbWidth = 400; // Ancho de miniatura
+      const thumbHeight = (canvas.height / canvas.width) * thumbWidth;
+      thumbCanvas.width = thumbWidth;
+      thumbCanvas.height = thumbHeight;
+      // Dibujar imagen escalada
+      thumbContext.drawImage(canvas, 0, 0, thumbWidth, thumbHeight);
+      const thumbBlob = await canvasToBlob(thumbCanvas, 0.6); // Baja calidad para súper velocidad
 
       // Subir a Firebase
       const sectionName = sectionSlug.toLowerCase().replace(/\s+/g, '_');
-      // Usamos pageNum - 1 para que el índice sea base 0 en el nombre del archivo si es necesario,
-      // pero mantenemos el nombre de archivo con un número secuencial simple.
       const fileName = `${sectionName}_${pageNum - 1}.jpg`; 
-      await uploadToFirebaseWithRetry(blob, fileName, sectionSlug, 3);
+      const thumbFileName = `${sectionName}_${pageNum - 1}_thumb.jpg`; 
+      
+      // Subir ambas imágenes en paralelo
+      await Promise.all([
+        uploadToFirebaseWithRetry(blob, fileName, sectionSlug, 3),
+        uploadToFirebaseWithRetry(thumbBlob, thumbFileName, sectionSlug, 3)
+      ]);
       
       // Actualizar progreso
       updateProgress(pageNum, totalPages);

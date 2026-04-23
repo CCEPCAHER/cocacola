@@ -23,7 +23,11 @@
   <div id="contenido" class="hidden">
     <header>
       <h1>CONSULTAS</h1>
-      <button id="logout-btn" class="btn-logout" aria-label="Cerrar sesión">🚪 Cerrar Sesión</button>
+      <div class="header-controls">
+        <button id="install-btn" class="btn-header hidden" aria-label="Instalar App">📱 Instalar</button>
+        <button id="dark-mode-btn" class="btn-header" aria-label="Alternar Modo Oscuro">🌙</button>
+        <button id="logout-btn" class="btn-logout btn-header" aria-label="Cerrar sesión">🚪 Salir</button>
+      </div>
     </header>
     <main>
       <div class="dropdown-container"><div id="filter-container"></div></div>
@@ -35,6 +39,8 @@
     <span class="close-fullscreen-modal">&times;</span>
     <div class="fullscreen-modal-content"></div>
   </div>
+
+  <div id="toast" class="toast">Notificación</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -202,7 +208,15 @@
         
         try {
           activeLoads++;
-          const url = await getDownloadURL(ref(storage, key));
+          let url = await getDownloadURL(ref(storage, key)).catch(async (e) => {
+             // Si falla el thumbnail, probar la imagen completa (retrocompatibilidad)
+             if (key.includes('_thumb.jpg')) {
+               const fallbackKey = key.replace('_thumb.jpg', '.jpg');
+               return await getDownloadURL(ref(storage, fallbackKey));
+             }
+             throw e;
+          });
+          
           map[key] = url;
           cleanupCache(); // Limpiar si es necesario
           
@@ -213,7 +227,7 @@
           
           return url;
         } catch (e) {
-          console.warn(`⚠️ Modo Offline: No se pudo obtener URL nueva para ${key}`);
+          console.warn(`⚠️ Modo Offline/Error: No se pudo obtener URL para ${key}`);
           return null;
         } finally {
           activeLoads--;
@@ -316,13 +330,22 @@
         document.body.style.overflow = 'hidden';
       }
 
-      function showImage(index) {
+      async function showImage(index) {
         if (index < 0 || index >= currentSection.length) return;
         
         const card = currentSection[index];
         const cardImg = card.querySelector('img[data-full]');
-        const src = cardImg?.dataset.full || cardImg?.src;
-        if (!src) return;
+        const rawSrc = cardImg?.dataset.full || cardImg?.src;
+        if (!rawSrc) return;
+
+        // Si es una ruta de Firebase, resolverla con ensureUrl
+        let finalSrc = rawSrc;
+        if (!rawSrc.startsWith('http') && !rawSrc.startsWith('data:')) {
+          try {
+            const url = await ensureUrl(rawSrc);
+            if (url) finalSrc = url;
+          } catch(e) {}
+        }
 
         const prevDisabled = index === 0 ? 'style="opacity:0.3;pointer-events:none;"' : '';
         const nextDisabled = index === currentSection.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : '';
@@ -341,7 +364,7 @@
         
         // Crear nueva imagen y precargar
         const newImg = document.createElement('img');
-        newImg.src = src;
+        newImg.src = finalSrc;
         newImg.alt = `Imagen ${index + 1}`;
         newImg.title = 'Doble toque para ampliar / Pellizca para zoom';
         newImg.loading = 'eager'; // Cargar inmediatamente en modal
@@ -729,6 +752,7 @@
     }
   </script>
 
+  <script type="module" src="ui.js?v=1"></script>
   <script src="script.js?v=2025101301"></script>
 </body>
 </html>
