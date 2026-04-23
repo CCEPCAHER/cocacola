@@ -1,23 +1,97 @@
+const CACHE_NAME = "cocacola-fem-v2";
+const DYNAMIC_CACHE = "cocacola-dynamic-v2";
+const IMAGE_CACHE = "cocacola-images-v2";
+
+const ASSETS_TO_CACHE = [
+  "/",
+  "/index.html",
+  "/admin.html",
+  "/style.css",
+  "/script.js",
+  "/admin.js",
+  "/admin-promotions.js",
+  "/manifest.json",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png"
+];
+
+// Install Event - Precache static assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("app-cache").then((cache) => {
-      return cache.addAll([
-        "/",
-        "/index.html",
-        "/style.css",
-        "/script.js",
-        "/manifest.json",
-        "/icons/icon-192.png",
-        "/icons/icon-512.png"
-      ]);
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log("Precaching App Shell");
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
+  self.skipWaiting();
 });
 
+// Activate Event - Clean up old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME && key !== DYNAMIC_CACHE && key !== IMAGE_CACHE) {
+            console.log("Removing old cache", key);
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+  return self.clients.claim();
+});
+
+// Fetch Event - Handle requests
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // 1. Firebase Storage Images (Cache First Strategy)
+  if (url.hostname.includes("firebasestorage.googleapis.com")) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+
+        return fetch(event.request).then((networkResponse) => {
+          return caches.open(IMAGE_CACHE).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        }).catch(() => {
+          // Si falla y no está en caché, podríamos devolver una imagen placeholder
+          return new Response('');
+        });
+      })
+    );
+    return;
+  }
+
+  // 2. Firebase API Calls (Firestore) - Let them pass through
+  // Firestore has its own robust offline persistence cache
+  if (url.hostname.includes("firestore.googleapis.com") || url.hostname.includes("identitytoolkit.googleapis.com")) {
+    return; // Fallback to default browser fetch behavior
+  }
+
+  // 3. Static Assets & App Shell (Stale-While-Revalidate Strategy)
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        // Solo cachear respuestas válidas y seguras
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Fallback offline si el fetch falla y no está en caché
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+      });
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

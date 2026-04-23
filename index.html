@@ -39,7 +39,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getStorage, ref, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -54,7 +54,10 @@
     
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    // Habilitar caché offline de Firestore para trabajar sin conexión
+    const db = initializeFirestore(app, {
+      localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+    });
     const storage = getStorage(app);
 
     const loginContainer = document.getElementById("login-container");
@@ -695,6 +698,19 @@
     window.firebaseApp = app;
     window.db = db;
     window.firebaseStorage = storage;
+
+    // Registrar Service Worker para funcionamiento Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('✅ ServiceWorker registrado con éxito:', registration.scope);
+          })
+          .catch(err => {
+            console.error('❌ Error al registrar ServiceWorker:', err);
+          });
+      });
+    }
   </script>
 
   <script src="script.js?v=2025101301"></script>

@@ -298,5 +298,19 @@
   <!-- Lógica del panel -->
   <script src="admin.js?v=FINAL2025101020" defer></script>
   <script src="admin-promotions.js?v=FINAL2025101020" defer></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('✅ ServiceWorker admin registrado con éxito:', registration.scope);
+          })
+          .catch(err => {
+            console.error('❌ Error al registrar ServiceWorker:', err);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
