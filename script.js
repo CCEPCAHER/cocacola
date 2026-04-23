@@ -714,7 +714,7 @@
 
       html += `<div class="product is-loading" data-section-name="${escapeHTML(sectionName)}">
         <div class="product-image-container skeleton">
-          <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" 
+          <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
             onload="this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton');">
         </div>
         <h3>${p.name || 'Producto sin nombre'}</h3>`;

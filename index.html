@@ -375,6 +375,7 @@
         
         // Crear nueva imagen y precargar
         const newImg = document.createElement('img');
+        newImg.crossOrigin = "anonymous";
         newImg.src = finalSrc;
         newImg.alt = `Imagen ${index + 1}`;
         newImg.title = 'Doble toque para ampliar / Pellizca para zoom';

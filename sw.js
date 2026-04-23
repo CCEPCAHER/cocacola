@@ -1,6 +1,6 @@
-const CACHE_NAME = "cocacola-fem-v2";
-const DYNAMIC_CACHE = "cocacola-dynamic-v2";
-const IMAGE_CACHE = "cocacola-images-v2";
+const CACHE_NAME = "cocacola-fem-v3";
+const DYNAMIC_CACHE = "cocacola-dynamic-v3";
+const IMAGE_CACHE = "cocacola-images-v3";
 
 const ASSETS_TO_CACHE = [
   "/",
@@ -47,29 +47,36 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // 1. Firebase Storage Images (Stale-While-Revalidate Strategy para que cambien al actualizarse)
+  // 1. Firebase Storage Images (Stale-While-Revalidate con limpieza de tokens)
   if (url.hostname.includes("firebasestorage.googleapis.com")) {
     event.respondWith(
-      caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+      caches.open(IMAGE_CACHE).then(async (cache) => {
+        // Intentar buscar en caché ignorando los parámetros de búsqueda (tokens)
+        const cachedResponse = await cache.match(event.request, { ignoreSearch: true });
+        
+        // Promesa de red para actualizar la caché
         const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
-            caches.open(IMAGE_CACHE).then(async (cache) => {
-              // Limpiar versiones anteriores de esta misma imagen (mismo pathname, distinto token)
-              const keys = await cache.keys();
-              const reqPathname = new URL(event.request.url).pathname;
-              for (const req of keys) {
-                if (new URL(req.url).pathname === reqPathname) {
-                  await cache.delete(req);
+          if (networkResponse && networkResponse.status === 200) {
+            // Clonar respuesta y guardar en caché
+            const responseToCache = networkResponse.clone();
+            
+            // Limpiar versiones viejas de la misma imagen para ahorrar espacio
+            const reqPathname = new URL(event.request.url).pathname;
+            cache.keys().then((keys) => {
+              keys.forEach((request) => {
+                if (new URL(request.url).pathname === reqPathname) {
+                  cache.delete(request);
                 }
-              }
-              cache.put(event.request, networkResponse.clone());
+              });
+              cache.put(event.request, responseToCache);
             });
           }
           return networkResponse;
-        }).catch((e) => {
-          console.log('Offline: Usando imagen de Firebase en caché');
+        }).catch((err) => {
+          console.warn("⚠️ Fallo de red en imagen, se usará caché si existe.");
         });
 
+        // Retornar la de caché si existe, sino esperar a la de red
         return cachedResponse || fetchPromise;
       })
     );
