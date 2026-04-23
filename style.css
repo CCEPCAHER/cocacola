@@ -59,6 +59,38 @@ html {
 }
 
 /* ========================
+   UTILITIES & SKELETONS
+========================= */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: #f6f7f8;
+  background-image: linear-gradient(
+    90deg, 
+    rgba(255, 255, 255, 0) 0, 
+    rgba(255, 255, 255, 0.2) 20%, 
+    rgba(255, 255, 255, 0.5) 60%, 
+    rgba(255, 255, 255, 0)
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+[data-theme="dark"] .skeleton {
+  background: #1e293b;
+  background-image: linear-gradient(
+    90deg, 
+    rgba(255, 255, 255, 0) 0, 
+    rgba(255, 255, 255, 0.05) 20%, 
+    rgba(255, 255, 255, 0.1) 60%, 
+    rgba(255, 255, 255, 0)
+  );
+}
+
+/* ========================
    HEADER CON BOTÓN DE CERRAR SESIÓN
 ========================= */
 header {
@@ -272,20 +304,30 @@ header h2 {
   background: var(--bg-card-hover);
 }
 
-.product img {
+.product-image-container {
   width: 100%;
   height: 190px;
-  object-fit: cover;
   border-radius: 12px;
   margin-bottom: 12px;
-  background: var(--bg-light);
-  transition: opacity 0.3s, transform 0.2s ease;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-glass);
+}
+
+.product-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
   pointer-events: none;
   /* Optimizaciones de memoria y rendimiento */
   image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  will-change: auto; /* Solo cuando sea necesario */
-  contain: layout style paint; /* Optimización de rendering */
+  will-change: opacity;
+  contain: layout style paint;
+}
+
+.product.is-loading img {
+  opacity: 0;
 }
 
 /* Indicador visual de que la imagen es clickeable */

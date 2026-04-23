@@ -101,6 +101,7 @@
       signInWithEmailAndPassword(auth, email, password)
         .then(() => {
           console.log("✅ Login exitoso");
+          if (window.triggerHaptic) window.triggerHaptic('success');
           mostrarContenido();
         })
         .catch(err => {
@@ -112,6 +113,7 @@
     logoutBtn.addEventListener("click", async () => {
       if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
       try {
+        if (window.triggerHaptic) window.triggerHaptic('medium');
         await signOut(auth);
         localStorage.removeItem("loggedInUser");
       } catch (error) {
@@ -324,10 +326,19 @@
         currentPanX = 0;
         currentPanY = 0;
 
-        showImage(currentIndex);
-        modal.classList.remove('hidden');
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        const performOpen = () => {
+          showImage(currentIndex);
+          modal.classList.remove('hidden');
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        };
+
+        if (window.triggerHaptic) window.triggerHaptic('medium');
+        if (document.startViewTransition) {
+          document.startViewTransition(performOpen);
+        } else {
+          performOpen();
+        }
       }
 
       async function showImage(index) {
@@ -546,12 +557,21 @@
         if (document.fullscreenElement) {
           document.exitFullscreen();
         }
-        modal.classList.remove('active');
-        setTimeout(() => {
-          modal.classList.add('hidden');
-          modalContent.innerHTML = '';
-          document.body.style.overflow = '';
-        }, 400);
+        const performClose = () => {
+          modal.classList.remove('active');
+          setTimeout(() => {
+            modal.classList.add('hidden');
+            modalContent.innerHTML = '';
+            document.body.style.overflow = '';
+          }, 400);
+        };
+
+        if (window.triggerHaptic) window.triggerHaptic('light');
+        if (document.startViewTransition) {
+          document.startViewTransition(performClose);
+        } else {
+          performClose();
+        }
       }
 
       async function toggleRealFullscreen(e) {

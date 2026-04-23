@@ -26,15 +26,25 @@ function initDarkMode() {
 
   // Alternar tema
   darkModeBtn.addEventListener('click', () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-      darkModeBtn.textContent = '🌙';
+    if (window.triggerHaptic) window.triggerHaptic('light');
+
+    const toggleTheme = () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        darkModeBtn.textContent = '🌙';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        darkModeBtn.textContent = '☀️';
+      }
+    };
+
+    if (document.startViewTransition) {
+      document.startViewTransition(toggleTheme);
     } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-      darkModeBtn.textContent = '☀️';
+      toggleTheme();
     }
   });
 }

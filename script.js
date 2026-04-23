@@ -3,6 +3,19 @@
 
   let promotionDates = {};
   
+  function triggerHaptic(type = 'light') {
+    if (!('vibrate' in navigator)) return;
+    const patterns = {
+      light: 15,
+      medium: 30,
+      heavy: 50,
+      error: [50, 80, 50],
+      success: [20, 50]
+    };
+    navigator.vibrate(patterns[type] || patterns.light);
+  }
+  window.triggerHaptic = triggerHaptic;
+  
   async function loadPromotionDatesFromFirestore() {
     try {
       let attempts = 0;
@@ -699,8 +712,11 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      html += `<div class="product" data-section-name="${escapeHTML(sectionName)}">
-        <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy">
+      html += `<div class="product is-loading" data-section-name="${escapeHTML(sectionName)}">
+        <div class="product-image-container skeleton">
+          <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" 
+            onload="this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton');">
+        </div>
         <h3>${p.name || 'Producto sin nombre'}</h3>`;
 
       // Mostrar días restantes + rango de fechas solo en el primer producto (índice 0)
@@ -822,6 +838,7 @@ if (p.endDate && i === 0) {
     btn.textContent = 'Añadido';
     updateTotalPrice();
     showToast(`Producto añadido: ${name}`);
+    triggerHaptic('success');
   }
 
   function removeFromCart(removeBtn, addBtnId) {
@@ -887,6 +904,7 @@ if (p.endDate && i === 0) {
     document.querySelectorAll('.product input[type="number"]').forEach(i => i.value = '');
     toggleCart();
     alert('✅ Pedido enviado y descargado');
+    triggerHaptic('heavy');
   }
 
   function exportToExcel(order) {
@@ -964,19 +982,25 @@ if (p.endDate && i === 0) {
 
   function filterSections() {
     const selected = document.getElementById('section-filter').value;
-    document.querySelectorAll('.section').forEach(s => {
-      const sectionName = s.dataset.section;
-      
-      if (!selected) {
-        // Si no hay filtro seleccionado, mostrar todas las secciones
-        s.style.display = 'block';
-      } else {
-        // Si hay filtro seleccionado, mostrar la sección principal y su versión SIGUIENTE
-        const shouldShow = sectionName === selected || 
-                          sectionName === selected + ' SIGUIENTE';
-        s.style.display = shouldShow ? 'block' : 'none';
-      }
-    });
+    triggerHaptic('light');
+
+    const applyFilter = () => {
+      document.querySelectorAll('.section').forEach(s => {
+        const sectionName = s.dataset.section;
+        if (!selected) {
+          s.style.display = 'block';
+        } else {
+          const shouldShow = sectionName === selected || sectionName === selected + ' SIGUIENTE';
+          s.style.display = shouldShow ? 'block' : 'none';
+        }
+      });
+    };
+
+    if (document.startViewTransition) {
+      document.startViewTransition(applyFilter);
+    } else {
+      applyFilter();
+    }
   }
 
   function addEventListeners() {
