@@ -117,29 +117,39 @@
     // CARGA BAJO DEMANDA (optimizada para memoria)
     // Solo cargamos las URLs cuando se necesitan, no todas de una vez
     async function loadImagesFromStorageBatched() {
+      // 1. Cargar caché de URLs guardada localmente (imprescindible para modo Offline)
       try {
-        // Inicializar mapa vacío - las URLs se cargarán bajo demanda
+        const cachedUrls = localStorage.getItem('firebaseImageUrls');
+        if (cachedUrls) {
+          window.firebaseImageUrls = JSON.parse(cachedUrls);
+        } else {
+          window.firebaseImageUrls = window.firebaseImageUrls || {};
+        }
+      } catch (e) {
         window.firebaseImageUrls = window.firebaseImageUrls || {};
+      }
+
+      try {
         window.firebaseImageFolders = window.firebaseImageFolders || {};
         
-        // Solo cachear la estructura de carpetas, no las URLs
+        // Cachear la estructura de carpetas
         const baseRef = ref(storage, 'images/');
         const top = await listAll(baseRef);
         
-        // Guardar referencias de carpetas para carga bajo demanda
+        // Guardar referencias de carpetas
         const folders = top.prefixes || [];
         for (const folderRef of folders) {
           const folderName = folderRef.name;
           window.firebaseImageFolders[folderName] = folderRef;
         }
-        
         console.log(`✅ Estructura de carpetas cargada: ${folders.length} carpetas`);
-        
+      } catch (e) {
+        console.warn('⚠️ Modo Offline: No se pudo obtener la estructura de carpetas de Storage', e);
+      } finally {
+        // Siempre intentamos mostrar las imágenes (las URL oxheadas permitirán cargar la caché)
         if (typeof window.updateProductImages === 'function') {
           window.updateProductImages();
         }
-      } catch (e) {
-        console.error('Error en carga por lotes:', e);
       }
     }
 
@@ -195,9 +205,15 @@
           const url = await getDownloadURL(ref(storage, key));
           map[key] = url;
           cleanupCache(); // Limpiar si es necesario
+          
+          // Guardar el mapa actualizado en localStorage para cuando no haya cobertura
+          try {
+            localStorage.setItem('firebaseImageUrls', JSON.stringify(map));
+          } catch(err) { /* Ignorar error de cuota excedida */ }
+          
           return url;
         } catch (e) {
-          console.error(`Error cargando imagen ${key}:`, e);
+          console.warn(`⚠️ Modo Offline: No se pudo obtener URL nueva para ${key}`);
           return null;
         } finally {
           activeLoads--;

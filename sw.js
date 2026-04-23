@@ -47,21 +47,24 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // 1. Firebase Storage Images (Cache First Strategy)
+  // 1. Firebase Storage Images (Stale-While-Revalidate Strategy para que cambien al actualizarse)
   if (url.hostname.includes("firebasestorage.googleapis.com")) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-
-        return fetch(event.request).then((networkResponse) => {
-          return caches.open(IMAGE_CACHE).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
-        }).catch(() => {
-          // Si falla y no está en caché, podríamos devolver una imagen placeholder
-          return new Response('');
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(IMAGE_CACHE).then((cache) => {
+              cache.put(event.request, networkResponse.clone());
+            });
+          }
+          return networkResponse;
+        }).catch((e) => {
+          console.log('Offline: Usando imagen de Firebase en caché');
         });
+
+        // Si hay caché, devolver rápido. Mientras tanto el fetch actualiza la caché (Stale-While-Revalidate).
+        // Si no hay caché, devolver la promesa del fetch.
+        return cachedResponse || fetchPromise;
       })
     );
     return;
