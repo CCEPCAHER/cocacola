@@ -9,7 +9,7 @@
   <title>CONSULTAS - Coca-Cola</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
   <style>
     .admin-link {
       display: block;
@@ -256,8 +256,9 @@
       }
 
       async function loadOne(img) {
-        // Si ya tiene src, no cargar de nuevo
-        if (img.src && !img.src.includes('data:')) return;
+        // Verificar si ya está cargada con una URL real de Firebase
+        const currentSrc = img.getAttribute('src') || '';
+        if (currentSrc && currentSrc.startsWith('http') && currentSrc.includes('firebasestorage')) return;
         
         const key = (img.dataset.src || '').trim();
         if (!key) return;
@@ -271,22 +272,17 @@
         }
       }
 
-      // IntersectionObserver con rootMargin reducido para cargar menos imágenes a la vez
+      // IntersectionObserver con rootMargin amplio para carruseles horizontales
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver((entries) => {
-          // Procesar solo las visibles (una a la vez para evitar sobrecarga)
           entries.forEach(e => {
             if (e.isIntersecting && e.target.classList.contains('lazy')) {
-              // Cargar con un pequeño delay para evitar picos de memoria
-              setTimeout(() => loadOne(e.target), Math.random() * 100);
+              setTimeout(() => loadOne(e.target), Math.random() * 80);
             } else if (!e.isIntersecting && !e.target.classList.contains('lazy')) {
-              // Si la imagen sale del viewport, liberar memoria (opcional, más agresivo)
-              // Solo liberar si hay muchas imágenes cargadas para evitar recargas constantes
               const allLoaded = document.querySelectorAll('img:not(.lazy)').length;
               if (allLoaded > 50) {
                 const img = e.target;
                 if (img.dataset.full && !img.closest('.fullscreen-modal-overlay')) {
-                  // No liberar si está en el modal
                   img.src = '';
                   img.classList.add('lazy');
                   observer.observe(img);
@@ -295,7 +291,7 @@
             }
           });
         }, { 
-          rootMargin: '100px 0px', // Reducido de 200px para cargar menos imágenes
+          rootMargin: '200px 600px', // Vertical 200px, Horizontal 600px para carruseles
           threshold: 0.01 
         });
         
@@ -792,7 +788,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=10"></script>
-  <script src="script.js?v=10"></script>
+  <script type="module" src="ui.js?v=11"></script>
+  <script src="script.js?v=11"></script>
 </body>
 </html>
