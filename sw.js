@@ -9,7 +9,9 @@ const ASSETS_TO_CACHE = [
   "./script.js?v=15",
   "./ui.js?v=15",
   "./manifest.json",
-  "./icons/icon-192.png"
+  "./favicon.ico",
+  "./icons/icon-192.png",
+  "./icons/icon-512x512.png"
 ];
 
 function getCleanUrl(url) {
@@ -80,7 +82,7 @@ self.addEventListener("fetch", (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        if (event.request.mode === 'navigate') return caches.match('/index.html');
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
       });
       return cachedResponse || fetchPromise;
     })
