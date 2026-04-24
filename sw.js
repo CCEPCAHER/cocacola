@@ -1,6 +1,6 @@
-const CACHE_NAME = "cocacola-fem-v12";
-const DYNAMIC_CACHE = "cocacola-dynamic-v12";
-const IMAGE_CACHE = "cocacola-images-v12";
+const CACHE_NAME = "cocacola-fem-v13";
+const DYNAMIC_CACHE = "cocacola-dynamic-v13";
+const IMAGE_CACHE = "cocacola-images-v13";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -44,27 +44,22 @@ self.addEventListener("fetch", (event) => {
   if (url.hostname.includes("firebasestorage.googleapis.com")) {
     const cleanUrl = getCleanUrl(event.request.url);
     
+    // STALE-WHILE-REVALIDATE: Sirve la caché al instante,
+    // pero actualiza en segundo plano para la próxima vez
     event.respondWith(
-      caches.match(cleanUrl).then((cachedResponse) => {
-        if (cachedResponse) {
-          console.log("📦 [SW] Imagen servida desde CACHÉ:", cleanUrl);
-          return cachedResponse;
-        }
+      caches.open(IMAGE_CACHE).then((cache) => {
+        return cache.match(cleanUrl).then((cachedResponse) => {
+          // Siempre intentar descargar la nueva versión en segundo plano
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
+            if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
+              cache.put(cleanUrl, networkResponse.clone());
+            }
+            return networkResponse;
+          }).catch(() => null); // Silenciar errores de red (modo offline)
 
-        console.log("🌐 [SW] Imagen no en caché, descargando de RED:", cleanUrl);
-        return fetch(event.request).then((networkResponse) => {
-          // Guardamos si es 200 (CORS OK) o 0 (Opaque/CORS fallando pero visible)
-          if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
-            const responseToCache = networkResponse.clone();
-            caches.open(IMAGE_CACHE).then((cache) => {
-              cache.put(cleanUrl, responseToCache);
-              console.log("✅ [SW] Imagen guardada en CACHÉ exitosamente");
-            });
-          }
-          return networkResponse;
-        }).catch((err) => {
-          console.error("❌ [SW] Error descargando imagen y no hay caché:", err);
-          throw err;
+          // Si hay caché, devolverla al instante (la actualización ocurre en segundo plano)
+          // Si NO hay caché, esperar a la red
+          return cachedResponse || fetchPromise;
         });
       })
     );
