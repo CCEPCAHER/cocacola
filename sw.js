@@ -1,6 +1,6 @@
-const CACHE_NAME = "cocacola-fem-v7";
-const DYNAMIC_CACHE = "cocacola-dynamic-v7";
-const IMAGE_CACHE = "cocacola-images-v7";
+const CACHE_NAME = "cocacola-fem-v8";
+const DYNAMIC_CACHE = "cocacola-dynamic-v8";
+const IMAGE_CACHE = "cocacola-images-v8";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -9,8 +9,7 @@ const ASSETS_TO_CACHE = [
   "./script.js",
   "./ui.js",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-192.png"
 ];
 
 function getCleanUrl(url) {
