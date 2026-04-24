@@ -188,7 +188,7 @@
               localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
             } catch (e) {}
           } else {
-            console.warn('⚠️ Documento de metadatos no existe en Firestore.');
+            console.log('ℹ️ No se encontraron metadatos en Firestore (esto es normal si no se ha subido ningún PDF aún). Se usarán los valores por defecto.');
           }
         }
       } catch (e) {
