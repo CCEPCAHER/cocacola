@@ -9,7 +9,7 @@
   <title>CONSULTAS - Coca-Cola</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
   <style>
     .admin-link {
       display: block;
@@ -196,69 +196,42 @@
       });
     };
 
-    // LAZY LOADING ON-DEMAND OPTIMIZADO (con límites de memoria)
+    // LAZY LOADING SIMPLIFICADO Y ROBUSTO
     window.lazyLoadImages = function() {
+      // Limpiar observer anterior si existe
+      if (window.imageObserver) {
+        window.imageObserver.disconnect();
+        window.imageObserver = null;
+      }
+
       const imgs = Array.from(document.querySelectorAll('img.lazy'));
       if (!imgs.length) return;
 
       const map = window.firebaseImageUrls = window.firebaseImageUrls || {};
-      
-      // Límite de imágenes cargadas simultáneamente
-      let activeLoads = 0;
-      const MAX_CONCURRENT_LOADS = 3; // Reducido para evitar sobrecarga
-      const MAX_CACHE_SIZE = 200; // Máximo de URLs en caché
-      
-      // Limpiar caché si excede el límite (mantener las más recientes)
-      function cleanupCache() {
-        const keys = Object.keys(map);
-        if (keys.length > MAX_CACHE_SIZE) {
-          // Eliminar las más antiguas (más de MAX_CACHE_SIZE)
-          const toRemove = keys.slice(0, keys.length - MAX_CACHE_SIZE);
-          toRemove.forEach(key => delete map[key]);
-          console.log(`🧹 Limpieza de caché: ${toRemove.length} URLs eliminadas`);
-        }
-      }
+      const loadQueue = [];
+      let isProcessing = false;
 
       async function ensureUrl(key) {
         if (map[key]) return map[key];
-        
-        // Esperar si hay demasiadas cargas activas
-        while (activeLoads >= MAX_CONCURRENT_LOADS) {
-          await new Promise(r => setTimeout(r, 50));
-        }
-        
         try {
-          activeLoads++;
           let url = await getDownloadURL(ref(storage, key)).catch(async (e) => {
-             // Si falla el thumbnail, probar la imagen completa (retrocompatibilidad)
-             if (key.includes('_thumb.jpg')) {
-               const fallbackKey = key.replace('_thumb.jpg', '.jpg');
-               return await getDownloadURL(ref(storage, fallbackKey));
-             }
-             throw e;
+            if (key.includes('_thumb.jpg')) {
+              return await getDownloadURL(ref(storage, key.replace('_thumb.jpg', '.jpg')));
+            }
+            throw e;
           });
-          
           map[key] = url;
-          cleanupCache(); // Limpiar si es necesario
-          
-          // Guardar el mapa actualizado en localStorage para cuando no haya cobertura
-          try {
-            localStorage.setItem('firebaseImageUrls', JSON.stringify(map));
-          } catch(err) { /* Ignorar error de cuota excedida */ }
-          
+          try { localStorage.setItem('firebaseImageUrls', JSON.stringify(map)); } catch(e) {}
           return url;
         } catch (e) {
-          console.warn(`⚠️ Modo Offline/Error: No se pudo obtener URL para ${key}`);
+          console.warn(`⚠️ No URL para ${key}`);
           return null;
-        } finally {
-          activeLoads--;
         }
       }
 
       async function loadOne(img) {
-        // Verificar si ya está cargada con una URL real de Firebase
         const currentSrc = img.getAttribute('src') || '';
-        if (currentSrc && currentSrc.startsWith('http') && currentSrc.includes('firebasestorage')) return;
+        if (currentSrc.includes('firebasestorage')) return;
         
         const key = (img.dataset.src || '').trim();
         if (!key) return;
@@ -268,42 +241,44 @@
           img.dataset.full = url;
           img.src = url;
           img.classList.remove('lazy');
-          if (window.imageObserver) window.imageObserver.unobserve(img);
         }
       }
 
-      // IntersectionObserver con rootMargin amplio para carruseles horizontales
+      // Procesar cola en lotes de 8
+      async function processQueue() {
+        if (isProcessing) return;
+        isProcessing = true;
+        while (loadQueue.length > 0) {
+          const batch = loadQueue.splice(0, 8);
+          await Promise.allSettled(batch.map(img => loadOne(img)));
+        }
+        isProcessing = false;
+      }
+
+      function queueImage(img) {
+        if (!img.classList.contains('lazy')) return;
+        loadQueue.push(img);
+        processQueue();
+      }
+
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(e => {
             if (e.isIntersecting && e.target.classList.contains('lazy')) {
-              setTimeout(() => loadOne(e.target), Math.random() * 80);
-            } else if (!e.isIntersecting && !e.target.classList.contains('lazy')) {
-              const allLoaded = document.querySelectorAll('img:not(.lazy)').length;
-              if (allLoaded > 50) {
-                const img = e.target;
-                if (img.dataset.full && !img.closest('.fullscreen-modal-overlay')) {
-                  img.src = '';
-                  img.classList.add('lazy');
-                  observer.observe(img);
-                }
-              }
+              queueImage(e.target);
+              observer.unobserve(e.target);
             }
           });
         }, { 
-          rootMargin: '200px 600px', // Vertical 200px, Horizontal 600px para carruseles
-          threshold: 0.01 
+          rootMargin: '300px 2000px',
+          threshold: 0
         });
         
         imgs.forEach(img => observer.observe(img));
-        
-        // Limpiar observador cuando ya no se necesite
         window.imageObserver = observer;
       } else {
-        // Fallback: cargar una por vez con delay
-        imgs.forEach((img, index) => {
-          setTimeout(() => loadOne(img), index * 100);
-        });
+        // Fallback: cargar todas directamente
+        imgs.forEach(img => queueImage(img));
       }
     };
 
@@ -788,7 +763,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=11"></script>
-  <script src="script.js?v=11"></script>
+  <script type="module" src="ui.js?v=12"></script>
+  <script src="script.js?v=12"></script>
 </body>
 </html>
