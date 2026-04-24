@@ -114,6 +114,8 @@
     .status-message { margin-top: 15px; }
     .promotions-list-container { margin-top: 30px; }
     .promotions-list-title { color: var(--color-primary); margin-bottom: 15px; }
+    .file-input-hidden { display: none; }
+    .label-no-margin { margin-bottom: 0 !important; }
   </style>
 </head>
 <body>
@@ -164,7 +166,7 @@
         <div id="drop-area" class="upload-area" tabindex="0" role="button" aria-label="Zona para arrastrar PDF">
           <p class="upload-title">📁 Arrastra el PDF aquí</p>
           <p class="upload-subtitle">o haz clic para seleccionar</p>
-          <input type="file" id="pdf-input" accept="application/pdf" style="display: none;">
+          <input type="file" id="pdf-input" accept="application/pdf" class="file-input-hidden">
         </div>
 
         <div id="progress-container" class="progress-container" aria-live="polite">
@@ -212,7 +214,7 @@
 
           <div class="flex-center-gap">
             <input type="checkbox" id="promotion-active" class="checkbox-custom">
-            <label for="promotion-active" class="form-label" style="margin-bottom:0">Promoción activa</label>
+            <label for="promotion-active" class="form-label label-no-margin">Promoción activa</label>
           </div>
 
           <button id="save-promotion-btn" class="btn-primary" type="button">💾 Guardar Cambios</button>
