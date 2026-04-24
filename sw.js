@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v15";
-const DYNAMIC_CACHE = "cocacola-dynamic-v15";
-const IMAGE_CACHE = "cocacola-images-v15";
+const CACHE_NAME = "cocacola-fem-v16";
+const DYNAMIC_CACHE = "cocacola-dynamic-v16";
+const IMAGE_CACHE = "cocacola-images-v16";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=15",
-  "./script.js?v=15",
-  "./ui.js?v=15",
+  "./style.css?v=16",
+  "./script.js?v=16",
+  "./ui.js?v=16",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
@@ -16,7 +16,7 @@ const ASSETS_TO_CACHE = [
 
 function getCleanUrl(url) {
   const cleanUrl = new URL(url);
-  if (cleanUrl.hostname.includes("firebasestorage.googleapis.com")) {
+  if (cleanUrl.hostname.includes("firebasestorage.googleapis.com") || cleanUrl.hostname.includes("firebasestorage.app")) {
     cleanUrl.search = ""; 
   }
   return cleanUrl.toString();
@@ -43,7 +43,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  if (url.hostname.includes("firebasestorage.googleapis.com")) {
+  if (url.hostname.includes("firebasestorage.googleapis.com") || url.hostname.includes("firebasestorage.app")) {
     const cleanUrl = getCleanUrl(event.request.url);
     
     // STALE-WHILE-REVALIDATE: Sirve la caché al instante,
@@ -61,8 +61,8 @@ self.addEventListener("fetch", (event) => {
           }).catch(() => null); 
 
           // Si hay caché, devolverla al instante (la actualización ocurre en segundo plano)
-          // Si NO hay caché, esperar a la red
-          return cachedResponse || fetchPromise;
+          // Si NO hay caché, esperar a la red. Si la red falla, dejar que el navegador maneje el error
+          return cachedResponse || fetchPromise || fetch(event.request);
         });
       })
     );

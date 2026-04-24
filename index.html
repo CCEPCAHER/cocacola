@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
   <style>
     .admin-link {
       display: block;
@@ -264,12 +264,9 @@
           img.src = url;
           img.classList.remove('lazy');
         } else {
-          // La imagen no existe en Firebase Storage - ocultar el contenedor
-          const product = img.closest('.product');
-          if (product) {
-            product.style.display = 'none';
-            console.log(`🚫 Ocultando producto sin imagen: ${key}`);
-          }
+          // La imagen no existe en Firebase Storage o hay error de red
+          console.warn(`🚫 No se pudo obtener URL para: ${key}`);
+          // No ocultamos el producto para evitar que "desaparezcan todos" si hay un error temporal
         }
       }
 
@@ -792,7 +789,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=15"></script>
-  <script src="script.js?v=15"></script>
+  <script type="module" src="ui.js?v=16"></script>
+  <script src="script.js?v=16"></script>
 </body>
 </html>
