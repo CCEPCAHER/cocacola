@@ -226,6 +226,32 @@
           <h3 class="promotions-list-title">Promociones Configuradas:</h3>
           <div id="promotions-list"></div>
         </div>
+    </div>
+
+      <!-- SECCIÓN: CREAR USUARIO -->
+      <div class="admin-section">
+        <h2>👥 Crear Nuevo Usuario</h2>
+        <div class="instruction-box">
+          <h3>📋 Instrucciones:</h3>
+          <p style="margin-left: 20px; color: #856404;">
+            Crea cuentas de acceso para que nuevos usuarios puedan entrar a la aplicación de la tienda.
+            Esto no cerrará tu sesión de administrador.
+          </p>
+        </div>
+        
+        <form id="create-user-form" class="promotion-form">
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label for="new-user-email" class="form-label">Correo Electrónico:</label>
+              <input type="email" id="new-user-email" class="section-select form-input-full" placeholder="usuario@grupocaher.com" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="new-user-password" class="form-label">Contraseña (Mín. 6 caracteres):</label>
+              <input type="password" id="new-user-password" class="section-select form-input-full" placeholder="******" minlength="6" required autocomplete="new-password">
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-create-user">👤 Crear Usuario</button>
+        </form>
       </div>
 
     </div>
@@ -246,7 +272,7 @@
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
@@ -310,6 +336,46 @@
         alert("❌ Error al cerrar sesión");
       }
     });
+
+    // --- LÓGICA PARA CREAR NUEVO USUARIO ---
+    const createUserForm = document.getElementById("create-user-form");
+    if (createUserForm) {
+      createUserForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("new-user-email").value.trim();
+        const password = document.getElementById("new-user-password").value;
+        const btn = document.getElementById("btn-create-user");
+        
+        btn.disabled = true;
+        btn.textContent = "⏳ Creando...";
+        
+        try {
+          // Inicializar instancia secundaria para no cerrar la sesión del admin
+          const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+          const secondaryAuth = getAuth(secondaryApp);
+          
+          await createUserWithEmailAndPassword(secondaryAuth, email, password);
+          
+          // Cerramos la sesión secundaria para limpiar el estado
+          await signOut(secondaryAuth);
+          
+          alert(`✅ ¡El usuario ${email} ha sido creado con éxito!`);
+          createUserForm.reset();
+        } catch (error) {
+          console.error("Error al crear usuario:", error);
+          if (error.code === 'auth/email-already-in-use') {
+            alert("❌ Ese correo electrónico ya está registrado.");
+          } else if (error.code === 'auth/weak-password') {
+            alert("❌ La contraseña debe tener al menos 6 caracteres.");
+          } else {
+            alert(`❌ Error al crear usuario: ${error.message}`);
+          }
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "👤 Crear Usuario";
+        }
+      });
+    }
   </script>
 
   <!-- Lógica del panel -->
