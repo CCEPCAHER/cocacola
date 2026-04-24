@@ -1,6 +1,6 @@
-const CACHE_NAME = "cocacola-fem-v9";
-const DYNAMIC_CACHE = "cocacola-dynamic-v9";
-const IMAGE_CACHE = "cocacola-images-v9";
+const CACHE_NAME = "cocacola-fem-v10";
+const DYNAMIC_CACHE = "cocacola-dynamic-v10";
+const IMAGE_CACHE = "cocacola-images-v10";
 
 const ASSETS_TO_CACHE = [
   "./",
