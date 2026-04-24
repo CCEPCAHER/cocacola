@@ -10,6 +10,20 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-link {
+      display: block;
+      margin-top: 15px;
+      text-align: center;
+      color: var(--color-primary);
+      font-size: 0.9rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.3s;
+    }
+    .admin-link:hover { opacity: 0.8; }
+    #product-list.hidden { display: none; }
+  </style>
 </head>
 <body>
 
@@ -19,7 +33,7 @@
       <input type="text" id="username" name="username" placeholder="Usuario (email)" autocomplete="username" required>
       <input type="password" id="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
       <button type="submit">Entrar</button>
-      <a href="admin.html" style="display: block; margin-top: 15px; text-align: center; color: var(--color-primary); font-size: 0.9rem; text-decoration: none; font-weight: 600;">⚙️ Panel de Administración</a>
+      <a href="admin.html" class="admin-link">⚙️ Panel de Administración</a>
     </form>
   </div>
 
@@ -33,7 +47,9 @@
       </div>
     </header>
     <main>
-      <div class="dropdown-container"><div id="filter-container"></div></div>
+      <div class="dropdown-container">
+        <div id="filter-container"></div>
+      </div>
       <section id="product-list" aria-live="polite"></section>
     </main>
   </div>

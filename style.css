@@ -283,8 +283,8 @@ header h2 {
 ========================= */
 .product {
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
   border-radius: 30px;
   box-shadow: var(--shadow-premium);
@@ -368,8 +368,8 @@ header h2 {
   border-radius: 50px;
   text-align: center;
   z-index: 10;
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
   font-weight: 800;

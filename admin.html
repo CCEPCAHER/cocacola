@@ -99,6 +99,21 @@
     .header-right { display: flex; align-items: center; gap: 15px; }
     #admin-panel header h1 { margin: 0; font-size: 1.8rem; }
     #admin-panel header h2 { margin: 5px 0 0 0; font-size: 0.9rem; color: #666; font-weight: normal; }
+    
+    /* Nuevas clases para eliminar estilos inline */
+    .upload-title { font-size: 1.2rem; margin-bottom: 10px; }
+    .upload-subtitle { color: #666; }
+    .progress-text { margin-top: 10px; text-align: center; }
+    .promotion-form { margin-top: 20px; }
+    .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: bold; }
+    .form-input-full { width: 100%; }
+    .flex-center-gap { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+    .checkbox-custom { width: 20px; height: 20px; }
+    .status-message { margin-top: 15px; }
+    .promotions-list-container { margin-top: 30px; }
+    .promotions-list-title { color: var(--color-primary); margin-bottom: 15px; }
   </style>
 </head>
 <body>
@@ -147,8 +162,8 @@
         </select>
 
         <div id="drop-area" class="upload-area" tabindex="0" role="button" aria-label="Zona para arrastrar PDF">
-          <p style="font-size: 1.2rem; margin-bottom: 10px;">📁 Arrastra el PDF aquí</p>
-          <p style="color: #666;">o haz clic para seleccionar</p>
+          <p class="upload-title">📁 Arrastra el PDF aquí</p>
+          <p class="upload-subtitle">o haz clic para seleccionar</p>
           <input type="file" id="pdf-input" accept="application/pdf" style="display: none;">
         </div>
 
@@ -156,7 +171,7 @@
           <div class="progress-bar">
             <div id="progress-fill" class="progress-fill">0%</div>
           </div>
-          <p id="progress-text" style="margin-top: 10px; text-align: center;"></p>
+          <p id="progress-text" class="progress-text"></p>
         </div>
 
         <div id="alert-container" aria-live="polite"></div>
@@ -183,30 +198,30 @@
           <option value="">Selecciona una promoción...</option>
         </select>
 
-        <div id="promotion-dates-form" style="display: none; margin-top: 20px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-              <label for="start-date" style="display: block; margin-bottom: 8px; font-weight: bold;">Fecha de Inicio:</label>
-              <input type="date" id="start-date" class="section-select" style="width: 100%;">
+        <div id="promotion-dates-form" class="promotion-form hidden">
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label for="start-date" class="form-label">Fecha de Inicio:</label>
+              <input type="date" id="start-date" class="section-select form-input-full">
             </div>
-            <div>
-              <label for="end-date" style="display: block; margin-bottom: 8px; font-weight: bold;">Fecha de Fin:</label>
-              <input type="date" id="end-date" class="section-select" style="width: 100%;">
+            <div class="form-group">
+              <label for="end-date" class="form-label">Fecha de Fin:</label>
+              <input type="date" id="end-date" class="section-select form-input-full">
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
-            <input type="checkbox" id="promotion-active" style="width: 20px; height: 20px;">
-            <label for="promotion-active" style="font-weight: bold;">Promoción activa</label>
+          <div class="flex-center-gap">
+            <input type="checkbox" id="promotion-active" class="checkbox-custom">
+            <label for="promotion-active" class="form-label" style="margin-bottom:0">Promoción activa</label>
           </div>
 
           <button id="save-promotion-btn" class="btn-primary" type="button">💾 Guardar Cambios</button>
           
-          <div id="promotion-status" style="margin-top: 15px;"></div>
+          <div id="promotion-status" class="status-message"></div>
         </div>
 
-        <div id="current-promotions" style="margin-top: 30px;">
-          <h3 style="color: var(--color-primary); margin-bottom: 15px;">Promociones Configuradas:</h3>
+        <div id="current-promotions" class="promotions-list-container">
+          <h3 class="promotions-list-title">Promociones Configuradas:</h3>
           <div id="promotions-list"></div>
         </div>
       </div>
