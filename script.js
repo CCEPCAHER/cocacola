@@ -95,8 +95,7 @@
     return defaultDate;
   }
 
-  // Lista de secciones de la app (fuente de verdad: sectionImageCounts)
-  const SECTION_NAMES = Object.keys(sectionImageCounts);
+
 
   async function initializeApp() {
     // Cargar fechas de promociones primero
@@ -158,6 +157,9 @@
     'FEM ECI SIGUIENTE': 10,
     'IMPLANTACIONES': 5
   };
+
+  // Lista de secciones de la app (fuente de verdad: sectionImageCounts)
+  const SECTION_NAMES = Object.keys(sectionImageCounts);
 
   // Función para generar productos dinámicamente basándose en las imágenes disponibles
   function generateProductsFromImages(sectionName) {

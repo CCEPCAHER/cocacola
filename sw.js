@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v14";
-const DYNAMIC_CACHE = "cocacola-dynamic-v14";
-const IMAGE_CACHE = "cocacola-images-v14";
+const CACHE_NAME = "cocacola-fem-v15";
+const DYNAMIC_CACHE = "cocacola-dynamic-v15";
+const IMAGE_CACHE = "cocacola-images-v15";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=14",
-  "./script.js?v=14",
-  "./ui.js?v=14",
+  "./style.css?v=15",
+  "./script.js?v=15",
+  "./ui.js?v=15",
   "./manifest.json",
   "./icons/icon-192.png"
 ];
@@ -52,10 +52,11 @@ self.addEventListener("fetch", (event) => {
           // Siempre intentar descargar la nueva versión en segundo plano
           const fetchPromise = fetch(event.request).then((networkResponse) => {
             if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
-              cache.put(cleanUrl, networkResponse.clone());
+              const responseToCache = networkResponse.clone();
+              cache.put(cleanUrl, responseToCache);
             }
             return networkResponse;
-          }).catch(() => null); // Silenciar errores de red (modo offline)
+          }).catch(() => null); 
 
           // Si hay caché, devolverla al instante (la actualización ocurre en segundo plano)
           // Si NO hay caché, esperar a la red
@@ -74,7 +75,8 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
-          caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, networkResponse.clone()));
+          const responseToCache = networkResponse.clone();
+          caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, responseToCache));
         }
         return networkResponse;
       }).catch(() => {
