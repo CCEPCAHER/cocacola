@@ -102,28 +102,44 @@
     await loadPromotionDatesFromFirestore();
     
     // Luego actualizar la lista de productos con las fechas correctas
-    updateProductList();
+    // (Solo si no se ha actualizado ya dentro de loadPromotionDatesFromFirestore)
+    if (document.getElementById('product-list') && document.getElementById('product-list').innerHTML === '') {
+      updateProductList();
+    }
+    
     createFilterDropdown();
     addEventListeners();
     if (window.initFullscreenModal) window.initFullscreenModal();
     
-    // Cargar fechas de promociones con retraso como respaldo
-    setTimeout(loadPromotionDatesFromFirestore, 1000);
-    setTimeout(loadPromotionDatesFromFirestore, 3000);
+    // Eliminamos los setTimeouts redundantes que causaban re-renderizados jarreantes
+    // y daban la sensación de que los productos "desaparecían".
   }
 
   function updateProductList() {
     const productListElem = document.getElementById('product-list');
     if (!productListElem) return;
 
-    productListElem.innerHTML = SECTION_NAMES
+    // Generar el nuevo HTML
+    const newHTML = SECTION_NAMES
       .map(sectionName => {
         const dynamicProducts = generateProductsFromImages(sectionName);
         return `<div class="section" data-section="${sectionName}">${createSection(sectionName, dynamicProducts)}</div>`;
       }).join('');
 
-    if (window.updateProductImages) window.updateProductImages();
-    if (window.lazyLoadImages) window.lazyLoadImages();
+    // Solo actualizar el DOM si el contenido ha cambiado para evitar parpadeos
+    if (productListElem.innerHTML !== newHTML) {
+      productListElem.innerHTML = newHTML;
+      
+      // Re-inicializar utilidades que dependen del nuevo DOM
+      if (window.updateProductImages) window.updateProductImages();
+      if (window.lazyLoadImages) window.lazyLoadImages();
+      
+      // Si hay un filtro activo, aplicarlo al nuevo contenido
+      const filter = document.getElementById('section-filter');
+      if (filter && filter.value && typeof filterSections === 'function') {
+        filterSections();
+      }
+    }
   }
 
 
@@ -146,7 +162,7 @@
     'FEM SCLAT BONPREU': 8,
     'FEM SCLAT BONPREU SIGUIENTE': 8,
     'FEM CAPRABO': 15,
-    'FEM CAPRABO SIGUIENTE':158,
+    'FEM CAPRABO SIGUIENTE': 15,
     'FEM CONSUM': 10,
     'FEM CONSUM SIGUIENTE': 10,
     'FEM CONDIS': 3,
@@ -169,16 +185,21 @@
     // Usar el conteo real de Firebase Storage si está disponible,
     // sino usar el conteo configurado como fallback
     const actualCounts = window.firebaseImageActualCounts || {};
-    const imageCount = actualCounts[baseName] !== undefined 
+    const imageCount = Math.min(actualCounts[baseName] !== undefined 
       ? actualCounts[baseName] 
-      : (sectionImageCounts[sectionName] || 5);
+      : (sectionImageCounts[sectionName] || 1), 100); 
+    
+    // Si el conteo es 0 pero la sección debería tener algo por defecto, asegurar al menos 1
+    // Esto evita que las secciones desaparezcan totalmente si hay un error de sincronización
+    const finalCount = imageCount === 0 && sectionImageCounts[sectionName] > 0 ? 1 : imageCount;
+    // Límite de seguridad de 100 imágenes por sección
     
     // Secciones que NO deben tener fechas
     const sectionsWithoutDates = ['ORDEN DE MARCAS', 'EEAA Y PUNTUACION'];
     const hasDates = !sectionsWithoutDates.includes(sectionName);
     
     // Generar productos basándose en las imágenes disponibles
-    for (let i = 0; i < imageCount; i++) {
+    for (let i = 0; i < finalCount; i++) {
       const imagePath = `images/${baseName}/${baseName}_${i}.jpg`;
       const productName = sectionName.includes('SIGUIENTE') 
         ? `${sectionName.replace(' SIGUIENTE', '')} Siguiente Producto ${i + 1}`

@@ -148,54 +148,63 @@
     // CARGA BAJO DEMANDA (optimizada para memoria)
     // Solo cargamos las URLs cuando se necesitan, no todas de una vez
     async function loadImagesFromStorageBatched() {
-      // 1. Cargar caché de URLs guardada localmente (imprescindible para modo Offline)
+      // 1. Cargar caché de URLs guardada localmente
       try {
         const cachedUrls = localStorage.getItem('firebaseImageUrls');
         if (cachedUrls) {
           window.firebaseImageUrls = JSON.parse(cachedUrls);
-        } else {
-          window.firebaseImageUrls = window.firebaseImageUrls || {};
         }
-      } catch (e) {
-        window.firebaseImageUrls = window.firebaseImageUrls || {};
-      }
+      } catch (e) {}
+      window.firebaseImageUrls = window.firebaseImageUrls || {};
 
-      // Cargar conteos reales de caché local primero
+      // 2. Cargar conteos reales de caché local primero
       try {
         const cachedCounts = localStorage.getItem('firebaseImageActualCounts');
         if (cachedCounts) {
-          window.firebaseImageActualCounts = JSON.parse(cachedCounts);
+          const parsedCounts = JSON.parse(cachedCounts);
+          window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...parsedCounts };
         }
       } catch (e) {}
+      window.firebaseImageActualCounts = window.firebaseImageActualCounts || {};
 
+      // 3. Intentar actualizar desde Firestore
       try {
-        window.firebaseImageActualCounts = window.firebaseImageActualCounts || {};
-        
-        // Cargar conteos directamente desde Firestore (1 sola petición en vez de ~28 listAll)
-        try {
+        if (auth.currentUser) {
+          console.log('📡 Sincronizando conteos desde Firestore...');
           const countsDoc = await getDoc(doc(db, 'metadata', 'imageCounts'));
+          
           if (countsDoc.exists()) {
-            const counts = countsDoc.data();
-            window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...counts };
-            console.log(`✅ Conteos cargados desde Firestore:`, window.firebaseImageActualCounts);
+            const remoteCounts = countsDoc.data();
+            // Filtrar valores nulos o corruptos
+            const cleanCounts = {};
+            for (const [key, val] of Object.entries(remoteCounts)) {
+              if (typeof val === 'number' && val >= 0) cleanCounts[key] = val;
+            }
+            
+            window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...cleanCounts };
+            console.log(`✅ Conteos sincronizados:`, window.firebaseImageActualCounts);
+            
+            try {
+              localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
+            } catch (e) {}
+          } else {
+            console.warn('⚠️ Documento de metadatos no existe en Firestore.');
           }
-        } catch (e) {
-          console.warn('⚠️ No se pudieron obtener conteos de Firestore:', e);
         }
-        
-        // Guardar conteos en caché local
-        try {
-          localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
-        } catch (e) {}
-        
-        // Re-renderizar la lista de productos con los conteos reales
+      } catch (e) {
+        if (e.message && (e.message.includes('permission') || e.code === 'permission-denied')) {
+          console.error('❌ Error de Permisos en Firestore:', e);
+          if (window.showToast) window.showToast('⚠️ No se pudieron sincronizar todos los datos', 'error');
+        } else {
+          console.warn('⚠️ Error al obtener conteos:', e);
+        }
+      } finally {
+        // Solo renderizar si tenemos una función válida
         if (typeof window.updateProductListFromScript === 'function') {
           window.updateProductListFromScript();
         }
-      } catch (e) {
-        console.warn('⚠️ Modo Offline: No se pudo actualizar conteos', e);
-      } finally {
-        // Siempre intentamos mostrar las imágenes
+        
+        // Actualizar imágenes después del render
         if (typeof window.updateProductImages === 'function') {
           window.updateProductImages();
         }
