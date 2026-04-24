@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v16";
-const DYNAMIC_CACHE = "cocacola-dynamic-v16";
-const IMAGE_CACHE = "cocacola-images-v16";
+const CACHE_NAME = "cocacola-fem-v17";
+const DYNAMIC_CACHE = "cocacola-dynamic-v17";
+const IMAGE_CACHE = "cocacola-images-v17";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=16",
-  "./script.js?v=16",
-  "./ui.js?v=16",
+  "./style.css?v=17",
+  "./script.js?v=17",
+  "./ui.js?v=17",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
@@ -41,6 +41,11 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Solo procesar peticiones GET y protocolos http/https
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+    return;
+  }
+
   const url = new URL(event.request.url);
 
   if (url.hostname.includes("firebasestorage.googleapis.com") || url.hostname.includes("firebasestorage.app")) {
