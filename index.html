@@ -248,7 +248,7 @@
           img.dataset.full = url;
           img.src = url;
           img.classList.remove('lazy');
-          if (observer) observer.unobserve(img);
+          if (window.imageObserver) window.imageObserver.unobserve(img);
         }
       }
 
