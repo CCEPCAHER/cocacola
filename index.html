@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Consultas de promociones y productos Coca-Cola CCEP">
+  <meta name="theme-color" content="#F40009">
+  <meta property="og:title" content="Consultas Coca-Cola CCEP">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>CONSULTAS - Coca-Cola</title>
   <link rel="manifest" href="manifest.json">
@@ -64,7 +67,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getStorage, ref, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -165,30 +168,18 @@
       } catch (e) {}
 
       try {
-        window.firebaseImageFolders = window.firebaseImageFolders || {};
         window.firebaseImageActualCounts = window.firebaseImageActualCounts || {};
         
-        // Cachear la estructura de carpetas
-        const baseRef = ref(storage, 'images/');
-        const top = await listAll(baseRef);
-        
-        // Guardar referencias de carpetas y contar imágenes reales
-        const folders = top.prefixes || [];
-        for (const folderRef of folders) {
-          const folderName = folderRef.name;
-          window.firebaseImageFolders[folderName] = folderRef;
-          
-          // Contar imágenes reales en la carpeta (excluyendo thumbnails)
-          try {
-            const folderContents = await listAll(folderRef);
-            const realImages = folderContents.items.filter(item => 
-              !item.name.includes('_thumb')
-            );
-            window.firebaseImageActualCounts[folderName] = realImages.length;
-            console.log(`📁 ${folderName}: ${realImages.length} imágenes reales`);
-          } catch (e) {
-            console.warn(`⚠️ No se pudo contar imágenes en ${folderName}:`, e);
+        // Cargar conteos directamente desde Firestore (1 sola petición en vez de ~28 listAll)
+        try {
+          const countsDoc = await getDoc(doc(db, 'metadata', 'imageCounts'));
+          if (countsDoc.exists()) {
+            const counts = countsDoc.data();
+            window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...counts };
+            console.log(`✅ Conteos cargados desde Firestore:`, window.firebaseImageActualCounts);
           }
+        } catch (e) {
+          console.warn('⚠️ No se pudieron obtener conteos de Firestore:', e);
         }
         
         // Guardar conteos en caché local
@@ -196,16 +187,14 @@
           localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
         } catch (e) {}
         
-        console.log(`✅ Estructura de carpetas cargada: ${folders.length} carpetas`, window.firebaseImageActualCounts);
-        
         // Re-renderizar la lista de productos con los conteos reales
         if (typeof window.updateProductListFromScript === 'function') {
           window.updateProductListFromScript();
         }
       } catch (e) {
-        console.warn('⚠️ Modo Offline: No se pudo obtener la estructura de carpetas de Storage', e);
+        console.warn('⚠️ Modo Offline: No se pudo actualizar conteos', e);
       } finally {
-        // Siempre intentamos mostrar las imágenes (las URL cacheadas permitirán cargar la caché)
+        // Siempre intentamos mostrar las imágenes
         if (typeof window.updateProductImages === 'function') {
           window.updateProductImages();
         }

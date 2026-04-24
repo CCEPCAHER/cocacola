@@ -17,10 +17,10 @@ const waitForFirebase = setInterval(() => {
     // Cargar Firebase Storage dinámicamente
     import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js')
       .then(module => {
-        const { getStorage, ref, uploadBytes, getDownloadURL, listAll } = module;
+        const { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } = module;
         const app = window.adminAuth.app || window.adminAuth.auth.app;
         storage = getStorage(app);
-        storageModule = { ref, uploadBytes, getDownloadURL, listAll };
+        storageModule = { ref, uploadBytes, getDownloadURL, listAll, deleteObject };
         console.log('✅ Firebase Storage inicializado');
       })
       .catch(err => console.error('❌ Error al cargar Storage:', err));
@@ -138,8 +138,18 @@ function initPDFConverter() {
       if (progressContainer) progressContainer.style.display = 'block';
       if (previewContainer) previewContainer.innerHTML = '';
 
+      // LIMPIAR IMÁGENES ANTIGUAS antes de subir las nuevas
+      showAlert('🗑️ Eliminando imágenes antiguas...', 'info');
+      const deletedCount = await deleteOldImages(section);
+      if (deletedCount > 0) {
+        console.log(`🗑️ Eliminadas ${deletedCount} imágenes antiguas de ${section}`);
+      }
+
       // LLAMADA A LA FUNCIÓN DE CONVERSIÓN Y CARGA SEGURA
       await convertAndUploadPDF(file, section);
+
+      // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
+      await saveImageCountToFirestore(section, file);
 
       showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
     } catch (error) {
@@ -409,6 +419,55 @@ function initPDFConverter() {
           alertContainer.innerHTML = '';
         }, 4000);
       }
+    }
+  }
+
+  // === Eliminar imágenes antiguas de una sección ===
+  async function deleteOldImages(section) {
+    if (!storage || !storageModule) return 0;
+    
+    const { ref, listAll, deleteObject } = storageModule;
+    const folderName = section.toLowerCase().replace(/\s+/g, '_');
+    const folderRef = ref(storage, `images/${folderName}/`);
+    
+    try {
+      const existing = await listAll(folderRef);
+      if (existing.items.length === 0) return 0;
+      
+      console.log(`🗑️ Eliminando ${existing.items.length} archivos de images/${folderName}/`);
+      await Promise.all(existing.items.map(item => deleteObject(item)));
+      return existing.items.length;
+    } catch (error) {
+      console.warn(`⚠️ Error al limpiar imágenes antiguas: ${error.message}`);
+      return 0;
+    }
+  }
+
+  // === Guardar conteo de imágenes en Firestore ===
+  async function saveImageCountToFirestore(section, file) {
+    try {
+      const { getFirestore, doc, setDoc } = await import(
+        'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
+      );
+      const app = window.adminAuth.app || window.adminAuth.auth.app;
+      const db = getFirestore(app);
+      
+      // Contar páginas del PDF subido
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8 = new Uint8Array(arrayBuffer);
+      const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+      const pdf = await loadingTask.promise;
+      const numPages = pdf.numPages;
+      
+      const folderName = section.toLowerCase().replace(/\s+/g, '_');
+      
+      await setDoc(doc(db, 'metadata', 'imageCounts'), {
+        [folderName]: numPages
+      }, { merge: true });
+      
+      console.log(`✅ Conteo guardado en Firestore: ${folderName} = ${numPages} imágenes`);
+    } catch (error) {
+      console.warn('⚠️ No se pudo guardar conteo en Firestore:', error.message);
     }
   }
 
