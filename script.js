@@ -608,7 +608,13 @@
   function generateProductsFromImages(sectionName) {
     const products = [];
     const baseName = sectionName.toLowerCase().replace(/\s+/g, '_');
-    const imageCount = sectionImageCounts[sectionName] || 5; // Default a 5 si no está configurado
+    
+    // Usar el conteo real de Firebase Storage si está disponible,
+    // sino usar el conteo configurado como fallback
+    const actualCounts = window.firebaseImageActualCounts || {};
+    const imageCount = actualCounts[baseName] !== undefined 
+      ? actualCounts[baseName] 
+      : (sectionImageCounts[sectionName] || 5);
     
     // Secciones que NO deben tener fechas
     const sectionsWithoutDates = ['ORDEN DE MARCAS', 'EEAA Y PUNTUACION'];
@@ -715,7 +721,8 @@
       html += `<div class="product is-loading" data-section-name="${escapeHTML(sectionName)}">
         <div class="product-image-container skeleton">
           <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
-            onload="this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton');">
+            onload="this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton');"
+            onerror="this.closest('.product').style.display='none';">
         </div>
         <h3>${p.name || 'Producto sin nombre'}</h3>`;
 
@@ -1014,6 +1021,7 @@ if (p.endDate && i === 0) {
   window.validateInput = validateInput;
   window.addToCart = addToCart;
   window.removeFromCart = removeFromCart;
+  window.updateProductListFromScript = updateProductList;
 
   document.addEventListener('DOMContentLoaded', initializeApp);
 })();

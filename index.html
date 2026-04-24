@@ -156,24 +156,56 @@
         window.firebaseImageUrls = window.firebaseImageUrls || {};
       }
 
+      // Cargar conteos reales de caché local primero
+      try {
+        const cachedCounts = localStorage.getItem('firebaseImageActualCounts');
+        if (cachedCounts) {
+          window.firebaseImageActualCounts = JSON.parse(cachedCounts);
+        }
+      } catch (e) {}
+
       try {
         window.firebaseImageFolders = window.firebaseImageFolders || {};
+        window.firebaseImageActualCounts = window.firebaseImageActualCounts || {};
         
         // Cachear la estructura de carpetas
         const baseRef = ref(storage, 'images/');
         const top = await listAll(baseRef);
         
-        // Guardar referencias de carpetas
+        // Guardar referencias de carpetas y contar imágenes reales
         const folders = top.prefixes || [];
         for (const folderRef of folders) {
           const folderName = folderRef.name;
           window.firebaseImageFolders[folderName] = folderRef;
+          
+          // Contar imágenes reales en la carpeta (excluyendo thumbnails)
+          try {
+            const folderContents = await listAll(folderRef);
+            const realImages = folderContents.items.filter(item => 
+              !item.name.includes('_thumb')
+            );
+            window.firebaseImageActualCounts[folderName] = realImages.length;
+            console.log(`📁 ${folderName}: ${realImages.length} imágenes reales`);
+          } catch (e) {
+            console.warn(`⚠️ No se pudo contar imágenes en ${folderName}:`, e);
+          }
         }
-        console.log(`✅ Estructura de carpetas cargada: ${folders.length} carpetas`);
+        
+        // Guardar conteos en caché local
+        try {
+          localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
+        } catch (e) {}
+        
+        console.log(`✅ Estructura de carpetas cargada: ${folders.length} carpetas`, window.firebaseImageActualCounts);
+        
+        // Re-renderizar la lista de productos con los conteos reales
+        if (typeof window.updateProductListFromScript === 'function') {
+          window.updateProductListFromScript();
+        }
       } catch (e) {
         console.warn('⚠️ Modo Offline: No se pudo obtener la estructura de carpetas de Storage', e);
       } finally {
-        // Siempre intentamos mostrar las imágenes (las URL oxheadas permitirán cargar la caché)
+        // Siempre intentamos mostrar las imágenes (las URL cacheadas permitirán cargar la caché)
         if (typeof window.updateProductImages === 'function') {
           window.updateProductImages();
         }
@@ -241,6 +273,13 @@
           img.dataset.full = url;
           img.src = url;
           img.classList.remove('lazy');
+        } else {
+          // La imagen no existe en Firebase Storage - ocultar el contenedor
+          const product = img.closest('.product');
+          if (product) {
+            product.style.display = 'none';
+            console.log(`🚫 Ocultando producto sin imagen: ${key}`);
+          }
         }
       }
 
