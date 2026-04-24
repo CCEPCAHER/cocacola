@@ -766,8 +766,8 @@ if (p.endDate && i === 0) {
   }
   
   html += `<div class="offer-tag ${cls}">
-    <p class="offer-main">${txtPrincipal}</p>
-    ${txtSecundario ? `<p class="offer-dates">${txtSecundario}</p>` : ''}
+    <span class="offer-main">${txtPrincipal}</span>
+    ${txtSecundario ? `<span class="offer-dates"> | ${txtSecundario}</span>` : ''}
   </div>`;
 }
 
