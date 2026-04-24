@@ -84,8 +84,8 @@ html {
 ========================= */
 header {
   background: var(--bg-glass);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-glass);
   text-align: center;
   padding: 24px 16px;
@@ -141,6 +141,7 @@ header h2 {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   display: flex;
@@ -577,6 +578,7 @@ header h2 {
   border: 3px solid #fff;
   border-radius: 5px;
   box-shadow: 0 0 25px rgba(0,0,0,.5);
+  -webkit-user-select: none;
   user-select: none;
   cursor: zoom-in;
   transition: cursor 0.3s;
@@ -618,6 +620,7 @@ header h2 {
   cursor: pointer;
   z-index: 2001;
   transition: all 0.3s;
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
 }
 
@@ -749,8 +752,8 @@ header h2 {
   margin: 1.5rem auto;
   padding: 1.2rem;
   background: var(--bg-glass);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: var(--shadow-glass);
   width: 95%;
@@ -895,8 +898,8 @@ html, body {
 .fullscreen-modal-overlay,
 .fullscreen-modal-content,
 .fullscreen-modal-content img {
-  touch-action: pan-x pan-y; /* Permitir pan pero no pinch-zoom */
   -ms-touch-action: pan-x pan-y;
+  touch-action: pan-x pan-y; /* Permitir pan pero no pinch-zoom */
 }
 
 button, .product {
