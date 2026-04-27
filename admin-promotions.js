@@ -84,11 +84,11 @@ function initPromotionManager() {
     const promoId = promotionSelector.value;
     
     if (!promoId) {
-      promotionForm.style.display = 'none';
+      promotionForm.classList.add('hidden');
       return;
     }
 
-    promotionForm.style.display = 'block';
+    promotionForm.classList.remove('hidden');
     await loadPromotionData(promoId);
   });
 
@@ -117,8 +117,9 @@ function initPromotionManager() {
 
     try {
       // Validar y formatear fechas antes de guardar
-      const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
-      const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
+      // Las fechas de los inputs ya vienen en formato YYYY-MM-DD
+      const formattedStartDate = startDate;
+      const formattedEndDate = endDate;
       
       console.log(`📅 Guardando fechas para ${promoId}:`, {
         originalStartDate: startDate,
@@ -161,7 +162,11 @@ function initPromotionManager() {
           
           // Si es un Timestamp de Firestore
           if (dateValue && typeof dateValue.toDate === 'function') {
-            return dateValue.toDate().toISOString().split('T')[0];
+            const d = dateValue.toDate();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
           }
           
           // Si es un string de fecha
@@ -173,13 +178,19 @@ function initPromotionManager() {
             // Convertir otros formatos de fecha
             const date = new Date(dateValue);
             if (!isNaN(date.getTime())) {
-              return date.toISOString().split('T')[0];
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              return `${year}-${month}-${day}`;
             }
           }
           
           // Si es un objeto Date
           if (dateValue instanceof Date) {
-            return dateValue.toISOString().split('T')[0];
+            const year = dateValue.getFullYear();
+            const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+            const day = String(dateValue.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
           }
           
           return '';
