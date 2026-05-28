@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v20";
-const DYNAMIC_CACHE = "cocacola-dynamic-v20";
+const CACHE_NAME = "cocacola-fem-v21";
+const DYNAMIC_CACHE = "cocacola-dynamic-v21";
 const IMAGE_CACHE = "cocacola-images-v18";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=20",
-  "./script.js?v=20",
-  "./ui.js?v=20",
+  "./style.css?v=21",
+  "./script.js?v=21",
+  "./ui.js?v=21",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
@@ -23,7 +23,21 @@ function getCleanUrl(url) {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      // Forzar descargas frescas saltándose la caché HTTP del navegador
+      const reloadPromises = ASSETS_TO_CACHE.map((url) => {
+        return fetch(new Request(url, { cache: 'reload' }))
+          .then((response) => {
+            if (response.ok) {
+              return cache.put(url, response);
+            }
+            throw new Error(`Error al cachear ${url}: ${response.statusText}`);
+          });
+      });
+      return Promise.all(reloadPromises);
+    }).catch(err => console.error("❌ Fallo en instalación del SW:", err))
+  );
   self.skipWaiting();
 });
 
