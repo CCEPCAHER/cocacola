@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=19">
   <style>
     .admin-link {
       display: block;
@@ -815,21 +815,33 @@
     window.db = db;
     window.firebaseStorage = storage;
 
-    // Registrar Service Worker para funcionamiento Offline
+    // Registrar Service Worker para funcionamiento Offline y controlar actualizaciones
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
           .then(registration => {
             console.log('✅ ServiceWorker registrado con éxito:', registration.scope);
+            // Forzar comprobación de actualización del Service Worker en cada carga
+            registration.update();
           })
           .catch(err => {
             console.error('❌ Error al registrar ServiceWorker:', err);
           });
       });
+
+      // Detectar cuando el nuevo Service Worker toma el control y recargar la página inmediatamente
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('🔄 Nuevo Service Worker activado, recargando página...');
+          window.location.reload();
+        }
+      });
     }
   </script>
 
-  <script type="module" src="ui.js?v=18"></script>
-  <script src="script.js?v=18"></script>
+  <script type="module" src="ui.js?v=19"></script>
+  <script src="script.js?v=19"></script>
 </body>
 </html>
