@@ -193,6 +193,10 @@ function initPDFConverter() {
       canvas.height = viewport.height;
       canvas.width = viewport.width;
 
+      // Pintar fondo blanco (para evitar que fondos transparentes de PDF se conviertan en negro/cuadritos al exportar a JPEG)
+      context.fillStyle = '#FFFFFF';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
       // Renderizar página en canvas
       await page.render({ canvasContext: context, viewport }).promise;
 
