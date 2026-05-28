@@ -138,7 +138,7 @@
   <div id="admin-panel" class="hidden">
     <header>
       <div class="header-left">
-        <h1>⚙️ Panel de Administración</h1>
+        <h1>⚙️ Panel de Administración <span style="font-size: 0.9rem; opacity: 0.6; font-weight: 500; letter-spacing: 0.5px; vertical-align: middle; margin-left: 5px;">v20</span></h1>
         <h2 id="admin-username"></h2>
       </div>
       <div class="header-right">
@@ -384,8 +384,8 @@
   </script>
 
   <!-- Lógica del panel -->
-  <script src="admin.js?v=v15" defer></script>
-  <script src="admin-promotions.js?v=v15" defer></script>
+  <script src="admin.js?v=20" defer></script>
+  <script src="admin-promotions.js?v=20" defer></script>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -393,10 +393,22 @@
         navigator.serviceWorker.register('sw.js')
           .then(registration => {
             console.log('✅ ServiceWorker admin registrado con éxito:', registration.scope);
+            // Forzar comprobación de actualización en cada carga
+            registration.update();
           })
           .catch(err => {
             console.error('❌ Error al registrar ServiceWorker:', err);
           });
+      });
+
+      // Detectar cuando el nuevo Service Worker toma el control y recargar la página inmediatamente
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('🔄 Nuevo Service Worker activado en admin, recargando página...');
+          window.location.reload();
+        }
       });
     }
   </script>
