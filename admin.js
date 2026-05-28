@@ -184,7 +184,7 @@ function initPDFConverter() {
   async function processAndUploadPage(pdf, pageNum, sectionSlug, totalPages) {
     try {
       const page = await pdf.getPage(pageNum);
-      const scale = 1.5;
+      const scale = 2.5;
       const viewport = page.getViewport({ scale });
 
       // Crear y configurar el canvas

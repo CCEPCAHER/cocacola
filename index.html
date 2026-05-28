@@ -220,8 +220,19 @@
         const map = window.firebaseImageUrls || {};
         const url = map[storagePath];
         if (url) {
-          img.dataset.full = url;
           if (!img.classList.contains('lazy')) img.src = url;
+        }
+
+        // Si ya tenemos la imagen completa resuelta en caché, la asignamos a data-full
+        const fullPath = img.getAttribute('data-full-path') || img.dataset.full;
+        if (fullPath && !fullPath.startsWith('http')) {
+          if (!img.getAttribute('data-full-path')) {
+            img.setAttribute('data-full-path', fullPath);
+          }
+          const fullUrl = map[fullPath];
+          if (fullUrl) {
+            img.dataset.full = fullUrl;
+          }
         }
       });
     };
@@ -266,15 +277,36 @@
         const key = (img.dataset.src || '').trim();
         if (!key) return;
         
+        // Cargar miniatura
         const url = await ensureUrl(key);
         if (url) {
-          img.dataset.full = url;
           img.src = url;
           img.classList.remove('lazy');
         } else {
-          // La imagen no existe en Firebase Storage o hay error de red
-          console.warn(`🚫 No se pudo obtener URL para: ${key}`);
-          // No ocultamos el producto para evitar que "desaparezcan todos" si hay un error temporal
+          console.warn(`🚫 No se pudo obtener URL para miniatura: ${key}`);
+        }
+
+        // Precargar la imagen de alta resolución en segundo plano para disponibilidad Offline
+        const fullPath = img.getAttribute('data-full-path') || img.dataset.full;
+        if (fullPath && !fullPath.startsWith('http')) {
+          if (!img.getAttribute('data-full-path')) {
+            img.setAttribute('data-full-path', fullPath);
+          }
+          
+          const cachedFullUrl = map[fullPath];
+          if (cachedFullUrl) {
+            img.dataset.full = cachedFullUrl;
+            // Asegurar que los bytes de la imagen completa estén cacheados por el Service Worker
+            fetch(cachedFullUrl).catch(() => {});
+          } else {
+            ensureUrl(fullPath).then(fullUrl => {
+              if (fullUrl) {
+                img.dataset.full = fullUrl;
+                // Descargar y cachear los bytes de la imagen completa
+                fetch(fullUrl).catch(() => {});
+              }
+            }).catch(e => console.warn(`⚠️ Error al precargar imagen completa: ${fullPath}`, e));
+          }
         }
       }
 

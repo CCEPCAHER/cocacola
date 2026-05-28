@@ -51,23 +51,27 @@ self.addEventListener("fetch", (event) => {
   if (url.hostname.includes("firebasestorage.googleapis.com") || url.hostname.includes("firebasestorage.app")) {
     const cleanUrl = getCleanUrl(event.request.url);
     
-    // STALE-WHILE-REVALIDATE: Sirve la caché al instante,
-    // pero actualiza en segundo plano para la próxima vez
+    // STALE-WHILE-REVALIDATE seguro para imágenes
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {
         return cache.match(cleanUrl).then((cachedResponse) => {
-          // Siempre intentar descargar la nueva versión en segundo plano
-          const fetchPromise = fetch(event.request).then((networkResponse) => {
+          if (cachedResponse) {
+            // Si hay caché, la devolvemos inmediatamente y actualizamos en segundo plano
+            fetch(event.request).then((networkResponse) => {
+              if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
+                cache.put(cleanUrl, networkResponse.clone());
+              }
+            }).catch(() => {/* Ignorar fallos de red en segundo plano */});
+            return cachedResponse;
+          }
+
+          // Si NO hay caché, ir a la red y almacenar en caché al recibir respuesta exitosa
+          return fetch(event.request).then((networkResponse) => {
             if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
-              const responseToCache = networkResponse.clone();
-              cache.put(cleanUrl, responseToCache);
+              cache.put(cleanUrl, networkResponse.clone());
             }
             return networkResponse;
-          }).catch(() => null); 
-
-          // Si hay caché, devolverla al instante (la actualización ocurre en segundo plano)
-          // Si NO hay caché, esperar a la red. Si la red falla, dejar que el navegador maneje el error
-          return cachedResponse || fetchPromise || fetch(event.request);
+          });
         });
       })
     );
@@ -78,18 +82,33 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // STALE-WHILE-REVALIDATE seguro para recursos estáticos y dinámicos de la app
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
+      if (cachedResponse) {
+        // Actualizar en caché dinámico en segundo plano
+        fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, networkResponse.clone()));
+          }
+        }).catch(() => {/* Ignorar errores */});
+        return cachedResponse;
+      }
+
+      // Si no está en caché, buscar en red y guardar copia
+      return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(DYNAMIC_CACHE).then((cache) => cache.put(event.request, responseToCache));
         }
         return networkResponse;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') return caches.match('./index.html');
+      }).catch((err) => {
+        // En caso de fallo de red de navegación (ej. recargar la página offline), servir index.html
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+        throw err; // Propagar error para que la petición falle de forma controlada en el navegador
       });
-      return cachedResponse || fetchPromise;
     })
   );
 });
