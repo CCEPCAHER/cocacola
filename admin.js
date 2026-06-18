@@ -466,7 +466,8 @@ function initPDFConverter() {
       const folderName = section.toLowerCase().replace(/\s+/g, '_');
       
       await setDoc(doc(db, 'metadata', 'imageCounts'), {
-        [folderName]: numPages
+        [folderName]: numPages,
+        [`${folderName}_updatedAt`]: new Date().toISOString()
       }, { merge: true });
       
       console.log(`✅ Conteo guardado en Firestore: ${folderName} = ${numPages} imágenes`);

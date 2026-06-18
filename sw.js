@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v26";
-const DYNAMIC_CACHE = "cocacola-dynamic-v26";
-const IMAGE_CACHE = "cocacola-images-v26";
+const CACHE_NAME = "cocacola-fem-v27";
+const DYNAMIC_CACHE = "cocacola-dynamic-v27";
+const IMAGE_CACHE = "cocacola-images-v27";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=26",
-  "./script.js?v=26",
-  "./ui.js?v=26",
+  "./style.css?v=27",
+  "./script.js?v=27",
+  "./ui.js?v=27",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
@@ -63,31 +63,31 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   if (url.hostname.includes("firebasestorage.googleapis.com") || url.hostname.includes("firebasestorage.app")) {
-    const cleanUrl = getCleanUrl(event.request.url);
+    // CACHE-FIRST para imágenes de Firebase Storage usando la URL completa como clave
+    // De esta forma, cuando la imagen cambia (y con ella su token), se baja la nueva versión.
+    const cacheKey = event.request.url;
     
-    // STALE-WHILE-REVALIDATE seguro para imágenes (forzando CORS para obtener status 200)
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {
-        return cache.match(cleanUrl).then((cachedResponse) => {
+        return cache.match(cacheKey).then((cachedResponse) => {
           if (cachedResponse) {
-            // Si hay caché, la devolvemos inmediatamente y actualizamos en segundo plano
-            fetch(event.request.url, { mode: 'cors' }).then((networkResponse) => {
-              if (networkResponse && networkResponse.status === 200) {
-                cache.put(cleanUrl, networkResponse.clone()).catch(() => {});
-              }
-            }).catch(() => {/* Ignorar fallos de red en segundo plano */});
             return cachedResponse;
           }
 
-          // Si NO hay caché, ir a la red y almacenar en caché al recibir respuesta exitosa
+          // Si NO hay caché, ir a la red forzando CORS
           return fetch(event.request.url, { mode: 'cors' }).then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(cleanUrl, networkResponse.clone()).catch(() => {});
+            if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
+              cache.put(cacheKey, networkResponse.clone()).catch(() => {});
             }
             return networkResponse;
           }).catch(() => {
-            // Fallback si falla el fetch CORS (intentar con el request original)
-            return fetch(event.request);
+            // Fallback si falla el fetch CORS (ej. offline o bloqueo CORS)
+            return fetch(event.request).then((networkResponse) => {
+              if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
+                cache.put(cacheKey, networkResponse.clone()).catch(() => {});
+              }
+              return networkResponse;
+            });
           });
         });
       })

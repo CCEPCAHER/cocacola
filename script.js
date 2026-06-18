@@ -298,9 +298,9 @@
 
       html += `<div class="product is-loading" data-section-name="${escapeHTML(sectionName)}">
         <div class="product-image-container skeleton">
-          <img data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
-            onload="this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton');"
-            onerror="this.src='icons/icon-192.png'; this.style.opacity='0.5'; this.closest('.product').classList.remove('is-loading');">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
+            onload="if(this.src && !this.src.startsWith('data:')) { this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton'); }"
+            onerror="if(this.src && !this.src.startsWith('data:') && this.src !== 'icons/icon-192.png') { this.src='icons/icon-192.png'; this.style.opacity='0.5'; this.closest('.product').classList.remove('is-loading'); }">
         </div>
         <h3>${p.name || 'Producto sin nombre'}</h3>`;
 
