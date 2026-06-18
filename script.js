@@ -322,6 +322,7 @@
         if (fin < today) {
           txtPrincipal = 'Oferta caducada';
           cls = 'offer-expired';
+          productClasses += ' product-expired';
         } else if (ini && ini > today) {
           const diffIni = ini - today;
           const diasHastaInicio = Math.ceil(diffIni / (1000 * 60 * 60 * 24));
@@ -330,6 +331,7 @@
           const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
           txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
           cls = 'offer-upcoming';
+          productClasses += ' product-upcoming';
         } else {
           txtPrincipal = diasRestantes === 1 ? '¡ÚLTIMO DÍA!' : `¡QUEDAN ${diasRestantes} DÍAS!`;
           const inicioStr = ini ? ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'}) : '??';

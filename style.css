@@ -273,7 +273,7 @@ header h2 {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Estilo para paneles en oferta */
+/* Estilo para paneles en oferta activa */
 .product-on-sale {
   border: 2px solid #48bb78 !important;
   background: linear-gradient(to bottom, #f0fff4, #ffffff) !important;
@@ -283,6 +283,30 @@ header h2 {
 [data-theme="dark"] .product-on-sale {
   background: linear-gradient(to bottom, #1c4532, #1a202c) !important;
   box-shadow: 0 8px 24px rgba(72, 187, 120, 0.4) !important;
+}
+
+/* Estilo para paneles de oferta caducada */
+.product-expired {
+  border: 2px solid #e53e3e !important;
+  background: linear-gradient(to bottom, #fff5f5, #ffffff) !important;
+  box-shadow: 0 8px 24px rgba(229, 62, 62, 0.2) !important;
+}
+
+[data-theme="dark"] .product-expired {
+  background: linear-gradient(to bottom, #501919, #1a202c) !important;
+  box-shadow: 0 8px 24px rgba(229, 62, 62, 0.4) !important;
+}
+
+/* Estilo para paneles de oferta futura */
+.product-upcoming {
+  border: 2px solid #d69e2e !important;
+  background: linear-gradient(to bottom, #fffff0, #ffffff) !important;
+  box-shadow: 0 8px 24px rgba(214, 158, 46, 0.2) !important;
+}
+
+[data-theme="dark"] .product-upcoming {
+  background: linear-gradient(to bottom, #4a360a, #1a202c) !important;
+  box-shadow: 0 8px 24px rgba(214, 158, 46, 0.4) !important;
 }
 
 .product-image-container {
