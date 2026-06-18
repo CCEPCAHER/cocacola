@@ -295,66 +295,64 @@
       const imagePath = p.image;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      let offerHtml = '';
+      let productClasses = 'product is-loading';
 
-      html += `<div class="product is-loading" data-section-name="${escapeHTML(sectionName)}">
+      // Mostrar días restantes + rango de fechas solo en el primer producto (índice 0)
+      if (p.endDate && i === 0) {
+        console.log(`Procesando fechas para ${p.name}: inicio=${p.startDate}, fin=${p.endDate}`);
+        
+        const endParts = p.endDate.split('-');
+        const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+        fin.setHours(23, 59, 59, 999);
+        
+        let ini = null;
+        if (p.startDate) {
+          const startParts = p.startDate.split('-');
+          ini = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+          ini.setHours(0, 0, 0, 0);
+        }
+        
+        let txtPrincipal = '', txtSecundario = '', cls = '';
+        
+        // Calcular días restantes
+        const diffTime = fin - today;
+        const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (fin < today) {
+          txtPrincipal = 'Oferta caducada';
+          cls = 'offer-expired';
+        } else if (ini && ini > today) {
+          const diffIni = ini - today;
+          const diasHastaInicio = Math.ceil(diffIni / (1000 * 60 * 60 * 24));
+          txtPrincipal = `Empieza en ${diasHastaInicio} ${diasHastaInicio === 1 ? 'día' : 'días'}`;
+          const inicioStr = ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+          const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+          txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
+          cls = 'offer-upcoming';
+        } else {
+          txtPrincipal = diasRestantes === 1 ? '¡ÚLTIMO DÍA!' : `¡QUEDAN ${diasRestantes} DÍAS!`;
+          const inicioStr = ini ? ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'}) : '??';
+          const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+          txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
+          cls = 'offer-active';
+          productClasses += ' product-on-sale';
+        }
+        
+        offerHtml = `<div class="offer-tag ${cls}">
+          <span class="offer-main">${txtPrincipal}</span>
+          ${txtSecundario ? `<span class="offer-dates"> | ${txtSecundario}</span>` : ''}
+        </div>`;
+      }
+
+      html += `<div class="${productClasses}" data-section-name="${escapeHTML(sectionName)}">
         <div class="product-image-container skeleton">
           <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
             onload="if(this.src && !this.src.startsWith('data:')) { this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton'); }"
             onerror="if(this.src && !this.src.startsWith('data:') && this.src !== 'icons/icon-192.png') { this.src='icons/icon-192.png'; this.style.opacity='0.5'; this.closest('.product').classList.remove('is-loading'); }">
         </div>
-        <h3>${p.name || 'Producto sin nombre'}</h3>`;
-
-      // Mostrar días restantes + rango de fechas solo en el primer producto (índice 0)
-if (p.endDate && i === 0) {
-  console.log(`Procesando fechas para ${p.name}: inicio=${p.startDate}, fin=${p.endDate}`);
-  
-  const endParts = p.endDate.split('-');
-  const fin = new Date(endParts[0], endParts[1] - 1, endParts[2]);
-  fin.setHours(23, 59, 59, 999);
-  
-  let ini = null;
-  if (p.startDate) {
-    const startParts = p.startDate.split('-');
-    ini = new Date(startParts[0], startParts[1] - 1, startParts[2]);
-    ini.setHours(0, 0, 0, 0);
-  }
-  
-  let txtPrincipal = '', txtSecundario = '', cls = '';
-  
-  // Calcular días restantes
-  const diffTime = fin - today;
-  const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  console.log(`Fecha actual: ${today.toISOString().split('T')[0]}, Fin: ${fin.toISOString().split('T')[0]}, Días restantes: ${diasRestantes}`);
-  
-  if (fin < today) {
-    txtPrincipal = 'Oferta caducada';
-    cls = 'offer-expired';
-  } else if (ini && ini > today) {
-    // Oferta futura: calcular días hasta el inicio
-    const diffIni = ini - today;
-    const diasHastaInicio = Math.ceil(diffIni / (1000 * 60 * 60 * 24));
-    txtPrincipal = `Empieza en ${diasHastaInicio} ${diasHastaInicio === 1 ? 'día' : 'días'}`;
-    const inicioStr = ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
-    const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
-    txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
-    cls = 'offer-upcoming';
-    console.log(`Oferta futura: empieza en ${diasHastaInicio} días`);
-  } else {
-    // Oferta activa: mostrar días restantes
-    txtPrincipal = diasRestantes === 1 ? 'Queda 1 día' : `Quedan ${diasRestantes} días`;
-    const inicioStr = ini ? ini.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'}) : '??';
-    const finStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
-    txtSecundario = `Desde ${inicioStr} hasta ${finStr}`;
-    cls = 'offer-active';
-    console.log(`Oferta activa: quedan ${diasRestantes} días`);
-  }
-  
-  html += `<div class="offer-tag ${cls}">
-    <span class="offer-main">${txtPrincipal}</span>
-    ${txtSecundario ? `<span class="offer-dates"> | ${txtSecundario}</span>` : ''}
-  </div>`;
-}
+        <h3>${p.name || 'Producto sin nombre'}</h3>
+        ${offerHtml}`;
 
 
       if (!p.staticOffer && typeof p.price === 'number') {
