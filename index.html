@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="style.css?v=29">
+  <link rel="stylesheet" href="style.css?v=30">
   <style>
     .admin-link {
       display: block;
@@ -42,7 +42,7 @@
 
   <div id="contenido" class="hidden">
     <header>
-      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v29</span></h1>
+      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v30</span></h1>
       <div class="header-controls">
         <button id="install-btn" class="btn-header hidden" aria-label="Instalar App">📱 Instalar</button>
         <button id="dark-mode-btn" class="btn-header" aria-label="Alternar Modo Oscuro">🌙</button>
@@ -244,10 +244,10 @@
     }
 
     // Mapeo y helper para URLs de Firebase a nivel de módulo
-    const map = window.firebaseImageUrls = window.firebaseImageUrls || {};
+    window.firebaseImageUrls = window.firebaseImageUrls || {};
 
     async function ensureUrl(key) {
-      if (map[key]) return map[key];
+      if (window.firebaseImageUrls[key]) return window.firebaseImageUrls[key];
       try {
         let url = await getDownloadURL(ref(storage, key)).catch(async (e) => {
           if (key.includes('_thumb.jpg')) {
@@ -255,8 +255,8 @@
           }
           throw e;
         });
-        map[key] = url;
-        try { localStorage.setItem('firebaseImageUrls', JSON.stringify(map)); } catch(e) {}
+        window.firebaseImageUrls[key] = url;
+        try { localStorage.setItem('firebaseImageUrls', JSON.stringify(window.firebaseImageUrls)); } catch(e) {}
         return url;
       } catch (e) {
         console.warn(`⚠️ No URL para ${key}`);
@@ -271,7 +271,7 @@
       document.querySelectorAll('.product img[data-src]').forEach(img => {
         // Solo asignar si ya está en caché
         const storagePath = img.dataset.src.trim();
-        const url = map[storagePath];
+        const url = window.firebaseImageUrls[storagePath];
         if (url) {
           if (!img.classList.contains('lazy')) img.src = url;
         }
@@ -282,7 +282,7 @@
           if (!img.getAttribute('data-full-path')) {
             img.setAttribute('data-full-path', fullPath);
           }
-          const fullUrl = map[fullPath];
+          const fullUrl = window.firebaseImageUrls[fullPath];
           if (fullUrl) {
             img.dataset.full = fullUrl;
           }
@@ -327,7 +327,7 @@
             img.setAttribute('data-full-path', fullPath);
           }
           
-          const cachedFullUrl = map[fullPath];
+          const cachedFullUrl = window.firebaseImageUrls[fullPath];
           if (cachedFullUrl) {
             img.dataset.full = cachedFullUrl;
             // Asegurar que los bytes de la imagen completa estén cacheados por el Service Worker
@@ -875,7 +875,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=29"></script>
-  <script src="script.js?v=29"></script>
+  <script type="module" src="ui.js?v=30"></script>
+  <script src="script.js?v=30"></script>
 </body>
 </html>

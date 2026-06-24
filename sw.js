@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v29";
-const DYNAMIC_CACHE = "cocacola-dynamic-v29";
-const IMAGE_CACHE = "cocacola-images-v29";
+const CACHE_NAME = "cocacola-fem-v30";
+const DYNAMIC_CACHE = "cocacola-dynamic-v30";
+const IMAGE_CACHE = "cocacola-images-v30";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=29",
-  "./script.js?v=29",
-  "./ui.js?v=29",
+  "./style.css?v=30",
+  "./script.js?v=30",
+  "./ui.js?v=30",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
@@ -63,6 +63,11 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   if (url.hostname.includes("firebasestorage.googleapis.com") || url.hostname.includes("firebasestorage.app")) {
+    // Si no es una descarga de archivo/media (ej. es metadatos del SDK), no interceptar ni cachear
+    if (url.searchParams.get("alt") !== "media") {
+      return;
+    }
+    
     // CACHE-FIRST para imágenes de Firebase Storage usando la URL completa como clave
     // De esta forma, cuando la imagen cambia (y con ella su token), se baja la nueva versión.
     const cacheKey = event.request.url;
