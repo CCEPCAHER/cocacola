@@ -124,7 +124,11 @@ function initPDFConverter() {
 
     const fileList = Array.from(files);
     const pdfFile = fileList.find(f => f.type === 'application/pdf');
-    const imageFiles = fileList.filter(f => f.type.startsWith('image/'));
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+    const imageFiles = fileList.filter(f => 
+      f.type.startsWith('image/') || 
+      imageExtensions.some(ext => f.name.toLowerCase().endsWith(ext))
+    );
 
     if (!pdfFile && imageFiles.length === 0) {
       showAlert('❌ Solo se permiten archivos PDF o imágenes (PNG, JPG)', 'error');
@@ -169,7 +173,27 @@ function initPDFConverter() {
 
         // Ordenar naturalmente por nombre (Diapositiva1, Diapositiva2, Diapositiva10...)
         imageFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
-        const totalImages = imageFiles.length;
+
+        // 1. Procesar todas las imágenes locales en paralelo
+        showAlert('🔄 Optimizando imágenes...', 'info');
+        const processedImages = [];
+        const processPromises = imageFiles.map(async (file) => {
+          try {
+            const result = await processImageFileToBlobs(file);
+            processedImages.push(result);
+          } catch (err) {
+            console.error(`⚠️ Error al procesar ${file.name}:`, err);
+          }
+        });
+        await Promise.all(processPromises);
+
+        // Volver a ordenar por nombre original para mantener la secuencia correcta
+        processedImages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+        const successCount = processedImages.length;
+        if (successCount === 0) {
+          throw new Error('No se pudo procesar ninguna de las imágenes seleccionadas.');
+        }
 
         // LIMPIAR IMÁGENES ANTIGUAS
         showAlert('🗑️ Eliminando imágenes antiguas...', 'info');
@@ -178,22 +202,38 @@ function initPDFConverter() {
           console.log(`🗑️ Eliminadas ${deletedCount} imágenes antiguas de ${section}`);
         }
 
-        // SUBIR UNA POR UNA (en lotes concurrentes de 5 para no colapsar la conexión)
-        showAlert(`🔄 Subiendo ${totalImages} imágenes...`, 'info');
+        // 2. Subir las imágenes procesadas en lotes
+        showAlert(`🔄 Subiendo ${successCount} imágenes a Firebase...`, 'info');
         const batchSize = 5;
-        for (let i = 0; i < totalImages; i += batchSize) {
-          const end = Math.min(i + batchSize, totalImages);
+        for (let i = 0; i < successCount; i += batchSize) {
+          const end = Math.min(i + batchSize, successCount);
           const batchPromises = [];
+          
           for (let index = i; index < end; index++) {
-            batchPromises.push(processAndUploadImageFile(imageFiles[index], index, section, totalImages));
+            const item = processedImages[index];
+            const sectionName = section.toLowerCase().replace(/\s+/g, '_');
+            const fileName = `${sectionName}_${index}.jpg`;
+            const thumbFileName = `${sectionName}_${index}_thumb.jpg`;
+            
+            // Subir imagen y thumbnail
+            const uploadPromise = Promise.all([
+              uploadToFirebaseWithRetry(item.blob, fileName, section, 3),
+              uploadToFirebaseWithRetry(item.thumbBlob, thumbFileName, section, 3)
+            ]).then(() => {
+              updateProgress(index + 1, successCount);
+              console.log(`✅ Subida exitosa: ${fileName}`);
+              return item.blob; // Retornar blob para el preview
+            });
+            
+            batchPromises.push(uploadPromise);
           }
           
-          const pageBlobs = await Promise.all(batchPromises);
+          const uploadedBlobs = await Promise.all(batchPromises);
           
-          // Mostrar previews de las primeras páginas subidas en este lote
-          pageBlobs.forEach((pageBlob, offset) => {
+          // Mostrar previews de las primeras páginas
+          uploadedBlobs.forEach((pageBlob, offset) => {
             const index = i + offset;
-            if (previewContainer && pageBlob) {
+            if (previewContainer && pageBlob && (index + 1) <= 10) {
               const imgUrl = URL.createObjectURL(pageBlob);
               const img = document.createElement("img");
               img.src = imgUrl;
@@ -206,7 +246,7 @@ function initPDFConverter() {
         }
 
         // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
-        await saveImageCountToFirestore(section, totalImages);
+        await saveImageCountToFirestore(section, successCount);
 
         // Actualizar estado de las secciones en el dashboard
         loadSectionsStatus();
@@ -229,24 +269,20 @@ function initPDFConverter() {
   }
 
   /**
-   * Procesa un archivo de imagen individual, genera su miniatura y las sube a Firebase.
+   * Procesa un archivo de imagen, define eventos onload/onerror correctamente
+   * y devuelve sus blobs (JPEG principal y miniatura).
    * @param {File} file - El objeto File de la imagen.
-   * @param {number} index - Índice de la diapositiva/imagen (base 0).
-   * @param {string} sectionSlug - El slug de la sección de destino.
-   * @param {number} totalImages - Cantidad total de imágenes.
-   * @returns {Promise<Blob | null>} El Blob de la imagen optimizada para la previsualización.
+   * @returns {Promise<Object>} Promesa que resuelve a un objeto con { blob, thumbBlob, name }
    */
-  async function processAndUploadImageFile(file, index, sectionSlug, totalImages) {
+  async function processImageFileToBlobs(file) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.src = URL.createObjectURL(file);
       img.onload = async () => {
         try {
           // Crear canvas principal
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
           
-          // Redimensionar si es extremadamente grande para no consumir almacenamiento innecesario
           const maxDimension = 2048;
           let width = img.width;
           let height = img.height;
@@ -266,10 +302,9 @@ function initPDFConverter() {
           context.fillRect(0, 0, width, height);
           context.drawImage(img, 0, 0, width, height);
           
-          // Convertir canvas a Blob (JPEG de alta calidad)
           const blob = await canvasToBlob(canvas, 0.85);
           
-          // Crear miniatura (thumbnail)
+          // Crear miniatura
           const thumbCanvas = document.createElement('canvas');
           const thumbContext = thumbCanvas.getContext('2d');
           const thumbWidth = 400;
@@ -280,29 +315,14 @@ function initPDFConverter() {
           
           const thumbBlob = await canvasToBlob(thumbCanvas, 0.6);
           
-          // Subir a Firebase
-          const sectionName = sectionSlug.toLowerCase().replace(/\s+/g, '_');
-          const fileName = `${sectionName}_${index}.jpg`;
-          const thumbFileName = `${sectionName}_${index}_thumb.jpg`;
-          
-          await Promise.all([
-            uploadToFirebaseWithRetry(blob, fileName, sectionSlug, 3),
-            uploadToFirebaseWithRetry(thumbBlob, thumbFileName, sectionSlug, 3)
-          ]);
-          
-          // Actualizar progreso
-          updateProgress(index + 1, totalImages);
-          console.log(`✅ Imagen ${index + 1}/${totalImages} subida: ${fileName}`);
-          
-          // Limpiar recursos del DOM
+          // Limpiar recursos
           context.clearRect(0, 0, canvas.width, canvas.height);
           canvas.remove();
           thumbContext.clearRect(0, 0, thumbCanvas.width, thumbCanvas.height);
           thumbCanvas.remove();
           URL.revokeObjectURL(img.src);
           
-          // Retornar el blob si es para preview (primeras 10 imágenes)
-          resolve((index + 1) <= 10 ? blob : null);
+          resolve({ blob, thumbBlob, name: file.name });
         } catch (err) {
           URL.revokeObjectURL(img.src);
           reject(err);
@@ -312,6 +332,7 @@ function initPDFConverter() {
         URL.revokeObjectURL(img.src);
         reject(new Error(`No se pudo cargar la imagen: ${file.name}`));
       };
+      img.src = URL.createObjectURL(file);
     });
   }
   
