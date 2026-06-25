@@ -121,44 +121,96 @@ function initPDFConverter() {
       return;
     }
 
-    const file = files[0];
-    if (file.type !== 'application/pdf') {
-      showAlert('❌ Solo se permiten archivos PDF', 'error');
-      return;
-    }
+    const fileList = Array.from(files);
+    const pdfFile = fileList.find(f => f.type === 'application/pdf');
+    const imageFiles = fileList.filter(f => f.type.startsWith('image/'));
 
-    const maxSize = 100 * 1024 * 1024; // 100MB
-    if (file.size > maxSize) {
-      showAlert('❌ El PDF es demasiado grande. Máximo 100MB', 'error');
+    if (!pdfFile && imageFiles.length === 0) {
+      showAlert('❌ Solo se permiten archivos PDF o imágenes (PNG, JPG)', 'error');
       return;
     }
 
     try {
-      showAlert('🔄 Procesando PDF...', 'info');
-      if (progressContainer) progressContainer.style.display = 'block';
-      if (previewContainer) previewContainer.innerHTML = '';
+      if (pdfFile) {
+        // === CASO PDF ===
+        const maxSize = 100 * 1024 * 1024; // 100MB
+        if (pdfFile.size > maxSize) {
+          showAlert('❌ El PDF es demasiado grande. Máximo 100MB', 'error');
+          return;
+        }
 
-      // LIMPIAR IMÁGENES ANTIGUAS antes de subir las nuevas
-      showAlert('🗑️ Eliminando imágenes antiguas...', 'info');
-      const deletedCount = await deleteOldImages(section);
-      if (deletedCount > 0) {
-        console.log(`🗑️ Eliminadas ${deletedCount} imágenes antiguas de ${section}`);
+        showAlert('🔄 Procesando PDF...', 'info');
+        if (progressContainer) progressContainer.style.display = 'block';
+        if (previewContainer) previewContainer.innerHTML = '';
+
+        // LIMPIAR IMÁGENES ANTIGUAS antes de subir las nuevas
+        showAlert('🗑️ Eliminando imágenes antiguas...', 'info');
+        const deletedCount = await deleteOldImages(section);
+        if (deletedCount > 0) {
+          console.log(`🗑️ Eliminadas ${deletedCount} imágenes antiguas de ${section}`);
+        }
+
+        // LLAMADA A LA FUNCIÓN DE CONVERSIÓN Y CARGA SEGURA
+        await convertAndUploadPDF(pdfFile, section);
+
+        // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
+        await saveImageCountToFirestore(section, pdfFile);
+
+        showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
+      } else {
+        // === CASO IMÁGENES MÚLTIPLES ===
+        showAlert('🔄 Procesando imágenes...', 'info');
+        if (progressContainer) progressContainer.style.display = 'block';
+        if (previewContainer) previewContainer.innerHTML = '';
+
+        // Ordenar naturalmente por nombre (Diapositiva1, Diapositiva2, Diapositiva10...)
+        imageFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+        const totalImages = imageFiles.length;
+
+        // LIMPIAR IMÁGENES ANTIGUAS
+        showAlert('🗑️ Eliminando imágenes antiguas...', 'info');
+        const deletedCount = await deleteOldImages(section);
+        if (deletedCount > 0) {
+          console.log(`🗑️ Eliminadas ${deletedCount} imágenes antiguas de ${section}`);
+        }
+
+        // SUBIR UNA POR UNA (en lotes concurrentes de 5 para no colapsar la conexión)
+        showAlert(`🔄 Subiendo ${totalImages} imágenes...`, 'info');
+        const batchSize = 5;
+        for (let i = 0; i < totalImages; i += batchSize) {
+          const end = Math.min(i + batchSize, totalImages);
+          const batchPromises = [];
+          for (let index = i; index < end; index++) {
+            batchPromises.push(processAndUploadImageFile(imageFiles[index], index, section, totalImages));
+          }
+          
+          const pageBlobs = await Promise.all(batchPromises);
+          
+          // Mostrar previews de las primeras páginas subidas en este lote
+          pageBlobs.forEach((pageBlob, offset) => {
+            const index = i + offset;
+            if (previewContainer && pageBlob) {
+              const imgUrl = URL.createObjectURL(pageBlob);
+              const img = document.createElement("img");
+              img.src = imgUrl;
+              img.className = 'preview-image';
+              img.alt = `Diapositiva ${index + 1}`;
+              previewContainer.appendChild(img);
+              setTimeout(() => URL.revokeObjectURL(imgUrl), 5000);
+            }
+          });
+        }
+
+        // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
+        await saveImageCountToFirestore(section, totalImages);
+
+        showAlert('✅ ¡Imágenes procesadas y subidas a Firebase con éxito!', 'success');
       }
-
-      // LLAMADA A LA FUNCIÓN DE CONVERSIÓN Y CARGA SEGURA
-      await convertAndUploadPDF(file, section);
-
-      // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
-      await saveImageCountToFirestore(section, file);
-
-      showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
     } catch (error) {
       console.error('Error en handleFiles:', error);
       showAlert(`❌ Error: ${error.message}`, 'error');
     } finally {
       if (progressContainer) {
-        // La actualización de progreso se hace dentro de convertAndUploadPDF
-        // Esta limpieza final se ejecuta solo si el proceso terminó (éxito o error)
         setTimeout(() => (progressContainer.style.display = 'none'), 2000);
       }
       if (progressFill) {
@@ -167,6 +219,93 @@ function initPDFConverter() {
       }
       if (pdfInput) pdfInput.value = ''; // Limpiar input
     }
+  }
+
+  /**
+   * Procesa un archivo de imagen individual, genera su miniatura y las sube a Firebase.
+   * @param {File} file - El objeto File de la imagen.
+   * @param {number} index - Índice de la diapositiva/imagen (base 0).
+   * @param {string} sectionSlug - El slug de la sección de destino.
+   * @param {number} totalImages - Cantidad total de imágenes.
+   * @returns {Promise<Blob | null>} El Blob de la imagen optimizada para la previsualización.
+   */
+  async function processAndUploadImageFile(file, index, sectionSlug, totalImages) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = async () => {
+        try {
+          // Crear canvas principal
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          
+          // Redimensionar si es extremadamente grande para no consumir almacenamiento innecesario
+          const maxDimension = 2048;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          context.fillStyle = '#FFFFFF';
+          context.fillRect(0, 0, width, height);
+          context.drawImage(img, 0, 0, width, height);
+          
+          // Convertir canvas a Blob (JPEG de alta calidad)
+          const blob = await canvasToBlob(canvas, 0.85);
+          
+          // Crear miniatura (thumbnail)
+          const thumbCanvas = document.createElement('canvas');
+          const thumbContext = thumbCanvas.getContext('2d');
+          const thumbWidth = 400;
+          const thumbHeight = Math.round((height / width) * thumbWidth);
+          thumbCanvas.width = thumbWidth;
+          thumbCanvas.height = thumbHeight;
+          thumbContext.drawImage(canvas, 0, 0, thumbWidth, thumbHeight);
+          
+          const thumbBlob = await canvasToBlob(thumbCanvas, 0.6);
+          
+          // Subir a Firebase
+          const sectionName = sectionSlug.toLowerCase().replace(/\s+/g, '_');
+          const fileName = `${sectionName}_${index}.jpg`;
+          const thumbFileName = `${sectionName}_${index}_thumb.jpg`;
+          
+          await Promise.all([
+            uploadToFirebaseWithRetry(blob, fileName, sectionSlug, 3),
+            uploadToFirebaseWithRetry(thumbBlob, thumbFileName, sectionSlug, 3)
+          ]);
+          
+          // Actualizar progreso
+          updateProgress(index + 1, totalImages);
+          console.log(`✅ Imagen ${index + 1}/${totalImages} subida: ${fileName}`);
+          
+          // Limpiar recursos del DOM
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.remove();
+          thumbContext.clearRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+          thumbCanvas.remove();
+          URL.revokeObjectURL(img.src);
+          
+          // Retornar el blob si es para preview (primeras 10 imágenes)
+          resolve((index + 1) <= 10 ? blob : null);
+        } catch (err) {
+          URL.revokeObjectURL(img.src);
+          reject(err);
+        }
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(img.src);
+        reject(new Error(`No se pudo cargar la imagen: ${file.name}`));
+      };
+    });
   }
   
   // =========================================================================
@@ -448,7 +587,7 @@ function initPDFConverter() {
   }
 
   // === Guardar conteo de imágenes en Firestore ===
-  async function saveImageCountToFirestore(section, file) {
+  async function saveImageCountToFirestore(section, countOrFile) {
     try {
       const { getFirestore, doc, setDoc } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
@@ -456,12 +595,17 @@ function initPDFConverter() {
       const app = window.adminAuth.app || window.adminAuth.auth.app;
       const db = getFirestore(app);
       
-      // Contar páginas del PDF subido
-      const arrayBuffer = await file.arrayBuffer();
-      const uint8 = new Uint8Array(arrayBuffer);
-      const loadingTask = pdfjsLib.getDocument({ data: uint8 });
-      const pdf = await loadingTask.promise;
-      const numPages = pdf.numPages;
+      let numPages;
+      if (typeof countOrFile === 'number') {
+        numPages = countOrFile;
+      } else {
+        // Contar páginas del PDF subido
+        const arrayBuffer = await countOrFile.arrayBuffer();
+        const uint8 = new Uint8Array(arrayBuffer);
+        const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+        const pdf = await loadingTask.promise;
+        numPages = pdf.numPages;
+      }
       
       const folderName = section.toLowerCase().replace(/\s+/g, '_');
       

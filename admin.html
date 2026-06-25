@@ -149,17 +149,17 @@
     <div class="admin-container">
       <a href="index.html" class="back-link">← Volver a la tienda</a>
 
-      <!-- SECCIÓN: SUBIR PDF -->
+      <!-- SECCIÓN: SUBIR ARCHIVOS -->
       <div class="admin-section">
-        <h2>📄 Convertir PDF a Imágenes y Subir a Firebase</h2>
+        <h2>📄 Convertir PDF o Múltiples Imágenes y Subir a Firebase</h2>
         
         <div class="instruction-box">
           <h3>📋 Instrucciones:</h3>
           <ol>
             <li>Selecciona la sección del menú</li>
-            <li>Arrastra o selecciona el PDF (máximo 100 MB)</li>
+            <li>Arrastra o selecciona el PDF o múltiples imágenes (.png, .jpg)</li>
             <li>Espera a que se procese (verás el progreso)</li>
-            <li>Las imágenes se subirán automáticamente a Firebase Storage</li>
+            <li>Las imágenes se optimizarán y subirán automáticamente a Firebase Storage</li>
             <li>¡Listo! Las imágenes estarán disponibles en la app inmediatamente</li>
           </ol>
         </div>
@@ -168,10 +168,10 @@
           <option value="">Selecciona la sección...</option>
         </select>
 
-        <div id="drop-area" class="upload-area" tabindex="0" role="button" aria-label="Zona para arrastrar PDF">
-          <p class="upload-title">📁 Arrastra el PDF aquí</p>
-          <p class="upload-subtitle">o haz clic para seleccionar</p>
-          <input type="file" id="pdf-input" accept="application/pdf" class="file-input-hidden">
+        <div id="drop-area" class="upload-area" tabindex="0" role="button" aria-label="Zona para arrastrar PDF o imágenes">
+          <p class="upload-title">📁 Arrastra el PDF o múltiples imágenes aquí</p>
+          <p class="upload-subtitle">o haz clic para seleccionar (PDF, PNG, JPG)</p>
+          <input type="file" id="pdf-input" accept="application/pdf, image/png, image/jpeg, image/jpg" multiple class="file-input-hidden">
         </div>
 
         <div id="progress-container" class="progress-container" aria-live="polite">
