@@ -121,6 +121,23 @@
     .file-input-hidden { display: none; }
     .label-no-margin { margin-bottom: 0 !important; }
     .instruction-text { margin-left: 20px; color: #856404; }
+    
+    /* Panel de Estado de Secciones */
+    .sections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .sections-status-container {
+      margin-top: 30px;
+      border-top: 2px solid #eee;
+      padding-top: 20px;
+    }
+    .sections-status-container h3 {
+      margin-bottom: 15px;
+      color: var(--color-primary);
+    }
   </style>
 </head>
 <body>
@@ -184,6 +201,14 @@
         <div id="alert-container" aria-live="polite"></div>
 
         <div id="preview-container" class="preview-container"></div>
+
+        <!-- DASHBOARD DE ESTADO DE SECCIONES -->
+        <div id="sections-status-dashboard" class="sections-status-container">
+          <h3>📊 Estado de las Imágenes por Sección (PDFs/Imágenes)</h3>
+          <div id="sections-status-list">
+            <p>⏳ Cargando estado de las secciones...</p>
+          </div>
+        </div>
       </div>
 
       <!-- SECCIÓN: GESTIONAR FECHAS DE PROMOCIONES -->

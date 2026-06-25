@@ -282,8 +282,36 @@ function initPromotionManager() {
       
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        const status = data.active ? '🟢 Activa' : '🔴 Inactiva';
-        const statusColor = data.active ? '#28a745' : '#dc3545';
+        
+        // Verificar si la fecha de fin ya expiró
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        let isExpired = false;
+        if (data.endDate) {
+          const end = new Date(data.endDate);
+          if (!isNaN(end.getTime()) && end < now) {
+            isExpired = true;
+          }
+        }
+        
+        let status = '🔴 Inactiva';
+        let statusColor = '#6c757d';
+        let bgColor = '#e9ecef';
+        let borderColor = '#6c757d';
+        
+        if (data.active !== false) {
+          if (isExpired) {
+            status = '⚠️ Expirada (Requiere actualización)';
+            statusColor = '#d9534f';
+            bgColor = '#fff3cd'; // Fondo amarillo de advertencia
+            borderColor = '#fd7e14'; // Borde naranja
+          } else {
+            status = '🟢 Activa';
+            statusColor = '#28a745';
+            bgColor = '#f8f9fa';
+            borderColor = '#28a745';
+          }
+        }
         
         // Función helper para formatear fechas para mostrar
         const formatDateForDisplay = (dateValue) => {
@@ -312,12 +340,12 @@ function initPromotionManager() {
         };
         
         html += `
-          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid ${statusColor};">
+          <div style="background: ${bgColor}; padding: 15px; border-radius: 8px; border-left: 5px solid ${borderColor}; border: 1px solid ${bgColor === '#f8f9fa' ? '#eee' : borderColor}; border-left-width: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong style="font-size: 1.1rem;">${doc.id.replace(/_/g, ' ')}</strong>
-              <span style="color: ${statusColor}; font-weight: bold;">${status}</span>
+              <strong style="font-size: 1.1rem; color: #333;">${doc.id.replace(/_/g, ' ')}</strong>
+              <span style="color: ${statusColor}; font-weight: bold; font-size: 0.95rem;">${status}</span>
             </div>
-            <div style="margin-top: 8px; color: #666;">
+            <div style="margin-top: 8px; color: #666; font-size: 0.95rem;">
               📅 ${formatDateForDisplay(data.startDate)} → ${formatDateForDisplay(data.endDate)}
             </div>
           </div>

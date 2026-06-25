@@ -76,6 +76,7 @@ function initPDFConverter() {
   }
 
   loadSections();
+  loadSectionsStatus();
 
   // === Eventos Drag & Drop ===
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -156,6 +157,9 @@ function initPDFConverter() {
         // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
         await saveImageCountToFirestore(section, pdfFile);
 
+        // Actualizar estado de las secciones en el dashboard
+        loadSectionsStatus();
+
         showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
       } else {
         // === CASO IMÁGENES MÚLTIPLES ===
@@ -203,6 +207,9 @@ function initPDFConverter() {
 
         // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
         await saveImageCountToFirestore(section, totalImages);
+
+        // Actualizar estado de las secciones en el dashboard
+        loadSectionsStatus();
 
         showAlert('✅ ¡Imágenes procesadas y subidas a Firebase con éxito!', 'success');
       }
@@ -640,6 +647,91 @@ function initPDFConverter() {
         sectionSelector.appendChild(option);
       });
       console.log('✅ Secciones cargadas:', sectionSelector.options.length);
+    }
+  }
+
+  // === Cargar y mostrar estado de las secciones ===
+  async function loadSectionsStatus() {
+    const statusList = document.getElementById('sections-status-list');
+    if (!statusList) return;
+
+    try {
+      const { getFirestore, doc, getDoc } = await import(
+        'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
+      );
+      const app = window.adminAuth.app || window.adminAuth.auth.app;
+      const db = getFirestore(app);
+
+      const docSnap = await getDoc(doc(db, 'metadata', 'imageCounts'));
+      const remoteData = docSnap.exists() ? docSnap.data() : {};
+
+      const sections = [
+        "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS", "ACUERDO NACIONAL 2025",
+        "FEM ALCAMPO", "FEM ALCAMPO SIGUIENTE", "FEM CARREFOUR", "FEM CARREFOUR SIGUIENTE", "FEM CARREFOUR MARKET", "FEM CARREFOUR MARKET SIGUIENTE",
+        "FEM SUPECO", "FEM SUPECO SIGUIENTE", "FEM SORLI", "FEM SORLI SIGUIENTE", "FEM SCLAT BONPREU", "FEM SCLAT BONPREU SIGUIENTE",
+        "FEM CAPRABO", "FEM CAPRABO SIGUIENTE", "FEM CONSUM", "FEM CONSUM SIGUIENTE", "FEM CONDIS", "FEM CONDIS SIGUIENTE", "FEM COVIRAN", "FEM COVIRAN SIGUIENTE",
+        "FEM ECI", "FEM ECI SIGUIENTE", "IMPLANTACIONES"
+      ];
+
+      let html = '<div class="sections-grid">';
+      
+      sections.forEach(section => {
+        const folderName = section.toLowerCase().replace(/\s+/g, '_');
+        const count = remoteData[folderName] || 0;
+        const updatedAtStr = remoteData[`${folderName}_updatedAt`];
+        
+        let statusText = '';
+        let badgeColor = '';
+        let bgColor = '';
+        let borderColor = '';
+        
+        if (count === 0) {
+          statusText = '❌ Sin imágenes';
+          badgeColor = '#dc3545';
+          bgColor = '#f8d7da';
+          borderColor = '#f5c6cb';
+        } else {
+          const updatedAt = new Date(updatedAtStr);
+          if (isNaN(updatedAt.getTime())) {
+            statusText = `✅ ${count} pág. (Fecha desconocida)`;
+            badgeColor = '#17a2b8';
+            bgColor = '#d1ecf1';
+            borderColor = '#bee5eb';
+          } else {
+            const now = new Date();
+            const diffTime = Math.abs(now - updatedAt);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const formattedDate = updatedAt.toLocaleDateString('es-ES');
+            
+            if (diffDays > 30) {
+              statusText = `⚠️ ${count} pág. (Hace ${diffDays} días - ${formattedDate})`;
+              badgeColor = '#fd7e14';
+              bgColor = '#fff3cd';
+              borderColor = '#ffeaa7';
+            } else {
+              statusText = `✅ ${count} pág. (Hace ${diffDays} días - ${formattedDate})`;
+              badgeColor = '#28a745';
+              bgColor = '#d4edda';
+              borderColor = '#c3e6cb';
+            }
+          }
+        }
+
+        html += `
+          <div class="section-status-card" style="background: ${bgColor}; border: 1px solid ${borderColor}; border-left: 5px solid ${badgeColor}; padding: 12px; border-radius: 8px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <strong style="color: #333;">${section}</strong>
+            <span style="color: ${badgeColor}; font-weight: 600; font-size: 0.85rem;">${statusText}</span>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      statusList.innerHTML = html;
+
+    } catch (error) {
+      console.error('Error al cargar estado de secciones:', error);
+      statusList.innerHTML = '<p style="color: #dc3545;">⚠️ Error al cargar el estado de las secciones</p>';
     }
   }
 }
