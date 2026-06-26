@@ -116,6 +116,11 @@ function initPDFConverter() {
   async function handleFiles(files) {
     if (!files.length) return;
 
+    if (!navigator.onLine) {
+      showAlert('❌ No tienes conexión a internet. Verifica tu red e inténtalo de nuevo.', 'error');
+      return;
+    }
+
     const section = sectionSelector.value;
     if (!section) {
       showAlert('⚠️ Selecciona una sección primero', 'warning');
@@ -620,6 +625,9 @@ function initPDFConverter() {
       const { getFirestore, doc, setDoc } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
       );
+      if (!window.adminAuth || !(window.adminAuth.app || window.adminAuth.auth)) {
+        throw new Error('Usuario no autenticado');
+      }
       const app = window.adminAuth.app || window.adminAuth.auth.app;
       const db = getFirestore(app);
       
@@ -675,6 +683,18 @@ function initPDFConverter() {
   async function loadSectionsStatus() {
     const statusList = document.getElementById('sections-status-list');
     if (!statusList) return;
+
+    // Si Firebase/adminAuth no está listo aún, esperar a que esté disponible
+    if (!window.adminAuth || !(window.adminAuth.app || window.adminAuth.auth)) {
+      statusList.innerHTML = '<p style="color: #666; font-style: italic;">⏳ Cargando estado de las secciones...</p>';
+      const checkAuth = setInterval(() => {
+        if (window.adminAuth && (window.adminAuth.app || window.adminAuth.auth)) {
+          clearInterval(checkAuth);
+          loadSectionsStatus();
+        }
+      }, 100);
+      return;
+    }
 
     try {
       const { getFirestore, doc, getDoc } = await import(
