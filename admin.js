@@ -286,7 +286,7 @@ function initPDFConverter() {
         try {
           // Crear canvas principal
           const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
+          const context = canvas.getContext('2d', { willReadFrequently: true });
           
           const maxDimension = 2048;
           let width = img.width;
@@ -311,7 +311,7 @@ function initPDFConverter() {
           
           // Crear miniatura
           const thumbCanvas = document.createElement('canvas');
-          const thumbContext = thumbCanvas.getContext('2d');
+          const thumbContext = thumbCanvas.getContext('2d', { willReadFrequently: true });
           const thumbWidth = 400;
           const thumbHeight = Math.round((height / width) * thumbWidth);
           thumbCanvas.width = thumbWidth;
@@ -361,7 +361,7 @@ function initPDFConverter() {
 
       // Crear y configurar el canvas
       const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext('2d', { willReadFrequently: true });
       canvas.height = viewport.height;
       canvas.width = viewport.width;
 
@@ -377,7 +377,7 @@ function initPDFConverter() {
 
       // --- CREAR THUMBNAIL ---
       const thumbCanvas = document.createElement('canvas');
-      const thumbContext = thumbCanvas.getContext('2d');
+      const thumbContext = thumbCanvas.getContext('2d', { willReadFrequently: true });
       const thumbWidth = 400; // Ancho de miniatura
       const thumbHeight = (canvas.height / canvas.width) * thumbWidth;
       thumbCanvas.width = thumbWidth;
