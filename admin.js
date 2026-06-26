@@ -102,6 +102,9 @@ function initPDFConverter() {
   }
   if (pdfInput) pdfInput.addEventListener('change', handleFileSelect);
 
+  const syncBtn = document.getElementById('sync-counts-btn');
+  if (syncBtn) syncBtn.addEventListener('click', syncCountsFromStorage);
+
   function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
@@ -773,6 +776,81 @@ function initPDFConverter() {
     } catch (error) {
       console.error('Error al cargar estado de secciones:', error);
       statusList.innerHTML = '<p style="color: #dc3545;">⚠️ Error al cargar el estado de las secciones</p>';
+    }
+  }
+
+  // === Sincronizar conteos desde Storage ===
+  async function syncCountsFromStorage() {
+    const btn = document.getElementById('sync-counts-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Sincronizando...';
+    }
+
+    try {
+      if (!storage || !storageModule) {
+        throw new Error('Firebase Storage no está inicializado');
+      }
+      
+      const { getFirestore, doc, setDoc } = await import(
+        'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
+      );
+      if (!window.adminAuth || !(window.adminAuth.app || window.adminAuth.auth)) {
+        throw new Error('Usuario no autenticado');
+      }
+      const app = window.adminAuth.app || window.adminAuth.auth.app;
+      const db = getFirestore(app);
+
+      const { ref, listAll } = storageModule;
+      
+      const sections = [
+        "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS", "ACUERDO NACIONAL 2025",
+        "FEM ALCAMPO", "FEM ALCAMPO SIGUIENTE", "FEM CARREFOUR", "FEM CARREFOUR SIGUIENTE", "FEM CARREFOUR MARKET", "FEM CARREFOUR MARKET SIGUIENTE",
+        "FEM SUPECO", "FEM SUPECO SIGUIENTE", "FEM SORLI", "FEM SORLI SIGUIENTE", "FEM SCLAT BONPREU", "FEM SCLAT BONPREU SIGUIENTE",
+        "FEM CAPRABO", "FEM CAPRABO SIGUIENTE", "FEM CONSUM", "FEM CONSUM SIGUIENTE", "FEM CONDIS", "FEM CONDIS SIGUIENTE", "FEM COVIRAN", "FEM COVIRAN SIGUIENTE",
+        "FEM ECI", "FEM ECI SIGUIENTE", "IMPLANTACIONES"
+      ];
+
+      const updates = {};
+      const nowStr = new Date().toISOString();
+
+      // Procesar en lotes
+      for (const section of sections) {
+        const folderName = section.toLowerCase().replace(/\s+/g, '_');
+        const folderRef = ref(storage, `images/${folderName}/`);
+        
+        try {
+          const res = await listAll(folderRef);
+          // Filtrar para contar solo imágenes principales, no miniaturas
+          const mainImages = res.items.filter(item => 
+            item.name.toLowerCase().endsWith('.jpg') && !item.name.toLowerCase().includes('_thumb')
+          );
+          
+          const count = mainImages.length;
+          updates[folderName] = count;
+          if (count > 0) {
+            updates[`${folderName}_updatedAt`] = nowStr;
+          }
+          console.log(`🔍 Escaneado ${section}: ${count} imágenes encontradas`);
+        } catch (err) {
+          console.warn(`⚠️ Error al escanear carpeta de ${section}:`, err.message);
+        }
+      }
+
+      // Guardar el documento consolidado en Firestore
+      await setDoc(doc(db, 'metadata', 'imageCounts'), updates, { merge: true });
+      showAlert('✅ Conteos sincronizados con éxito desde Storage', 'success');
+      
+      // Volver a cargar el estado en el dashboard
+      await loadSectionsStatus();
+    } catch (error) {
+      console.error('Error al sincronizar conteos:', error);
+      showAlert(`❌ Error al sincronizar: ${error.message}`, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔄 Sincronizar desde Storage';
+      }
     }
   }
 }

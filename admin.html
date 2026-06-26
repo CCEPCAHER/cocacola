@@ -155,7 +155,7 @@
   <div id="admin-panel" class="hidden">
     <header>
       <div class="header-left">
-        <h1>⚙️ Panel Foto de Éxito <span style="font-size: 0.9rem; opacity: 0.6; font-weight: 500; letter-spacing: 0.5px; vertical-align: middle; margin-left: 5px;">v31</span></h1>
+        <h1>⚙️ Panel Foto de Éxito <span style="font-size: 0.9rem; opacity: 0.6; font-weight: 500; letter-spacing: 0.5px; vertical-align: middle; margin-left: 5px;">v32</span></h1>
         <h2 id="admin-username"></h2>
       </div>
       <div class="header-right">
@@ -204,7 +204,10 @@
 
         <!-- DASHBOARD DE ESTADO DE SECCIONES -->
         <div id="sections-status-dashboard" class="sections-status-container">
-          <h3>📊 Estado de las Imágenes por Sección (PDFs/Imágenes)</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">📊 Estado de las Imágenes por Sección (PDFs/Imágenes)</h3>
+            <button id="sync-counts-btn" class="btn-primary" style="margin: 0; padding: 6px 12px; font-size: 0.85rem;" type="button">🔄 Sincronizar desde Storage</button>
+          </div>
           <div id="sections-status-list">
             <p>⏳ Cargando estado de las secciones...</p>
           </div>
@@ -409,8 +412,8 @@
   </script>
 
   <!-- Lógica del panel -->
-  <script src="admin.js?v=31" defer></script>
-  <script src="admin-promotions.js?v=31" defer></script>
+  <script src="admin.js?v=32" defer></script>
+  <script src="admin-promotions.js?v=32" defer></script>
 
   <script>
     if ('serviceWorker' in navigator) {

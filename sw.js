@@ -1,13 +1,13 @@
-const CACHE_NAME = "cocacola-fem-v31";
-const DYNAMIC_CACHE = "cocacola-dynamic-v31";
-const IMAGE_CACHE = "cocacola-images-v31";
+const CACHE_NAME = "cocacola-fem-v32";
+const DYNAMIC_CACHE = "cocacola-dynamic-v32";
+const IMAGE_CACHE = "cocacola-images-v32";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=31",
-  "./script.js?v=31",
-  "./ui.js?v=31",
+  "./style.css?v=32",
+  "./script.js?v=32",
+  "./ui.js?v=32",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
