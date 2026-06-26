@@ -5,9 +5,9 @@ const IMAGE_CACHE = "cocacola-images-v31";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=30",
-  "./script.js?v=30",
-  "./ui.js?v=30",
+  "./style.css?v=31",
+  "./script.js?v=31",
+  "./ui.js?v=31",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
