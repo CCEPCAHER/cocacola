@@ -684,6 +684,7 @@ function initPDFConverter() {
 
   // === Cargar y mostrar estado de las secciones ===
   async function loadSectionsStatus() {
+    window.loadSectionsStatus = loadSectionsStatus;
     const statusList = document.getElementById('sections-status-list');
     if (!statusList) return;
 

@@ -63,10 +63,66 @@
       });
       
       console.log('Fechas cargadas:', promotionDates);
+      preprocessPromotionDatesAndCounts();
       applyPromotionDatesToSections();
       
     } catch (error) {
       console.error('Error cargando fechas:', error);
+    }
+  }
+
+  const virtualSwaps = {};
+
+  function preprocessPromotionDatesAndCounts() {
+    // Limpiar swaps previos por si acaso
+    for (const key in virtualSwaps) delete virtualSwaps[key];
+
+    const PROMOTION_PAIRS = {
+      'FEM_ALCAMPO': 'FEM_ALCAMPO_SIGUIENTE',
+      'FEM_CARREFOUR': 'FEM_CARREFOUR_SIGUIENTE',
+      'FEM_CARREFOUR_MARKET': 'FEM_CARREFOUR_MARKET_SIGUIENTE',
+      'FEM_SUPECO': 'FEM_SUPECO_SIGUIENTE',
+      'FEM_SORLI': 'FEM_SORLI_SIGUIENTE',
+      'FEM_SCLAT_BONPREU': 'FEM_SCLAT_BONPREU_SIGUIENTE',
+      'FEM_CAPRABO': 'FEM_CAPRABO_SIGUIENTE',
+      'FEM_CONSUM': 'FEM_CONSUM_SIGUIENTE',
+      'FEM_CONDIS': 'FEM_CONDIS_SIGUIENTE',
+      'FEM_COVIRAN': 'FEM_COVIRAN_SIGUIENTE',
+      'FEM_ECI': 'FEM_ECI_SIGUIENTE'
+    };
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (const [currentId, nextId] of Object.entries(PROMOTION_PAIRS)) {
+      const current = promotionDates[currentId];
+      const next = promotionDates[nextId];
+
+      if (current && next) {
+        // Verificar si la fecha de fin de la promoción actual ya expiró
+        let isCurrentExpired = false;
+        if (current.endDate) {
+          const end = new Date(current.endDate);
+          if (!isNaN(end.getTime()) && end < now) {
+            isCurrentExpired = true;
+          }
+        }
+
+        // El siguiente periodo debe estar activo y tener fechas configuradas
+        const isNextConfigured = next.active !== false && next.startDate && next.endDate;
+
+        if (isCurrentExpired && isNextConfigured) {
+          const currentFolder = currentId.toLowerCase();
+          const nextFolder = nextId.toLowerCase();
+          
+          console.log(`🔄 [MIGRACIÓN VIRTUAL UI] ${currentId} ha expirado. Mostrando ${nextId} en su lugar.`);
+          
+          // Registrar el swap virtual para carpetas (ej: 'fem_alcampo' -> 'fem_alcampo_siguiente')
+          virtualSwaps[currentFolder] = nextFolder;
+          // Registrar el swap virtual para claves de Firestore (ej: 'FEM_ALCAMPO' -> 'FEM_ALCAMPO_SIGUIENTE')
+          virtualSwaps[currentId] = nextId;
+        }
+      }
     }
   }
 
@@ -81,9 +137,27 @@
 
   // Función para obtener fechas desde Firestore (con prioridad sobre fechas por defecto)
   function getFirestoreDate(sectionName, dateType) {
-    const normalizedKey = sectionName.toUpperCase().replace(/\s+/g, '_');
-    const promo = promotionDates[normalizedKey];
+    let normalizedKey = sectionName.toUpperCase().replace(/\s+/g, '_');
     
+    // Si esta clave tiene un swap virtual (es decir, es una sección actual que expiró y usa la siguiente)
+    if (virtualSwaps[normalizedKey]) {
+      const swappedKey = virtualSwaps[normalizedKey];
+      const promo = promotionDates[swappedKey];
+      if (promo && promo.active) {
+        console.log(`📅 [Swap Virtual] Usando fecha de ${swappedKey} para ${sectionName} (${dateType}): ${promo[dateType]}`);
+        return promo[dateType];
+      }
+    }
+    
+    // Si la sección es la siguiente y ha sido swappeada (movida virtualmente a la actual), debería retornar null
+    for (const [curr, nxt] of Object.entries(virtualSwaps)) {
+      if (nxt === normalizedKey) {
+        console.log(`📅 [Swap Virtual] Sección siguiente ${sectionName} ha sido promovida. Retornando null.`);
+        return null;
+      }
+    }
+
+    const promo = promotionDates[normalizedKey];
     if (promo && promo.active) {
       console.log(`📅 Usando fecha de Firestore para ${sectionName} (${dateType}): ${promo[dateType]}`);
       return promo[dateType];
@@ -123,6 +197,12 @@
     const newHTML = SECTION_NAMES
       .map(sectionName => {
         const dynamicProducts = generateProductsFromImages(sectionName);
+        
+        // Si no hay productos en esta sección (ej. ha sido swappeada o vaciada), ocultarla
+        if (dynamicProducts.length === 0) {
+          return `<div class="section" data-section="${sectionName}" style="display: none;"></div>`;
+        }
+        
         return `<div class="section" data-section="${sectionName}">${createSection(sectionName, dynamicProducts)}</div>`;
       }).join('');
 
@@ -182,16 +262,38 @@
     const products = [];
     const baseName = sectionName.toLowerCase().replace(/\s+/g, '_');
     
+    let targetFolder = baseName;
+    
+    // Si esta carpeta actual ha sido swappeada con la siguiente
+    if (virtualSwaps[baseName]) {
+      targetFolder = virtualSwaps[baseName];
+      console.log(`📸 [Swap Virtual] Redirigiendo imágenes de ${baseName} a la carpeta ${targetFolder}`);
+    }
+    
+    // Si es la sección siguiente y ha sido swappeada (promovida a la actual), su conteo debe ser 0 para que quede libre
+    let isNextPromoted = false;
+    for (const [curr, nxt] of Object.entries(virtualSwaps)) {
+      if (nxt === baseName) {
+        isNextPromoted = true;
+      }
+    }
+
     // Usar el conteo real de Firebase Storage si está disponible,
     // sino usar el conteo configurado como fallback
     const actualCounts = window.firebaseImageActualCounts || {};
-    const imageCount = Math.min(actualCounts[baseName] !== undefined 
-      ? actualCounts[baseName] 
-      : (sectionImageCounts[sectionName] || 1), 100); 
     
-    // Si el conteo es 0 pero la sección debería tener algo por defecto, asegurar al menos 1
+    let imageCount = 0;
+    if (isNextPromoted) {
+      imageCount = 0;
+    } else {
+      imageCount = Math.min(actualCounts[targetFolder] !== undefined 
+        ? actualCounts[targetFolder] 
+        : (sectionImageCounts[sectionName] || 1), 100);
+    }
+    
+    // Si el conteo es 0 pero la sección debería tener algo por defecto (y no ha sido promovida), asegurar al menos 1
     // Esto evita que las secciones desaparezcan totalmente si hay un error de sincronización
-    const finalCount = imageCount === 0 && sectionImageCounts[sectionName] > 0 ? 1 : imageCount;
+    const finalCount = imageCount === 0 && sectionImageCounts[sectionName] > 0 && !isNextPromoted ? 1 : imageCount;
     // Límite de seguridad de 100 imágenes por sección
     
     // Secciones que NO deben tener fechas
@@ -200,7 +302,6 @@
     
     // Generar productos basándose en las imágenes disponibles
     for (let i = 0; i < finalCount; i++) {
-      const imagePath = `images/${baseName}/${baseName}_${i}.jpg`;
       const productName = sectionName.includes('SIGUIENTE') 
         ? `${sectionName.replace(' SIGUIENTE', '')} Siguiente Producto ${i + 1}`
         : `${sectionName} Producto ${i + 1}`;
@@ -210,8 +311,8 @@
         price: 0.00,
         offer: false,
         staticOffer: true,
-        image: `images/${baseName}/${baseName}_${i}_thumb.jpg`,
-        fullImage: `images/${baseName}/${baseName}_${i}.jpg`,
+        image: `images/${targetFolder}/${targetFolder}_${i}_thumb.jpg`,
+        fullImage: `images/${targetFolder}/${targetFolder}_${i}.jpg`,
         // Solo el primer producto tendrá fechas si la sección las permite
         // Usar fechas de Firestore si están disponibles, sino fechas por defecto
         startDate: (i === 0 && hasDates) ? getFirestoreDate(sectionName, 'startDate') : null,

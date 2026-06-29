@@ -279,9 +279,11 @@ function initPromotionManager() {
       }
 
       let html = '<div style="display: grid; gap: 15px;">';
+      const activePromosMap = {};
       
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        activePromosMap[doc.id] = data;
         
         // Verificar si la fecha de fin ya expiró
         const now = new Date();
@@ -354,10 +356,186 @@ function initPromotionManager() {
       
       html += '</div>';
       promotionsList.innerHTML = html;
+
+      // Ejecutar comprobación automática de traspaso de periodos
+      checkAndMigrateExpiredPromotions(activePromosMap);
       
     } catch (error) {
       console.error('Error al cargar promociones:', error);
       promotionsList.innerHTML = '<p style="color: #dc3545;">❌ Error al cargar promociones</p>';
+    }
+  }
+
+  // === Detección y migración automática de promociones expiradas ===
+  async function checkAndMigrateExpiredPromotions(activePromosMap) {
+    const PROMOTION_PAIRS = {
+      'FEM_ALCAMPO': 'FEM_ALCAMPO_SIGUIENTE',
+      'FEM_CARREFOUR': 'FEM_CARREFOUR_SIGUIENTE',
+      'FEM_CARREFOUR_MARKET': 'FEM_CARREFOUR_MARKET_SIGUIENTE',
+      'FEM_SUPECO': 'FEM_SUPECO_SIGUIENTE',
+      'FEM_SORLI': 'FEM_SORLI_SIGUIENTE',
+      'FEM_SCLAT_BONPREU': 'FEM_SCLAT_BONPREU_SIGUIENTE',
+      'FEM_CAPRABO': 'FEM_CAPRABO_SIGUIENTE',
+      'FEM_CONSUM': 'FEM_CONSUM_SIGUIENTE',
+      'FEM_CONDIS': 'FEM_CONDIS_SIGUIENTE',
+      'FEM_COVIRAN': 'FEM_COVIRAN_SIGUIENTE',
+      'FEM_ECI': 'FEM_ECI_SIGUIENTE'
+    };
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (const [currentId, nextId] of Object.entries(PROMOTION_PAIRS)) {
+      const current = activePromosMap[currentId];
+      const next = activePromosMap[nextId];
+
+      if (current && next) {
+        // Verificar si la fecha de fin de la promoción actual ya expiró
+        let isCurrentExpired = false;
+        if (current.endDate) {
+          const end = new Date(current.endDate);
+          if (!isNaN(end.getTime()) && end < now) {
+            isCurrentExpired = true;
+          }
+        }
+
+        // El siguiente periodo debe estar activo y tener fechas configuradas
+        const isNextConfigured = next.active !== false && next.startDate && next.endDate;
+
+        if (isCurrentExpired && isNextConfigured) {
+          console.log(`🔄 [MIGRACIÓN] Detectada promoción actual expirada: ${currentId} y siguiente configurada: ${nextId}. Iniciando migración...`);
+          try {
+            await executePromotionMigration(currentId, nextId, current, next);
+            break; // Salir del bucle para procesar de una en una y recargar
+          } catch (error) {
+            console.error(`❌ Error al migrar ${currentId} ← ${nextId}:`, error);
+            alert(`❌ Error al traspasar el periodo de ${currentId.replace(/_/g, ' ')}: ${error.message}`);
+          }
+        }
+      }
+    }
+  }
+
+  async function executePromotionMigration(currentId, nextId, currentData, nextData) {
+    // 1. Mostrar mensaje de migración
+    const statusDiv = document.getElementById('promotion-status');
+    if (statusDiv) {
+      statusDiv.innerHTML = `<div class="alert alert-info" style="background: #d1ecf1; border-color: #bee5eb; color: #0c5460; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 500;">⏳ Traspasando automáticamente el periodo de <b>${currentId.replace(/_/g, ' ')}</b> (el periodo actual ha finalizado y el siguiente se activará)... No cierres la página.</div>`;
+    }
+
+    try {
+      // Cargar Firebase Storage si no está cargado
+      const storageModuleObj = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js');
+      const { getStorage, ref, listAll, getDownloadURL, uploadBytes, deleteObject } = storageModuleObj;
+      const storageInstance = getStorage(window.adminAuth.auth.app);
+
+      const folderCurrent = currentId.replace(/_/g, ' ').toLowerCase().replace(/\s+/g, '_');
+      const folderNext = nextId.replace(/_/g, ' ').toLowerCase().replace(/\s+/g, '_');
+
+      const srcRef = ref(storageInstance, `images/${folderNext}/`);
+      const destRef = ref(storageInstance, `images/${folderCurrent}/`);
+
+      console.log(`📂 Copiando archivos de storage de images/${folderNext}/ a images/${folderCurrent}/`);
+
+      // 2. Copiar archivos en Storage
+      const listResult = await listAll(srcRef);
+      
+      // Limpiar primero las imágenes antiguas de la carpeta de destino
+      const destListResult = await listAll(destRef);
+      if (destListResult.items.length > 0) {
+        console.log(`🗑️ Limpiando ${destListResult.items.length} imágenes antiguas de images/${folderCurrent}/`);
+        await Promise.allSettled(destListResult.items.map(item => deleteObject(item)));
+      }
+
+      // Copiar archivos de Siguiente a Actual
+      for (const itemRef of listResult.items) {
+        try {
+          const url = await getDownloadURL(itemRef);
+          const response = await fetch(url);
+          const blob = await response.blob();
+          
+          const newFileRef = ref(storageInstance, `images/${folderCurrent}/${itemRef.name}`);
+          const metadata = {
+            contentType: 'image/jpeg',
+            customMetadata: {
+              uploadedAt: new Date().toISOString(),
+              section: currentId.replace(/_/g, ' ')
+            }
+          };
+          await uploadBytes(newFileRef, blob, metadata);
+          console.log(`✅ Copiado: ${itemRef.name} a images/${folderCurrent}/`);
+        } catch (e) {
+          console.error(`❌ Error copiando archivo ${itemRef.name}:`, e);
+          throw new Error(`Error copiando archivo ${itemRef.name}: ${e.message}`);
+        }
+      }
+
+      // 3. Eliminar archivos de la carpeta Siguiente
+      if (listResult.items.length > 0) {
+        console.log(`🗑️ Eliminando archivos de origen en images/${folderNext}/`);
+        await Promise.allSettled(listResult.items.map(item => deleteObject(item)));
+      }
+
+      // 4. Actualizar conteo de imágenes en Firestore metadata/imageCounts
+      const { doc, getDoc, setDoc, serverTimestamp } = dbModule;
+      const countsDocRef = doc(db, 'metadata', 'imageCounts');
+      const countsSnap = await getDoc(countsDocRef);
+      const currentCounts = countsSnap.exists() ? countsSnap.data() : {};
+
+      // El nuevo conteo para la sección actual es el que tenía la sección siguiente
+      // Y la sección siguiente ahora tiene 0 imágenes
+      const nextCount = currentCounts[folderNext] || 0;
+      const nowStr = new Date().toISOString();
+
+      await setDoc(countsDocRef, {
+        [folderCurrent]: nextCount,
+        [`${folderCurrent}_updatedAt`]: nowStr,
+        [folderNext]: 0,
+        [`${folderNext}_updatedAt`]: nowStr
+      }, { merge: true });
+
+      console.log(`📊 Actualizados conteos en Firestore: ${folderCurrent}=${nextCount}, ${folderNext}=0`);
+
+      // 5. Actualizar fechas de las promociones en Firestore
+      const currentPromoRef = doc(db, 'promotions', currentId);
+      const nextPromoRef = doc(db, 'promotions', nextId);
+
+      // Guardar datos
+      await setDoc(currentPromoRef, {
+        startDate: nextData.startDate,
+        endDate: nextData.endDate,
+        active: nextData.active,
+        lastUpdated: serverTimestamp()
+      }, { merge: true });
+
+      // Desactivar y limpiar el periodo siguiente
+      await setDoc(nextPromoRef, {
+        startDate: '',
+        endDate: '',
+        active: false,
+        lastUpdated: serverTimestamp()
+      }, { merge: true });
+
+      console.log(`📅 Fechas de promociones actualizadas en Firestore.`);
+
+      // 6. Finalizar y recargar UI
+      if (statusDiv) {
+        statusDiv.innerHTML = `<div class="alert alert-success" style="background: #d4edda; border-color: #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 500;">✅ Se ha trasladado el periodo <b>${nextData.startDate} → ${nextData.endDate}</b> a la sección actual. La sección siguiente ha quedado vacía y libre.</div>`;
+        setTimeout(() => { statusDiv.innerHTML = ''; }, 6000);
+      }
+
+      // Recargar la lista en la interfaz
+      loadActivePromotions();
+      
+      // Si loadSectionsStatus está disponible en el ámbito global, llamarlo para refrescar el dashboard
+      if (typeof window.loadSectionsStatus === 'function') {
+        window.loadSectionsStatus();
+      }
+    } catch (err) {
+      console.error("❌ Error en executePromotionMigration:", err);
+      if (statusDiv) {
+        statusDiv.innerHTML = `<div class="alert alert-danger" style="background: #f8d7da; border-color: #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">❌ Error al migrar periodo: ${err.message}</div>`;
+      }
     }
   }
 
