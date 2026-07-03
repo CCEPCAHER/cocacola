@@ -172,6 +172,9 @@ function initPDFConverter() {
         // Actualizar estado de las secciones en el dashboard
         loadSectionsStatus();
 
+        // Señalizar al dashboard que hay nuevos archivos para esta sección
+        markSectionAsUpdated(section);
+
         showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
       } else {
         // === CASO IMÁGENES MÚLTIPLES ===
@@ -258,6 +261,9 @@ function initPDFConverter() {
 
         // Actualizar estado de las secciones en el dashboard
         loadSectionsStatus();
+
+        // Señalizar al dashboard que hay nuevos archivos para esta sección
+        markSectionAsUpdated(section);
 
         showAlert('✅ ¡Imágenes procesadas y subidas a Firebase con éxito!', 'success');
       }
@@ -852,6 +858,33 @@ function initPDFConverter() {
         btn.disabled = false;
         btn.textContent = '🔄 Sincronizar desde Storage';
       }
+    }
+  }
+
+  // =========================================================================
+  // SEÑALIZAR AL DASHBOARD QUE HAY DATOS NUEVOS
+  // =========================================================================
+  /**
+   * Guarda en localStorage un flag con las secciones que se han actualizado
+   * desde el admin. El dashboard lo detectará al cargar y solo invalidará
+   * las cachés de esas secciones, manteniendo el resto para uso offline.
+   */
+  function markSectionAsUpdated(section) {
+    try {
+      const folderName = section.toLowerCase().replace(/\s+/g, '_');
+      let pending = {};
+      try {
+        const raw = localStorage.getItem('adminUploadPending');
+        if (raw) pending = JSON.parse(raw);
+      } catch (e) {}
+      
+      // Añadir/actualizar la sección con timestamp actual
+      pending[folderName] = Date.now();
+      
+      localStorage.setItem('adminUploadPending', JSON.stringify(pending));
+      console.log(`📌 Sección marcada como actualizada: ${folderName}`);
+    } catch (e) {
+      console.warn('⚠️ No se pudo marcar la sección como actualizada:', e);
     }
   }
 }

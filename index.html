@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="style.css?v=33">
+  <link rel="stylesheet" href="style.css?v=34">
   <style>
     .admin-link {
       display: block;
@@ -42,7 +42,7 @@
 
   <div id="contenido" class="hidden">
     <header>
-      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v32</span></h1>
+      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v34</span></h1>
       <div class="header-controls">
         <button id="install-btn" class="btn-header hidden" aria-label="Instalar App">📱 Instalar</button>
         <button id="dark-mode-btn" class="btn-header" aria-label="Alternar Modo Oscuro">🌙</button>
@@ -110,6 +110,31 @@
       }
     });
 
+    // Re-cargar datos cuando se vuelve a la página (ej. desde el admin)
+    // pageshow se dispara al navegar con back/forward y al restaurar desde bfcache
+    window.addEventListener('pageshow', (event) => {
+      // event.persisted = true significa que se restauró del bfcache
+      // También comprobar si hay uploads pendientes del admin
+      const hasPending = localStorage.getItem('adminUploadPending');
+      if (event.persisted || hasPending) {
+        console.log('🔄 Página restaurada' + (event.persisted ? ' (bfcache)' : '') + (hasPending ? ' con uploads pendientes' : ''));
+        if (auth.currentUser) {
+          loadImagesFromStorageBatched();
+        }
+      }
+    });
+
+    // También re-cargar cuando el usuario vuelve a la pestaña (ej. si abrió admin en otra pestaña)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && auth.currentUser) {
+        const hasPending = localStorage.getItem('adminUploadPending');
+        if (hasPending) {
+          console.log('🔄 Pestaña visible con uploads pendientes, recargando...');
+          loadImagesFromStorageBatched();
+        }
+      }
+    });
+
     loginForm.addEventListener("submit", e => {
       e.preventDefault();
       const email = document.getElementById("username").value.trim();
@@ -147,16 +172,89 @@
     // CARGA BAJO DEMANDA (optimizada para memoria)
     // Solo cargamos las URLs cuando se necesitan, no todas de una vez
     async function loadImagesFromStorageBatched() {
-      // 1. Cargar caché de URLs guardada localmente
+      // ── 0. Detectar si el admin subió archivos nuevos ──
+      // Solo invalidamos las cachés de las secciones que cambiaron,
+      // el resto se mantiene intacto para uso offline.
+      let updatedSections = [];
       try {
-        const cachedUrls = localStorage.getItem('firebaseImageUrls');
-        if (cachedUrls) {
-          window.firebaseImageUrls = JSON.parse(cachedUrls);
+        const pendingRaw = localStorage.getItem('adminUploadPending');
+        if (pendingRaw) {
+          const pending = JSON.parse(pendingRaw);
+          updatedSections = Object.keys(pending);
+          console.log('📌 Secciones actualizadas desde admin:', updatedSections);
+          
+          // Invalidar solo las URLs cacheadas de las secciones actualizadas
+          try {
+            const cachedUrls = localStorage.getItem('firebaseImageUrls');
+            if (cachedUrls) {
+              const urls = JSON.parse(cachedUrls);
+              for (const section of updatedSections) {
+                const prefix = `images/${section}/`;
+                for (const urlKey in urls) {
+                  if (urlKey.startsWith(prefix)) {
+                    delete urls[urlKey];
+                  }
+                }
+              }
+              localStorage.setItem('firebaseImageUrls', JSON.stringify(urls));
+              window.firebaseImageUrls = urls;
+            }
+          } catch (e) {}
+
+          // Limpiar timestamps locales de las secciones actualizadas para forzar re-sincronización
+          try {
+            const cachedUpdates = localStorage.getItem('firebaseImageLastUpdates');
+            if (cachedUpdates) {
+              const updates = JSON.parse(cachedUpdates);
+              for (const section of updatedSections) {
+                delete updates[section];
+              }
+              localStorage.setItem('firebaseImageLastUpdates', JSON.stringify(updates));
+            }
+          } catch (e) {}
+          
+          // Limpiar la caché de imágenes del Service Worker para las secciones actualizadas
+          if ('caches' in window) {
+            try {
+              const imageCache = await caches.open('cocacola-images-v34');
+              const keys = await imageCache.keys();
+              for (const request of keys) {
+                const url = new URL(request.url);
+                // Las URLs de Firebase Storage contienen el path de la imagen codificado
+                for (const section of updatedSections) {
+                  if (url.pathname.includes(encodeURIComponent(`images/${section}/`)) ||
+                      url.pathname.includes(`images%2F${section}%2F`) ||
+                      url.href.includes(`images%2F${section}%2F`)) {
+                    await imageCache.delete(request);
+                    console.log(`🗑️ Caché SW eliminada: ${section}`);
+                  }
+                }
+              }
+            } catch (e) {
+              console.warn('⚠️ No se pudo limpiar caché SW:', e);
+            }
+          }
+          
+          // Consumir el flag (ya se procesó)
+          localStorage.removeItem('adminUploadPending');
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('⚠️ Error procesando flag de admin:', e);
+      }
+
+      // ── 1. Cargar caché de URLs guardada localmente ──
+      // (Si ya se limpió arriba para secciones actualizadas, se usa la versión limpia)
+      if (!window.firebaseImageUrls || Object.keys(window.firebaseImageUrls).length === 0) {
+        try {
+          const cachedUrls = localStorage.getItem('firebaseImageUrls');
+          if (cachedUrls) {
+            window.firebaseImageUrls = JSON.parse(cachedUrls);
+          }
+        } catch (e) {}
+      }
       window.firebaseImageUrls = window.firebaseImageUrls || {};
 
-      // 2. Cargar timestamps de última actualización
+      // ── 2. Cargar timestamps de última actualización ──
       let localUpdates = {};
       try {
         const cachedUpdates = localStorage.getItem('firebaseImageLastUpdates');
@@ -165,7 +263,7 @@
         }
       } catch (e) {}
 
-      // 3. Cargar conteos reales de caché local primero
+      // ── 3. Cargar conteos reales de caché local primero ──
       try {
         const cachedCounts = localStorage.getItem('firebaseImageActualCounts');
         if (cachedCounts) {
@@ -175,7 +273,7 @@
       } catch (e) {}
       window.firebaseImageActualCounts = window.firebaseImageActualCounts || {};
 
-      // 4. Intentar actualizar desde Firestore
+      // ── 4. Sincronizar desde Firestore (si hay conexión) ──
       try {
         if (auth.currentUser) {
           console.log('📡 Sincronizando conteos desde Firestore...');
@@ -216,8 +314,8 @@
               localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
               if (cacheInvalidated) {
                 localStorage.setItem('firebaseImageUrls', JSON.stringify(window.firebaseImageUrls));
-                localStorage.setItem('firebaseImageLastUpdates', JSON.stringify(localUpdates));
               }
+              localStorage.setItem('firebaseImageLastUpdates', JSON.stringify(localUpdates));
             } catch (e) {}
           } else {
             console.log('ℹ️ No se encontraron metadatos en Firestore (esto es normal si no se ha subido ningún PDF aún). Se usarán los valores por defecto.');
@@ -875,7 +973,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=33"></script>
-  <script src="script.js?v=33"></script>
+  <script type="module" src="ui.js?v=34"></script>
+  <script src="script.js?v=34"></script>
 </body>
 </html>
