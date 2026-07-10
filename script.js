@@ -692,6 +692,12 @@
           s.style.display = shouldShow ? 'block' : 'none';
         }
       });
+
+      // Re-cargar imágenes lazy de las secciones que acaban de hacerse visibles
+      // Primero intentar asignar URLs ya cacheadas
+      if (window.updateProductImages) window.updateProductImages();
+      // Luego re-observar las imágenes lazy restantes que no tenían URL en caché
+      if (window.lazyLoadImages) window.lazyLoadImages();
     };
 
     if (document.startViewTransition) {

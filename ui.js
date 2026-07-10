@@ -120,6 +120,9 @@ function initNetworkStatus() {
     if (typeof window.updateProductImages === 'function') {
       window.updateProductImages();
     }
+    if (typeof window.lazyLoadImages === 'function') {
+      window.lazyLoadImages();
+    }
   });
 }
 

@@ -216,7 +216,7 @@
           // Limpiar la caché de imágenes del Service Worker para las secciones actualizadas
           if ('caches' in window) {
             try {
-              const imageCache = await caches.open('cocacola-images-v34');
+              const imageCache = await caches.open('cocacola-images-v35');
               const keys = await imageCache.keys();
               for (const request of keys) {
                 const url = new URL(request.url);
@@ -338,6 +338,10 @@
         if (typeof window.updateProductImages === 'function') {
           window.updateProductImages();
         }
+        // Re-inicializar lazy loading para imágenes que aún no se hayan cargado
+        if (typeof window.lazyLoadImages === 'function') {
+          window.lazyLoadImages();
+        }
       }
     }
 
@@ -376,14 +380,18 @@
 
     // ACTUALIZAR IMÁGENES (asigna data-full bajo demanda)
     window.updateProductImages = function() {
-      // No precargar todas las URLs aquí
-      // El lazy loading se encargará de cargarlas cuando se necesiten
       document.querySelectorAll('.product img[data-src]').forEach(img => {
-        // Solo asignar si ya está en caché
         const storagePath = img.dataset.src.trim();
         const url = window.firebaseImageUrls[storagePath];
         if (url) {
-          if (!img.classList.contains('lazy')) img.src = url;
+          // Asignar la URL de caché a TODAS las imágenes, incluyendo las lazy
+          // Esto evita que queden en blanco si el observer ya pasó
+          if (img.src !== url && !img.src.includes('firebasestorage')) {
+            img.src = url;
+            img.classList.remove('lazy');
+            img.closest('.product')?.classList.remove('is-loading');
+            img.parentElement?.classList.remove('skeleton');
+          }
         }
 
         // Si ya tenemos la imagen completa resuelta en caché, la asignamos a data-full
@@ -488,7 +496,7 @@
             }
           });
         }, { 
-          rootMargin: '300px 2000px',
+          rootMargin: '500px 0px 500px 0px',
           threshold: 0
         });
         
