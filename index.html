@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="style.css?v=34">
+  <link rel="stylesheet" href="style.css?v=35">
   <style>
     .admin-link {
       display: block;
@@ -344,9 +344,18 @@
     // Mapeo y helper para URLs de Firebase a nivel de módulo
     window.firebaseImageUrls = window.firebaseImageUrls || {};
 
-    async function ensureUrl(key) {
-      if (window.firebaseImageUrls[key]) return window.firebaseImageUrls[key];
+
+    async function ensureUrl(key, forceRefresh = false) {
+      // Si no forzamos refresh y la URL está en caché, usarla
+      if (!forceRefresh && window.firebaseImageUrls[key]) {
+        return window.firebaseImageUrls[key];
+      }
       try {
+        // Si estamos forzando refresh, eliminar la URL cacheada primero
+        if (forceRefresh) {
+          delete window.firebaseImageUrls[key];
+          console.log(`🔄 Refrescando URL para: ${key}`);
+        }
         let url = await getDownloadURL(ref(storage, key)).catch(async (e) => {
           if (key.includes('_thumb.jpg')) {
             return await getDownloadURL(ref(storage, key.replace('_thumb.jpg', '.jpg')));
@@ -361,6 +370,9 @@
         return null;
       }
     }
+
+    // Exponer ensureUrl globalmente para que el onerror handler pueda refrescar URLs expiradas
+    window.ensureUrl = ensureUrl;
 
     // ACTUALIZAR IMÁGENES (asigna data-full bajo demanda)
     window.updateProductImages = function() {
@@ -409,13 +421,21 @@
         const key = (img.dataset.src || '').trim();
         if (!key) return;
         
-        // Cargar miniatura
-        const url = await ensureUrl(key);
+        // Cargar miniatura - intentar con caché primero, el onerror handler se encargará
+        // de refrescar la URL si está expirada
+        let url = await ensureUrl(key);
         if (url) {
           img.src = url;
           img.classList.remove('lazy');
         } else {
-          console.warn(`🚫 No se pudo obtener URL para miniatura: ${key}`);
+          // No hay URL en caché ni en Firebase - intentar refrescar forzadamente
+          url = await ensureUrl(key, true);
+          if (url) {
+            img.src = url;
+            img.classList.remove('lazy');
+          } else {
+            console.warn(`🚫 No se pudo obtener URL para miniatura: ${key}`);
+          }
         }
 
         // Precargar la imagen de alta resolución en segundo plano para disponibilidad Offline
@@ -973,7 +993,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=34"></script>
-  <script src="script.js?v=34"></script>
+  <script type="module" src="ui.js?v=35"></script>
+  <script src="script.js?v=35"></script>
 </body>
 </html>

@@ -452,7 +452,19 @@
         <div class="product-image-container skeleton">
           <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
             onload="if(this.src && !this.src.startsWith('data:')) { this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton'); }"
-            onerror="if(this.src && !this.src.startsWith('data:') && this.src !== 'icons/icon-192.png') { this.src='icons/icon-192.png'; this.style.opacity='0.5'; this.closest('.product').classList.remove('is-loading'); }">
+            onerror="(async function(img) {
+              if (!img.src || img.src.startsWith('data:') || img.src.endsWith('icon-192.png')) return;
+              if (!img.dataset.retried) {
+                img.dataset.retried = 'true';
+                var key = (img.dataset.src || '').trim();
+                if (key && window.ensureUrl) {
+                  var newUrl = await window.ensureUrl(key, true);
+                  if (newUrl) { img.src = newUrl; return; }
+                }
+              }
+              img.src='icons/icon-192.png'; img.style.opacity='0.5';
+              img.closest('.product').classList.remove('is-loading');
+            })(this)">
         </div>
         <h3>${p.name || 'Producto sin nombre'}</h3>
         ${offerHtml}`;
