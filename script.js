@@ -163,10 +163,10 @@
       return promo[dateType];
     }
     
-    // Si no hay fecha de Firestore, usar fecha por defecto
-    const defaultDate = dateType === 'startDate' ? getDefaultStartDate(sectionName) : getDefaultEndDate(sectionName);
-    console.log(`📅 Usando fecha por defecto para ${sectionName} (${dateType}): ${defaultDate}`);
-    return defaultDate;
+    // Si no hay fecha de Firestore, retornar null para evitar mostrar "Oferta caducada"
+    // con fechas por defecto obsoletas (de 2025)
+    console.log(`📅 Sin fecha de Firestore para ${sectionName} (${dateType}). Retornando null.`);
+    return null;
   }
 
 
