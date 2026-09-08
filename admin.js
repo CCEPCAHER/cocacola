@@ -164,10 +164,10 @@ function initPDFConverter() {
         }
 
         // LLAMADA A LA FUNCIÓN DE CONVERSIÓN Y CARGA SEGURA
-        await convertAndUploadPDF(pdfFile, section);
+        const uploadedCount = await convertAndUploadPDF(pdfFile, section);
 
         // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
-        await saveImageCountToFirestore(section, pdfFile);
+        await saveImageCountToFirestore(section, uploadedCount);
 
         // Actualizar estado de las secciones en el dashboard
         loadSectionsStatus();
@@ -175,7 +175,7 @@ function initPDFConverter() {
         // Señalizar al dashboard que hay nuevos archivos para esta sección
         markSectionAsUpdated(section);
 
-        showAlert('✅ ¡PDF convertido y subido a Firebase con éxito!', 'success');
+        showAlert(`✅ ¡PDF (${uploadedCount} páginas) convertido y subido a Firebase con éxito!`, 'success');
       } else {
         // === CASO IMÁGENES MÚLTIPLES ===
         showAlert('🔄 Procesando imágenes...', 'info');
@@ -501,6 +501,7 @@ function initPDFConverter() {
     
     // Asegurar que el progreso se muestre al 100% al finalizar
     updateProgress(numPages, numPages); 
+    return numPages;
   }
   
   // =========================================================================
@@ -575,7 +576,7 @@ function initPDFConverter() {
 
     const uploadPromise = uploadBytes(storageRef, blob, metadata);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout: La subida tardó más de 30 segundos')), 30000)
+      setTimeout(() => reject(new Error('Timeout: La subida tardó más de 60 segundos')), 60000)
     );
 
     const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
@@ -620,7 +621,7 @@ function initPDFConverter() {
       if (existing.items.length === 0) return 0;
       
       console.log(`🗑️ Eliminando ${existing.items.length} archivos de images/${folderName}/`);
-      await Promise.all(existing.items.map(item => deleteObject(item)));
+      await Promise.allSettled(existing.items.map(item => deleteObject(item)));
       return existing.items.length;
     } catch (error) {
       console.warn(`⚠️ Error al limpiar imágenes antiguas: ${error.message}`);

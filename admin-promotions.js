@@ -357,8 +357,9 @@ function initPromotionManager() {
       html += '</div>';
       promotionsList.innerHTML = html;
 
-      // Ejecutar comprobación automática de traspaso de periodos
-      checkAndMigrateExpiredPromotions(activePromosMap);
+      // NOTA: Se desactiva la comprobación automática de migración de periodos
+      // para evitar que se borren o sobreescriban fotos entre secciones actuales y siguientes.
+      // checkAndMigrateExpiredPromotions(activePromosMap);
       
     } catch (error) {
       console.error('Error al cargar promociones:', error);
@@ -454,7 +455,8 @@ function initPromotionManager() {
           const response = await fetch(url);
           const blob = await response.blob();
           
-          const newFileRef = ref(storageInstance, `images/${folderCurrent}/${itemRef.name}`);
+          const targetFileName = itemRef.name.replace(folderNext, folderCurrent);
+          const newFileRef = ref(storageInstance, `images/${folderCurrent}/${targetFileName}`);
           const metadata = {
             contentType: 'image/jpeg',
             customMetadata: {

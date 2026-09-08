@@ -42,7 +42,7 @@
 
   <div id="contenido" class="hidden">
     <header>
-      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v35</span></h1>
+      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v36</span></h1>
       <div class="header-controls">
         <button id="install-btn" class="btn-header hidden" aria-label="Instalar App">📱 Instalar</button>
         <button id="dark-mode-btn" class="btn-header" aria-label="Alternar Modo Oscuro">🌙</button>
@@ -172,6 +172,19 @@
     // CARGA BAJO DEMANDA (optimizada para memoria)
     // Solo cargamos las URLs cuando se necesitan, no todas de una vez
     async function loadImagesFromStorageBatched() {
+      // ── -1. Comprobar versión de caché de la aplicación ──
+      try {
+        if (localStorage.getItem('appCacheVersion') !== 'v36') {
+          console.log('🔄 Nueva versión detectada (v36). Purgando cachés locales obsoletas...');
+          localStorage.removeItem('firebaseImageUrls');
+          localStorage.removeItem('firebaseImageLastUpdates');
+          localStorage.removeItem('firebaseImageActualCounts');
+          localStorage.setItem('appCacheVersion', 'v36');
+          window.firebaseImageUrls = {};
+          window.firebaseImageActualCounts = {};
+        }
+      } catch (e) {}
+
       // ── 0. Detectar si el admin subió archivos nuevos ──
       // Solo invalidamos las cachés de las secciones que cambiaron,
       // el resto se mantiene intacto para uso offline.
@@ -216,7 +229,7 @@
           // Limpiar la caché de imágenes del Service Worker para las secciones actualizadas
           if ('caches' in window) {
             try {
-              const imageCache = await caches.open('cocacola-images-v35');
+              const imageCache = await caches.open('cocacola-images-v36');
               const keys = await imageCache.keys();
               for (const request of keys) {
                 const url = new URL(request.url);
@@ -443,6 +456,11 @@
             img.classList.remove('lazy');
           } else {
             console.warn(`🚫 No se pudo obtener URL para miniatura: ${key}`);
+            img.src = 'icons/icon-192.png';
+            img.style.opacity = '0.4';
+            img.classList.remove('lazy');
+            img.closest('.product')?.classList.remove('is-loading');
+            img.parentElement?.classList.remove('skeleton');
           }
         }
 
@@ -496,7 +514,7 @@
             }
           });
         }, { 
-          rootMargin: '500px 0px 500px 0px',
+          rootMargin: '500px 800px 500px 800px',
           threshold: 0
         });
         
@@ -1001,7 +1019,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=35"></script>
-  <script src="script.js?v=35"></script>
+  <script type="module" src="ui.js?v=36"></script>
+  <script src="script.js?v=36"></script>
 </body>
 </html>
