@@ -143,6 +143,9 @@
         filterSections();
       }
     }
+
+    // Las fechas de subida pueden cambiar aunque los productos no cambien
+    renderUpdateStatus();
   }
 
 
@@ -561,6 +564,176 @@
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, 2500);
   }
 
+  // ========================
+  // PANEL DE ACTUALIZACIONES (parte superior)
+  // ========================
+  const FRESH_DAYS = 7;   // verde: subido en los últimos 7 días
+  const STALE_DAYS = 30;  // naranja: más de 30 días sin subir nada (mismo umbral que el admin)
+  const STATUS_ORDER = { fresh: 0, ok: 1, stale: 2, expired: 3, unknown: 4 };
+
+  function toFolderName(sectionName) {
+    return sectionName.toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function getLastUpdatesMap() {
+    if (window.firebaseImageUpdatedAt) return window.firebaseImageUpdatedAt;
+    try {
+      return JSON.parse(localStorage.getItem('firebaseImageLastUpdates')) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  // Días naturales transcurridos desde una fecha (0 = hoy)
+  function daysSince(date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+    return Math.round((today - day) / (1000 * 60 * 60 * 24));
+  }
+
+  // Estado de una cadena: se considera su sección actual + su SIGUIENTE
+  function getSectionUpdateStatus(sectionName) {
+    const actualCounts = window.firebaseImageActualCounts || {};
+    const lastUpdates = getLastUpdatesMap();
+    const nextName = `${sectionName} SIGUIENTE`;
+
+    const hasImages = (name) => {
+      const count = actualCounts[toFolderName(name)];
+      return (count !== undefined ? count : (sectionImageCounts[name] || 0)) > 0;
+    };
+    const getUpdatedAt = (name) => {
+      const d = new Date(lastUpdates[toFolderName(name)]);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    // Solo cuentan carpetas con imágenes (al traspasar un periodo, SIGUIENTE queda vacía con fecha nueva)
+    let updatedAt = null;
+    [sectionName, nextName].forEach(name => {
+      if (!SECTION_NAMES.includes(name) || !hasImages(name)) return;
+      const d = getUpdatedAt(name);
+      if (d && (!updatedAt || d > updatedAt)) updatedAt = d;
+    });
+
+    const hasNext = SECTION_NAMES.includes(nextName) && hasImages(nextName) && !!getUpdatedAt(nextName);
+
+    const promo = promotionDates[sectionName.toUpperCase().replace(/\s+/g, '_')];
+    let isExpired = false;
+    if (promo && promo.active && promo.endDate) {
+      const [y, m, d] = promo.endDate.split('-');
+      isExpired = daysSince(new Date(y, m - 1, d)) > 0;
+    }
+
+    const days = updatedAt ? daysSince(updatedAt) : null;
+    let status;
+    if (isExpired) status = 'expired';
+    else if (days === null) status = 'unknown';
+    else if (days < FRESH_DAYS) status = 'fresh';
+    else if (days <= STALE_DAYS) status = 'ok';
+    else status = 'stale';
+
+    let label;
+    if (isExpired) label = 'Caducada';
+    else if (days === null) label = 'Sin datos';
+    else if (days <= 0) label = 'Hoy';
+    else if (days === 1) label = 'Ayer';
+    else label = `Hace ${days} días`;
+
+    const tooltip = [];
+    if (isExpired) tooltip.push('Oferta caducada');
+    if (updatedAt) {
+      const dateStr = updatedAt.toLocaleDateString('es-ES');
+      const timeStr = updatedAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      tooltip.push(`Actualizado el ${dateStr} a las ${timeStr}`);
+    }
+    if (hasNext) tooltip.push('FEM siguiente ya disponible');
+
+    return { sectionName, status, label, updatedAt, hasNext, tooltip: tooltip.join(' · ') };
+  }
+
+  function renderUpdateStatus() {
+    const container = document.getElementById('update-status');
+    if (!container) return;
+
+    const items = SECTION_NAMES
+      .filter(name => !name.includes('SIGUIENTE'))
+      .map(getSectionUpdateStatus)
+      .sort((a, b) => (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) || ((b.updatedAt || 0) - (a.updatedAt || 0)));
+
+    // Sin ninguna fecha todavía (p. ej. primera carga sin conexión): no mostrar un panel vacío
+    if (items.every(it => it.status === 'unknown')) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    let collapsed = false;
+    try { collapsed = localStorage.getItem('updateStatusCollapsed') === '1'; } catch (e) {}
+
+    const activeSection = document.getElementById('section-filter')?.value || '';
+    const freshCount = items.filter(it => it.status === 'fresh').length;
+    const outdatedCount = items.filter(it => it.status === 'stale' || it.status === 'expired').length;
+
+    const pills = [
+      freshCount
+        ? `<span class="update-pill is-fresh">${freshCount} ${freshCount === 1 ? 'actualizada' : 'actualizadas'} esta semana</span>`
+        : '<span class="update-pill">Nada nuevo esta semana</span>',
+      outdatedCount
+        ? `<span class="update-pill is-outdated">${outdatedCount} ${outdatedCount === 1 ? 'desactualizada' : 'desactualizadas'}</span>`
+        : ''
+    ].join('');
+
+    const chips = items.map(it => `
+      <button type="button" class="update-chip is-${it.status}${it.sectionName === activeSection ? ' is-active' : ''}"
+        data-section="${it.sectionName}" aria-pressed="${it.sectionName === activeSection}" title="${it.tooltip}">
+        <span class="update-dot" aria-hidden="true"></span>
+        <span class="update-chip-name">${it.sectionName.replace(/^FEM /, '')}</span>
+        <span class="update-chip-time">${it.label}</span>
+        ${it.hasNext ? '<span class="update-chip-next" title="FEM siguiente ya disponible">+SIG</span>' : ''}
+      </button>`).join('');
+
+    const html = `
+      <button type="button" class="update-status-toggle" aria-expanded="${!collapsed}" aria-controls="update-status-body">
+        <span class="update-status-title">🕒 Actualizaciones</span>
+        <span class="update-status-summary">${pills}</span>
+        <span class="update-status-caret" aria-hidden="true">▾</span>
+      </button>
+      <div id="update-status-body" class="update-status-body">
+        <div class="update-chips">${chips}</div>
+        <p class="update-legend">
+          <span class="update-legend-item is-fresh"><span class="update-dot"></span>Últimos 7 días</span>
+          <span class="update-legend-item is-ok"><span class="update-dot"></span>7–30 días</span>
+          <span class="update-legend-item is-stale"><span class="update-dot"></span>+30 días</span>
+          <span class="update-legend-item is-expired"><span class="update-dot"></span>Caducada</span>
+          <span class="update-legend-hint">Toca una sección para filtrar</span>
+        </p>
+      </div>`;
+
+    container.classList.toggle('is-collapsed', collapsed);
+    container.classList.remove('hidden');
+    if (container.innerHTML !== html) container.innerHTML = html;
+  }
+
+  function handleUpdateStatusClick(e) {
+    const chip = e.target.closest('.update-chip');
+    if (chip) {
+      const select = document.getElementById('section-filter');
+      if (!select) return;
+      // Tocar la sección ya filtrada vuelve a mostrar todas
+      select.value = select.value === chip.dataset.section ? '' : chip.dataset.section;
+      filterSections();
+      return;
+    }
+
+    if (e.target.closest('.update-status-toggle')) {
+      const container = document.getElementById('update-status');
+      const collapsed = !container.classList.contains('is-collapsed');
+      try { localStorage.setItem('updateStatusCollapsed', collapsed ? '1' : '0'); } catch (err) {}
+      triggerHaptic('light');
+      renderUpdateStatus();
+    }
+  }
+
   function createFilterDropdown() {
     const container = document.getElementById('filter-container');
     if (!container) return;
@@ -601,6 +774,8 @@
       if (window.updateProductImages) window.updateProductImages();
       // Luego re-observar las imágenes lazy restantes que no tenían URL en caché
       if (window.lazyLoadImages) window.lazyLoadImages();
+      // Marcar la sección filtrada en el panel de actualizaciones
+      renderUpdateStatus();
     };
 
     if (document.startViewTransition) {
@@ -614,6 +789,7 @@
     document.getElementById('cart-toggle')?.addEventListener('click', toggleCart);
     document.getElementById('close-modal')?.addEventListener('click', toggleCart);
     document.getElementById('submit-order')?.addEventListener('click', submitOrder);
+    document.getElementById('update-status')?.addEventListener('click', handleUpdateStatusClick);
   }
 
 
