@@ -448,7 +448,9 @@ function initPromotionManager() {
         await Promise.allSettled(destListResult.items.map(item => deleteObject(item)));
       }
 
-      // Copiar archivos de Siguiente a Actual
+      // Copiar archivos de Siguiente a Actual (guardando sus nuevas URLs para la app)
+      const imageUrls = [];
+      const thumbUrls = [];
       for (const itemRef of listResult.items) {
         try {
           const url = await getDownloadURL(itemRef);
@@ -459,12 +461,17 @@ function initPromotionManager() {
           const newFileRef = ref(storageInstance, `images/${folderCurrent}/${targetFileName}`);
           const metadata = {
             contentType: 'image/jpeg',
+            cacheControl: IMAGE_CACHE_CONTROL,
             customMetadata: {
               uploadedAt: new Date().toISOString(),
               section: currentId.replace(/_/g, ' ')
             }
           };
           await uploadBytes(newFileRef, blob, metadata);
+          const parsed = parseImageFileName(targetFileName);
+          if (parsed) {
+            (parsed.isThumb ? thumbUrls : imageUrls)[parsed.index] = await getDownloadURL(newFileRef);
+          }
           console.log(`✅ Copiado: ${itemRef.name} a images/${folderCurrent}/`);
         } catch (e) {
           console.error(`❌ Error copiando archivo ${itemRef.name}:`, e);
@@ -492,8 +499,10 @@ function initPromotionManager() {
       await setDoc(countsDocRef, {
         [folderCurrent]: nextCount,
         [`${folderCurrent}_updatedAt`]: nowStr,
+        ...imageUrlFields(folderCurrent, nextCount, imageUrls, thumbUrls),
         [folderNext]: 0,
-        [`${folderNext}_updatedAt`]: nowStr
+        [`${folderNext}_updatedAt`]: nowStr,
+        ...imageUrlFields(folderNext, 0, [], [])
       }, { merge: true });
 
       console.log(`📊 Actualizados conteos en Firestore: ${folderCurrent}=${nextCount}, ${folderNext}=0`);

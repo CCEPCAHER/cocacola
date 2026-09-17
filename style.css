@@ -629,6 +629,74 @@ header h2 {
 }
 
 /* ========================
+   AVISO DE NOVEDADES
+========================= */
+.update-notice {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 1250;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(480px, calc(100% - 32px));
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--radius-lg);
+  background: #1a202c;
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  font-size: 0.85rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 20px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+.update-notice.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.update-notice-text {
+  flex: 1;
+  line-height: 1.35;
+}
+
+.update-notice-action {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.update-notice-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .update-notice {
+  background: #2d3748;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-notice {
+    transition: none;
+  }
+}
+
+/* ========================
    LOGIN
 ========================= */
 #login-container {

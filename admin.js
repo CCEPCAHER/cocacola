@@ -8,6 +8,26 @@
 let storage;
 let storageModule;
 
+// Cada subida crea objetos nuevos (URL con token distinto), así que las imágenes
+// se pueden cachear sin caducidad en el navegador
+const IMAGE_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+
+// "<carpeta>_<n>.jpg" / "<carpeta>_<n>_thumb.jpg" → { index, isThumb }
+function parseImageFileName(name) {
+  const match = name.match(/_(\d+)(_thumb)?\.jpg$/i);
+  return match ? { index: Number(match[1]), isThumb: !!match[2] } : null;
+}
+
+// Campos de Firestore con las URLs de descarga de una carpeta: la app las lee de
+// una vez en lugar de pedir getDownloadURL imagen a imagen (Firestore no admite undefined)
+function imageUrlFields(folderName, count, imageUrls, thumbUrls) {
+  const toArray = urls => Array.from({ length: count }, (_, i) => urls[i] || null);
+  return {
+    [`${folderName}_imageUrls`]: toArray(imageUrls),
+    [`${folderName}_thumbUrls`]: toArray(thumbUrls)
+  };
+}
+
 // Esperar a que Firebase esté disponible
 const waitForFirebase = setInterval(() => {
   // Asumo que 'adminAuth' ya está disponible en window con 'app' o 'auth'
@@ -164,16 +184,13 @@ function initPDFConverter() {
         }
 
         // LLAMADA A LA FUNCIÓN DE CONVERSIÓN Y CARGA SEGURA
-        const uploadedCount = await convertAndUploadPDF(pdfFile, section);
+        const { numPages: uploadedCount, imageUrls, thumbUrls } = await convertAndUploadPDF(pdfFile, section);
 
-        // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
-        await saveImageCountToFirestore(section, uploadedCount);
+        // GUARDAR CONTEO Y URLS EN FIRESTORE (la app avisa a los usuarios al detectarlo)
+        await saveImageCountToFirestore(section, uploadedCount, imageUrls, thumbUrls);
 
         // Actualizar estado de las secciones en el dashboard
         loadSectionsStatus();
-
-        // Señalizar al dashboard que hay nuevos archivos para esta sección
-        markSectionAsUpdated(section);
 
         showAlert(`✅ ¡PDF (${uploadedCount} páginas) convertido y subido a Firebase con éxito!`, 'success');
       } else {
@@ -215,6 +232,8 @@ function initPDFConverter() {
 
         // 2. Subir las imágenes procesadas en lotes
         showAlert(`🔄 Subiendo ${successCount} imágenes a Firebase...`, 'info');
+        const imageUrls = [];
+        const thumbUrls = [];
         const batchSize = 5;
         for (let i = 0; i < successCount; i += batchSize) {
           const end = Math.min(i + batchSize, successCount);
@@ -230,7 +249,9 @@ function initPDFConverter() {
             const uploadPromise = Promise.all([
               uploadToFirebaseWithRetry(item.blob, fileName, section, 3),
               uploadToFirebaseWithRetry(item.thumbBlob, thumbFileName, section, 3)
-            ]).then(() => {
+            ]).then(([imageUrl, thumbUrl]) => {
+              imageUrls[index] = imageUrl;
+              thumbUrls[index] = thumbUrl;
               updateProgress(index + 1, successCount);
               console.log(`✅ Subida exitosa: ${fileName}`);
               return item.blob; // Retornar blob para el preview
@@ -256,14 +277,11 @@ function initPDFConverter() {
           });
         }
 
-        // GUARDAR CONTEO DE IMÁGENES EN FIRESTORE
-        await saveImageCountToFirestore(section, successCount);
+        // GUARDAR CONTEO Y URLS EN FIRESTORE (la app avisa a los usuarios al detectarlo)
+        await saveImageCountToFirestore(section, successCount, imageUrls, thumbUrls);
 
         // Actualizar estado de las secciones en el dashboard
         loadSectionsStatus();
-
-        // Señalizar al dashboard que hay nuevos archivos para esta sección
-        markSectionAsUpdated(section);
 
         showAlert('✅ ¡Imágenes procesadas y subidas a Firebase con éxito!', 'success');
       }
@@ -360,7 +378,8 @@ function initPDFConverter() {
    * @param {number} pageNum - Número de la página a procesar (base 1).
    * @param {string} sectionSlug - El slug de la sección de destino.
    * @param {number} totalPages - Número total de páginas.
-   * @returns {Promise<Blob | null>} El Blob de la imagen generada o null en caso de error/no preview.
+   * @returns {Promise<{previewBlob: Blob | null, imageUrl: string, thumbUrl: string}>} Blob para la
+   *   previsualización (solo primeras páginas) y URLs de descarga de la imagen y su miniatura.
    */
   async function processAndUploadPage(pdf, pageNum, sectionSlug, totalPages) {
     try {
@@ -401,7 +420,7 @@ function initPDFConverter() {
       const thumbFileName = `${sectionName}_${pageNum - 1}_thumb.jpg`; 
       
       // Subir ambas imágenes en paralelo
-      await Promise.all([
+      const [imageUrl, thumbUrl] = await Promise.all([
         uploadToFirebaseWithRetry(blob, fileName, sectionSlug, 3),
         uploadToFirebaseWithRetry(thumbBlob, thumbFileName, sectionSlug, 3)
       ]);
@@ -421,7 +440,7 @@ function initPDFConverter() {
       context.clearRect(0, 0, canvas.width, canvas.height);
       canvas.remove();
 
-      return previewBlob;
+      return { previewBlob, imageUrl, thumbUrl };
     } catch (error) {
       console.error(`❌ Error procesando página ${pageNum}:`, error);
       throw new Error(`Error en página ${pageNum}: ${error.message}`);
@@ -432,6 +451,7 @@ function initPDFConverter() {
    * Convierte y carga un archivo PDF página por página de forma segura.
    * @param {File} file - El objeto File del PDF.
    * @param {string} sectionSlug - El slug de la sección de destino.
+   * @returns {Promise<{numPages: number, imageUrls: string[], thumbUrls: string[]}>}
    */
   async function convertAndUploadPDF(file, sectionSlug) {
     // Verificar pdf.js
@@ -459,6 +479,8 @@ function initPDFConverter() {
     // Configuración de procesamiento concurrente (lotes)
     const batchSize = numPages > 30 ? 3 : 5;
     let uploadedCount = 0;
+    const imageUrls = [];
+    const thumbUrls = [];
     
     // Limpiar el contenedor de previsualización al inicio
     if (previewContainer) previewContainer.innerHTML = ''; 
@@ -472,14 +494,16 @@ function initPDFConverter() {
       }
       
       try {
-        const pageBlobs = await Promise.all(batchPromises);
+        const pageResults = await Promise.all(batchPromises);
         uploadedCount += batchPromises.length;
-        
-        // Mostrar previews de las primeras páginas (si el blob fue devuelto)
-        pageBlobs.forEach((pageBlob, index) => {
+
+        // Guardar URLs y mostrar previews de las primeras páginas (si el blob fue devuelto)
+        pageResults.forEach(({ previewBlob, imageUrl, thumbUrl }, index) => {
            const pageNum = i + index;
-           if (previewContainer && pageBlob) {
-             const imgUrl = URL.createObjectURL(pageBlob);
+           imageUrls[pageNum - 1] = imageUrl;
+           thumbUrls[pageNum - 1] = thumbUrl;
+           if (previewContainer && previewBlob) {
+             const imgUrl = URL.createObjectURL(previewBlob);
              const img = document.createElement("img");
              img.src = imgUrl;
              img.className = 'preview-image';
@@ -500,8 +524,8 @@ function initPDFConverter() {
     }
     
     // Asegurar que el progreso se muestre al 100% al finalizar
-    updateProgress(numPages, numPages); 
-    return numPages;
+    updateProgress(numPages, numPages);
+    return { numPages, imageUrls, thumbUrls };
   }
   
   // =========================================================================
@@ -543,8 +567,7 @@ function initPDFConverter() {
     let lastError;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        await uploadToFirebase(blob, fileName, section);
-        return;
+        return await uploadToFirebase(blob, fileName, section);
       } catch (error) {
         lastError = error;
         console.warn(`⚠️ Intento ${attempt}/${maxRetries} falló para ${fileName}: ${error.message}`);
@@ -562,12 +585,13 @@ function initPDFConverter() {
       throw new Error('Firebase Storage no está inicializado');
     }
 
-    const { ref, uploadBytes } = storageModule;
+    const { ref, uploadBytes, getDownloadURL } = storageModule;
     const folderName = section.toLowerCase().replace(/\s+/g, '_');
     const storageRef = ref(storage, `images/${folderName}/${fileName}`);
 
     const metadata = {
       contentType: 'image/jpeg',
+      cacheControl: IMAGE_CACHE_CONTROL,
       customMetadata: {
         uploadedAt: new Date().toISOString(),
         section
@@ -580,12 +604,8 @@ function initPDFConverter() {
     );
 
     const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-    // El getDownloadURL no es estrictamente necesario para la subida
-    // Si se necesita la URL en el frontend:
-    // const downloadURL = await getDownloadURL(snapshot.ref); 
-    // console.log(`✅ Subido a: images/${folderName}/${fileName}`);
-    // return downloadURL;
-    return snapshot;
+    // URL de descarga para guardarla en Firestore junto al conteo
+    return getDownloadURL(snapshot.ref);
   }
 
   function updateProgress(current, total) {
@@ -629,8 +649,8 @@ function initPDFConverter() {
     }
   }
 
-  // === Guardar conteo de imágenes en Firestore ===
-  async function saveImageCountToFirestore(section, countOrFile) {
+  // === Guardar conteo, fecha y URLs de las imágenes en Firestore ===
+  async function saveImageCountToFirestore(section, numPages, imageUrls, thumbUrls) {
     try {
       const { getFirestore, doc, setDoc } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
@@ -640,27 +660,16 @@ function initPDFConverter() {
       }
       const app = window.adminAuth.app || window.adminAuth.auth.app;
       const db = getFirestore(app);
-      
-      let numPages;
-      if (typeof countOrFile === 'number') {
-        numPages = countOrFile;
-      } else {
-        // Contar páginas del PDF subido
-        const arrayBuffer = await countOrFile.arrayBuffer();
-        const uint8 = new Uint8Array(arrayBuffer);
-        const loadingTask = pdfjsLib.getDocument({ data: uint8 });
-        const pdf = await loadingTask.promise;
-        numPages = pdf.numPages;
-      }
-      
+
       const folderName = section.toLowerCase().replace(/\s+/g, '_');
-      
+
       await setDoc(doc(db, 'metadata', 'imageCounts'), {
         [folderName]: numPages,
-        [`${folderName}_updatedAt`]: new Date().toISOString()
+        [`${folderName}_updatedAt`]: new Date().toISOString(),
+        ...imageUrlFields(folderName, numPages, imageUrls, thumbUrls)
       }, { merge: true });
-      
-      console.log(`✅ Conteo guardado en Firestore: ${folderName} = ${numPages} imágenes`);
+
+      console.log(`✅ Conteo y URLs guardados en Firestore: ${folderName} = ${numPages} imágenes`);
     } catch (error) {
       console.warn('⚠️ No se pudo guardar conteo en Firestore:', error.message);
     }
@@ -800,7 +809,7 @@ function initPDFConverter() {
         throw new Error('Firebase Storage no está inicializado');
       }
       
-      const { getFirestore, doc, setDoc } = await import(
+      const { getFirestore, doc, getDoc, setDoc } = await import(
         'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js'
       );
       if (!window.adminAuth || !(window.adminAuth.app || window.adminAuth.auth)) {
@@ -808,8 +817,10 @@ function initPDFConverter() {
       }
       const app = window.adminAuth.app || window.adminAuth.auth.app;
       const db = getFirestore(app);
+      const countsRef = doc(db, 'metadata', 'imageCounts');
+      const currentData = (await getDoc(countsRef)).data() || {};
 
-      const { ref, listAll } = storageModule;
+      const { ref, listAll, getDownloadURL } = storageModule;
       
       const sections = [
         "FOCOS", "EEAA Y PUNTUACION", "ORDEN DE MARCAS", "ACUERDO NACIONAL 2025",
@@ -830,15 +841,27 @@ function initPDFConverter() {
         try {
           const res = await listAll(folderRef);
           // Filtrar para contar solo imágenes principales, no miniaturas
-          const mainImages = res.items.filter(item => 
+          const mainImages = res.items.filter(item =>
             item.name.toLowerCase().endsWith('.jpg') && !item.name.toLowerCase().includes('_thumb')
           );
-          
+
           const count = mainImages.length;
           updates[folderName] = count;
-          if (count > 0) {
+          // Solo marcar como actualizada si ha cambiado: si no, la app avisaría de novedades que no lo son
+          if (count > 0 && (count !== currentData[folderName] || !currentData[`${folderName}_updatedAt`])) {
             updates[`${folderName}_updatedAt`] = nowStr;
           }
+
+          // Guardar las URLs de descarga (también rellena las de subidas anteriores a esta versión)
+          const imageUrls = [];
+          const thumbUrls = [];
+          await Promise.all(res.items.map(async item => {
+            const parsed = parseImageFileName(item.name);
+            if (!parsed) return;
+            (parsed.isThumb ? thumbUrls : imageUrls)[parsed.index] = await getDownloadURL(item);
+          }));
+          Object.assign(updates, imageUrlFields(folderName, count, imageUrls, thumbUrls));
+
           console.log(`🔍 Escaneado ${section}: ${count} imágenes encontradas`);
         } catch (err) {
           console.warn(`⚠️ Error al escanear carpeta de ${section}:`, err.message);
@@ -846,8 +869,8 @@ function initPDFConverter() {
       }
 
       // Guardar el documento consolidado en Firestore
-      await setDoc(doc(db, 'metadata', 'imageCounts'), updates, { merge: true });
-      showAlert('✅ Conteos sincronizados con éxito desde Storage', 'success');
+      await setDoc(countsRef, updates, { merge: true });
+      showAlert('✅ Conteos y URLs sincronizados con éxito desde Storage', 'success');
       
       // Volver a cargar el estado en el dashboard
       await loadSectionsStatus();
@@ -859,33 +882,6 @@ function initPDFConverter() {
         btn.disabled = false;
         btn.textContent = '🔄 Sincronizar desde Storage';
       }
-    }
-  }
-
-  // =========================================================================
-  // SEÑALIZAR AL DASHBOARD QUE HAY DATOS NUEVOS
-  // =========================================================================
-  /**
-   * Guarda en localStorage un flag con las secciones que se han actualizado
-   * desde el admin. El dashboard lo detectará al cargar y solo invalidará
-   * las cachés de esas secciones, manteniendo el resto para uso offline.
-   */
-  function markSectionAsUpdated(section) {
-    try {
-      const folderName = section.toLowerCase().replace(/\s+/g, '_');
-      let pending = {};
-      try {
-        const raw = localStorage.getItem('adminUploadPending');
-        if (raw) pending = JSON.parse(raw);
-      } catch (e) {}
-      
-      // Añadir/actualizar la sección con timestamp actual
-      pending[folderName] = Date.now();
-      
-      localStorage.setItem('adminUploadPending', JSON.stringify(pending));
-      console.log(`📌 Sección marcada como actualizada: ${folderName}`);
-    } catch (e) {
-      console.warn('⚠️ No se pudo marcar la sección como actualizada:', e);
     }
   }
 }

@@ -12,7 +12,11 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
-  <link rel="stylesheet" href="style.css?v=39">
+  <!-- Abrir antes las conexiones a Firebase: ahorra la negociación en la primera imagen -->
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="style.css?v=40">
   <style>
     .admin-link {
       display: block;
@@ -42,7 +46,7 @@
 
   <div id="contenido" class="hidden">
     <header>
-      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v39</span></h1>
+      <h1>FOTO DE ÉXITO <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; letter-spacing: 0.5px; vertical-align: super; margin-left: 4px;">v40</span></h1>
       <div class="header-controls">
         <button id="install-btn" class="btn-header hidden" aria-label="Instalar App">📱 Instalar</button>
         <button id="dark-mode-btn" class="btn-header" aria-label="Alternar Modo Oscuro">🌙</button>
@@ -62,11 +66,13 @@
 
   <div id="toast" class="toast">Notificación</div>
 
+  <div id="update-notice" class="update-notice" role="status" aria-live="polite"></div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getStorage, ref, getDownloadURL, listAll } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+    import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA3SNRVPID2Gz85UhESHr_OEdxsL1PNodM",
@@ -101,35 +107,11 @@
       if (user) {
         mostrarContenido();
         localStorage.setItem("loggedInUser", user.email);
-        loadImagesFromStorageBatched();
+        startMetadataSync();
       } else {
+        stopMetadataSync();
         loginContainer.style.display = "flex";
         contenidoDiv.classList.add("hidden");
-      }
-    });
-
-    // Re-cargar datos cuando se vuelve a la página (ej. desde el admin)
-    // pageshow se dispara al navegar con back/forward y al restaurar desde bfcache
-    window.addEventListener('pageshow', (event) => {
-      // event.persisted = true significa que se restauró del bfcache
-      // También comprobar si hay uploads pendientes del admin
-      const hasPending = localStorage.getItem('adminUploadPending');
-      if (event.persisted || hasPending) {
-        console.log('🔄 Página restaurada' + (event.persisted ? ' (bfcache)' : '') + (hasPending ? ' con uploads pendientes' : ''));
-        if (auth.currentUser) {
-          loadImagesFromStorageBatched();
-        }
-      }
-    });
-
-    // También re-cargar cuando el usuario vuelve a la pestaña (ej. si abrió admin en otra pestaña)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && auth.currentUser) {
-        const hasPending = localStorage.getItem('adminUploadPending');
-        if (hasPending) {
-          console.log('🔄 Pestaña visible con uploads pendientes, recargando...');
-          loadImagesFromStorageBatched();
-        }
       }
     });
 
@@ -167,10 +149,41 @@
       }
     });
 
-    // CARGA BAJO DEMANDA (optimizada para memoria)
-    // Solo cargamos las URLs cuando se necesitan, no todas de una vez
-    async function loadImagesFromStorageBatched() {
-      // ── -1. Comprobar versión de caché de la aplicación ──
+    // ========================
+    // SINCRONIZACIÓN DE IMÁGENES
+    // ========================
+    const IMAGE_CACHE = 'cocacola-images-v36'; // mismo nombre que en sw.js
+    const FRESH_MS = 7 * 24 * 60 * 60 * 1000;  // "nuevo": subido en los últimos 7 días
+    let unsubscribeMetadata = null;
+
+    function readJSON(key) {
+      try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; }
+    }
+
+    function writeJSON(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    }
+
+    // Guardado agrupado: al resolver muchas URLs seguidas no se serializa el mapa cada vez
+    let persistUrlsTimer = null;
+    function persistUrls() {
+      clearTimeout(persistUrlsTimer);
+      persistUrlsTimer = setTimeout(() => writeJSON('firebaseImageUrls', window.firebaseImageUrls), 1000);
+    }
+
+    function imagePath(folder, index, isThumb) {
+      return `images/${folder}/${folder}_${index}${isThumb ? '_thumb' : ''}.jpg`;
+    }
+
+    function renderProducts() {
+      window.updateProductListFromScript?.();
+      window.updateProductImages?.();
+      window.lazyLoadImages?.();
+    }
+
+    // Arranca con lo guardado en el dispositivo (funciona sin conexión) y escucha
+    // los cambios del admin en tiempo real
+    function startMetadataSync() {
       try {
         if (localStorage.getItem('appCacheVersion') !== 'v36') {
           console.log('🔄 Nueva versión detectada (v36). Purgando cachés locales obsoletas...');
@@ -178,189 +191,163 @@
           localStorage.removeItem('firebaseImageLastUpdates');
           localStorage.removeItem('firebaseImageActualCounts');
           localStorage.setItem('appCacheVersion', 'v36');
-          window.firebaseImageUrls = {};
-          window.firebaseImageActualCounts = {};
         }
       } catch (e) {}
 
-      // ── 0. Detectar si el admin subió archivos nuevos ──
-      // Solo invalidamos las cachés de las secciones que cambiaron,
-      // el resto se mantiene intacto para uso offline.
-      let updatedSections = [];
-      try {
-        const pendingRaw = localStorage.getItem('adminUploadPending');
-        if (pendingRaw) {
-          const pending = JSON.parse(pendingRaw);
-          updatedSections = Object.keys(pending);
-          console.log('📌 Secciones actualizadas desde admin:', updatedSections);
-          
-          // Invalidar solo las URLs cacheadas de las secciones actualizadas
-          try {
-            const cachedUrls = localStorage.getItem('firebaseImageUrls');
-            if (cachedUrls) {
-              const urls = JSON.parse(cachedUrls);
-              for (const section of updatedSections) {
-                const prefix = `images/${section}/`;
-                for (const urlKey in urls) {
-                  if (urlKey.startsWith(prefix)) {
-                    delete urls[urlKey];
-                  }
-                }
-              }
-              localStorage.setItem('firebaseImageUrls', JSON.stringify(urls));
-              window.firebaseImageUrls = urls;
-            }
-          } catch (e) {}
+      window.firebaseImageUrls = { ...readJSON('firebaseImageUrls'), ...window.firebaseImageUrls };
+      window.firebaseImageActualCounts = { ...readJSON('firebaseImageActualCounts'), ...window.firebaseImageActualCounts };
+      window.firebaseImageUpdatedAt = { ...readJSON('firebaseImageLastUpdates'), ...window.firebaseImageUpdatedAt };
+      renderProducts();
 
-          // Limpiar timestamps locales de las secciones actualizadas para forzar re-sincronización
-          try {
-            const cachedUpdates = localStorage.getItem('firebaseImageLastUpdates');
-            if (cachedUpdates) {
-              const updates = JSON.parse(cachedUpdates);
-              for (const section of updatedSections) {
-                delete updates[section];
-              }
-              localStorage.setItem('firebaseImageLastUpdates', JSON.stringify(updates));
+      // Pedir al navegador que no borre la caché offline cuando le falte espacio
+      navigator.storage?.persist?.().catch(() => {});
+
+      if (unsubscribeMetadata) return;
+      unsubscribeMetadata = onSnapshot(doc(db, 'metadata', 'imageCounts'), snapshot => {
+        if (snapshot.exists()) applyRemoteMetadata(snapshot.data());
+      }, error => {
+        console.error('❌ Error al sincronizar metadatos:', error);
+        if (error.code === 'permission-denied') window.showToast?.('⚠️ No se pudieron sincronizar todos los datos', 'error');
+      });
+    }
+
+    function stopMetadataSync() {
+      unsubscribeMetadata?.();
+      unsubscribeMetadata = null;
+    }
+
+    function applyRemoteMetadata(remoteData) {
+      const lastUpdates = window.firebaseImageUpdatedAt;
+      // En la primera sincronización del dispositivo todo parecería nuevo: no avisar
+      const hasHistory = Object.keys(lastUpdates).length > 0;
+      const counts = {};
+      const changedFolders = [];
+
+      for (const [key, val] of Object.entries(remoteData)) {
+        if (typeof val === 'number' && val >= 0) {
+          counts[key] = val;
+        } else if (key.endsWith('_updatedAt') && typeof val === 'string') {
+          const folder = key.slice(0, -'_updatedAt'.length);
+          const localTime = lastUpdates[folder] ? new Date(lastUpdates[folder]).getTime() : 0;
+          if (new Date(val).getTime() > localTime) {
+            // Las URLs antiguas de la carpeta ya no existen (el admin borra y vuelve a subir)
+            const prefix = `images/${folder}/`;
+            for (const urlKey of Object.keys(window.firebaseImageUrls)) {
+              if (urlKey.startsWith(prefix)) delete window.firebaseImageUrls[urlKey];
             }
-          } catch (e) {}
-          
-          // Limpiar la caché de imágenes del Service Worker para las secciones actualizadas
-          if ('caches' in window) {
-            try {
-              const imageCache = await caches.open('cocacola-images-v36');
-              const keys = await imageCache.keys();
-              for (const request of keys) {
-                const url = new URL(request.url);
-                // Las URLs de Firebase Storage contienen el path de la imagen codificado
-                for (const section of updatedSections) {
-                  if (url.pathname.includes(encodeURIComponent(`images/${section}/`)) ||
-                      url.pathname.includes(`images%2F${section}%2F`) ||
-                      url.href.includes(`images%2F${section}%2F`)) {
-                    await imageCache.delete(request);
-                    console.log(`🗑️ Caché SW eliminada: ${section}`);
-                  }
-                }
-              }
-            } catch (e) {
-              console.warn('⚠️ No se pudo limpiar caché SW:', e);
-            }
+            lastUpdates[folder] = val;
+            changedFolders.push(folder);
           }
-          
-          // Consumir el flag (ya se procesó)
-          localStorage.removeItem('adminUploadPending');
         }
-      } catch (e) {
-        console.warn('⚠️ Error procesando flag de admin:', e);
       }
 
-      // ── 1. Cargar caché de URLs guardada localmente ──
-      // (Si ya se limpió arriba para secciones actualizadas, se usa la versión limpia)
-      if (!window.firebaseImageUrls || Object.keys(window.firebaseImageUrls).length === 0) {
-        try {
-          const cachedUrls = localStorage.getItem('firebaseImageUrls');
-          if (cachedUrls) {
-            window.firebaseImageUrls = JSON.parse(cachedUrls);
-          }
-        } catch (e) {}
+      // URLs de descarga guardadas por el admin: evitan pedir getDownloadURL imagen a imagen
+      for (const [key, val] of Object.entries(remoteData)) {
+        const match = key.match(/^(.+)_(image|thumb)Urls$/);
+        if (!match || !Array.isArray(val)) continue;
+        val.forEach((url, index) => {
+          if (url) window.firebaseImageUrls[imagePath(match[1], index, match[2] === 'thumb')] = url;
+        });
       }
-      window.firebaseImageUrls = window.firebaseImageUrls || {};
 
-      // ── 2. Cargar timestamps de última actualización ──
-      let localUpdates = {};
+      window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...counts };
+      writeJSON('firebaseImageActualCounts', window.firebaseImageActualCounts);
+      writeJSON('firebaseImageLastUpdates', lastUpdates);
+      writeJSON('firebaseImageUrls', window.firebaseImageUrls);
+      renderProducts();
+
+      if (changedFolders.length) {
+        pruneImageCache(changedFolders);
+        // Solo carpetas con contenido (al traspasar un periodo, SIGUIENTE queda vacía)
+        const newContent = changedFolders.filter(folder => counts[folder] > 0);
+        if (hasHistory && newContent.length) window.notifyNewUploads?.(newContent);
+      }
+      schedulePrecache();
+    }
+
+    // Borra de la caché offline las versiones anteriores de las carpetas actualizadas
+    async function pruneImageCache(folders) {
+      if (!('caches' in window)) return;
       try {
-        const cachedUpdates = localStorage.getItem('firebaseImageLastUpdates');
-        if (cachedUpdates) {
-          localUpdates = JSON.parse(cachedUpdates);
-        }
-      } catch (e) {}
-      // Exponer para el panel de actualizaciones (script.js); se completa en el paso 4
-      window.firebaseImageUpdatedAt = localUpdates;
-
-      // ── 3. Cargar conteos reales de caché local primero ──
-      try {
-        const cachedCounts = localStorage.getItem('firebaseImageActualCounts');
-        if (cachedCounts) {
-          const parsedCounts = JSON.parse(cachedCounts);
-          window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...parsedCounts };
-        }
-      } catch (e) {}
-      window.firebaseImageActualCounts = window.firebaseImageActualCounts || {};
-
-      // ── 4. Sincronizar desde Firestore (si hay conexión) ──
-      try {
-        if (auth.currentUser) {
-          console.log('📡 Sincronizando conteos desde Firestore...');
-          const countsDoc = await getDoc(doc(db, 'metadata', 'imageCounts'));
-          
-          if (countsDoc.exists()) {
-            const remoteData = countsDoc.data() || {};
-            const cleanCounts = {};
-            let cacheInvalidated = false;
-
-            // Procesar conteos y actualizaciones
-            for (const [key, val] of Object.entries(remoteData)) {
-              if (typeof val === 'number' && val >= 0) {
-                cleanCounts[key] = val;
-              } else if (key.endsWith('_updatedAt') && typeof val === 'string') {
-                const folderName = key.replace('_updatedAt', '');
-                const remoteTime = new Date(val).getTime();
-                const localTime = localUpdates[folderName] ? new Date(localUpdates[folderName]).getTime() : 0;
-                
-                if (remoteTime > localTime) {
-                  console.log(`🔄 Detectado cambio en sección "${folderName}". Invalidando caché local de URLs...`);
-                  const prefix = `images/${folderName}/`;
-                  for (const urlKey in window.firebaseImageUrls) {
-                    if (urlKey.startsWith(prefix)) {
-                      delete window.firebaseImageUrls[urlKey];
-                    }
-                  }
-                  localUpdates[folderName] = val;
-                  cacheInvalidated = true;
-                }
-              }
-            }
-            
-            window.firebaseImageActualCounts = { ...window.firebaseImageActualCounts, ...cleanCounts };
-            console.log(`✅ Conteos sincronizados:`, window.firebaseImageActualCounts);
-            
-            try {
-              localStorage.setItem('firebaseImageActualCounts', JSON.stringify(window.firebaseImageActualCounts));
-              if (cacheInvalidated) {
-                localStorage.setItem('firebaseImageUrls', JSON.stringify(window.firebaseImageUrls));
-              }
-              localStorage.setItem('firebaseImageLastUpdates', JSON.stringify(localUpdates));
-            } catch (e) {}
-          } else {
-            console.log('ℹ️ No se encontraron metadatos en Firestore (esto es normal si no se ha subido ningún PDF aún). Se usarán los valores por defecto.');
-          }
+        const currentUrls = new Set(Object.values(window.firebaseImageUrls));
+        const cache = await caches.open(IMAGE_CACHE);
+        for (const request of await cache.keys()) {
+          const inFolder = folders.some(folder => request.url.includes(`images%2F${folder}%2F`));
+          if (inFolder && !currentUrls.has(request.url)) await cache.delete(request);
         }
       } catch (e) {
-        if (e.message && (e.message.includes('permission') || e.code === 'permission-denied')) {
-          console.error('❌ Error de Permisos en Firestore:', e);
-          if (window.showToast) window.showToast('⚠️ No se pudieron sincronizar todos los datos', 'error');
-        } else {
-          console.warn('⚠️ Error al obtener conteos:', e);
-        }
-      } finally {
-        // Solo renderizar si tenemos una función válida
-        if (typeof window.updateProductListFromScript === 'function') {
-          window.updateProductListFromScript();
-        }
-        
-        // Actualizar imágenes después del render
-        if (typeof window.updateProductImages === 'function') {
-          window.updateProductImages();
-        }
-        // Re-inicializar lazy loading para imágenes que aún no se hayan cargado
-        if (typeof window.lazyLoadImages === 'function') {
-          window.lazyLoadImages();
-        }
+        console.warn('⚠️ No se pudo limpiar la caché de imágenes:', e);
       }
     }
 
+    // ── Descarga en segundo plano para usar la app sin conexión ──
+    const precacheQueue = new Set();
+    let precacheRunning = false;
+    let precacheTimer = null;
+
+    function canPrecache() {
+      const connection = navigator.connection;
+      return navigator.onLine && !(connection && (connection.saveData || /2g$/.test(connection.effectiveType || '')));
+    }
+
+    function queuePrecache(urls) {
+      urls.forEach(url => url && precacheQueue.add(url));
+      clearTimeout(precacheTimer);
+      // Esperar a que termine la carga visible para no competir con ella
+      precacheTimer = setTimeout(runPrecache, 3000);
+    }
+
+    // Miniaturas de todas las secciones (pesan poco) y fotos completas de lo subido esta semana
+    function schedulePrecache() {
+      const now = Date.now();
+      const thumbs = [];
+      const fullImages = [];
+      for (const [path, url] of Object.entries(window.firebaseImageUrls)) {
+        if (path.endsWith('_thumb.jpg')) {
+          thumbs.push(url);
+        } else {
+          const updatedAt = window.firebaseImageUpdatedAt[path.split('/')[1]];
+          if (updatedAt && now - new Date(updatedAt).getTime() < FRESH_MS) fullImages.push(url);
+        }
+      }
+      queuePrecache([...thumbs, ...fullImages]);
+    }
+
+    async function runPrecache() {
+      if (precacheRunning || !('caches' in window) || !canPrecache()) return;
+      precacheRunning = true;
+      try {
+        const { usage = 0, quota = Infinity } = await navigator.storage?.estimate?.() || {};
+        if (usage / quota > 0.8) return;
+
+        const cache = await caches.open(IMAGE_CACHE);
+        const worker = async () => {
+          while (precacheQueue.size && canPrecache()) {
+            const url = precacheQueue.values().next().value;
+            precacheQueue.delete(url);
+            if (await cache.match(url)) continue;
+            try {
+              const response = await fetch(url, { mode: 'cors' });
+              // Con el Service Worker activo es él quien la guarda; si no, la guardamos aquí
+              if (response.ok && !navigator.serviceWorker?.controller) await cache.put(url, response);
+              else await response.blob();
+            } catch (e) {
+              // Sin conexión o URL caducada: se reintentará en la próxima sincronización
+            }
+          }
+        };
+        await Promise.all([worker(), worker()]);
+      } finally {
+        precacheRunning = false;
+      }
+    }
+
+    window.addEventListener('online', () => {
+      if (auth.currentUser) schedulePrecache();
+    });
+
     // Mapeo y helper para URLs de Firebase a nivel de módulo
     window.firebaseImageUrls = window.firebaseImageUrls || {};
-
 
     async function ensureUrl(key, forceRefresh = false) {
       // Si no forzamos refresh y la URL está en caché, usarla
@@ -380,7 +367,7 @@
           throw e;
         });
         window.firebaseImageUrls[key] = url;
-        try { localStorage.setItem('firebaseImageUrls', JSON.stringify(window.firebaseImageUrls)); } catch(e) {}
+        persistUrls();
         return url;
       } catch (e) {
         console.warn(`⚠️ No URL para ${key}`);
@@ -464,26 +451,17 @@
           }
         }
 
-        // Precargar la imagen de alta resolución en segundo plano para disponibilidad Offline
+        // Guardar la imagen de alta resolución para verla sin conexión, en segundo plano
+        // y con baja prioridad para no retrasar las miniaturas
         const fullPath = img.getAttribute('data-full-path') || img.dataset.full;
         if (fullPath && !fullPath.startsWith('http')) {
           if (!img.getAttribute('data-full-path')) {
             img.setAttribute('data-full-path', fullPath);
           }
-          
-          const cachedFullUrl = window.firebaseImageUrls[fullPath];
-          if (cachedFullUrl) {
-            img.dataset.full = cachedFullUrl;
-            // Asegurar que los bytes de la imagen completa estén cacheados por el Service Worker
-            fetch(cachedFullUrl).catch(() => {});
-          } else {
-            ensureUrl(fullPath).then(fullUrl => {
-              if (fullUrl) {
-                img.dataset.full = fullUrl;
-                // Descargar y cachear los bytes de la imagen completa
-                fetch(fullUrl).catch(() => {});
-              }
-            }).catch(e => console.warn(`⚠️ Error al precargar imagen completa: ${fullPath}`, e));
+          const fullUrl = await ensureUrl(fullPath);
+          if (fullUrl) {
+            img.dataset.full = fullUrl;
+            queuePrecache([fullUrl]);
           }
         }
       }
@@ -632,7 +610,19 @@
 
         // Zoom y navegación
         setupImageZoom(newImg);
-        
+
+        // Precargar las imágenes vecinas para que al deslizar aparezcan al instante
+        [index - 1, index + 1].forEach(async neighborIndex => {
+          const neighborImg = currentSection[neighborIndex]?.querySelector('img[data-full]');
+          const path = neighborImg?.getAttribute('data-full-path') || neighborImg?.dataset.full;
+          if (!path) return;
+          const url = path.startsWith('http') ? path : await ensureUrl(path);
+          if (!url) return;
+          const preload = new Image();
+          preload.crossOrigin = 'anonymous';
+          preload.src = url;
+        });
+
         // Pantalla completa al hacer doble clic en imagen
         let clickTimer = null;
         newImg.addEventListener('click', (e) => {
@@ -1019,7 +1009,7 @@
     }
   </script>
 
-  <script type="module" src="ui.js?v=39"></script>
-  <script src="script.js?v=39"></script>
+  <script type="module" src="ui.js?v=40"></script>
+  <script src="script.js?v=40"></script>
 </body>
 </html>

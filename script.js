@@ -284,7 +284,7 @@
 
       html += `<div class="${productClasses}" data-section-name="${escapeHTML(sectionName)}">
         <div class="product-image-container skeleton">
-          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" crossorigin="anonymous"
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${p.image}" data-full="${p.fullImage}" alt="${escapeHTML(p.name)}" class="lazy" loading="lazy" decoding="async" crossorigin="anonymous"
             onload="if(this.src && !this.src.startsWith('data:')) { this.closest('.product').classList.remove('is-loading'); this.parentElement.classList.remove('skeleton'); }"
             onerror="(async function(img) {
               if (!img.src || img.src.startsWith('data:') || img.src.endsWith('icon-192.png')) return;
@@ -740,6 +740,49 @@
     }
   }
 
+  // ========================
+  // AVISO DE NOVEDADES
+  // ========================
+  let noticeTimer = null;
+
+  // index.html lo llama al detectar subidas nuevas (en tiempo real o desde la última visita)
+  function notifyNewUploads(folders) {
+    const notice = document.getElementById('update-notice');
+    const chains = [...new Set(folders
+      .map(folder => SECTION_NAMES.find(name => toFolderName(name) === folder))
+      .filter(Boolean)
+      .map(name => name.replace(/ SIGUIENTE$/, '')))];
+    if (!notice || !chains.length) return;
+
+    notice.innerHTML = `
+      <span class="update-notice-icon" aria-hidden="true">🔔</span>
+      <span class="update-notice-text"><strong>Actualizado:</strong> ${chains.map(name => name.replace(/^FEM /, '')).join(', ')}</span>
+      <button type="button" class="update-notice-action" data-section="${chains.length === 1 ? chains[0] : ''}">Ver</button>
+      <button type="button" class="update-notice-close" aria-label="Cerrar aviso">✕</button>`;
+    notice.classList.add('show');
+    triggerHaptic('success');
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(hideUpdateNotice, 15000);
+  }
+
+  function hideUpdateNotice() {
+    clearTimeout(noticeTimer);
+    document.getElementById('update-notice')?.classList.remove('show');
+  }
+
+  function handleUpdateNoticeClick(e) {
+    const action = e.target.closest('.update-notice-action');
+    if (action) {
+      // Una sola sección: filtrarla. Varias: mostrar todas con el panel abierto (las nuevas van primero)
+      activeSection = action.dataset.section;
+      showAllUpdates = false;
+      try { localStorage.setItem('updateStatusCollapsed', '0'); } catch (err) {}
+      filterSections();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    if (action || e.target.closest('.update-notice-close')) hideUpdateNotice();
+  }
+
   // Muestra solo la cadena filtrada (actual + SIGUIENTE); las secciones sin productos siguen ocultas
   function applySectionFilter() {
     document.querySelectorAll('.section').forEach(s => {
@@ -776,6 +819,7 @@
     document.getElementById('close-modal')?.addEventListener('click', toggleCart);
     document.getElementById('submit-order')?.addEventListener('click', submitOrder);
     document.getElementById('update-status')?.addEventListener('click', handleUpdateStatusClick);
+    document.getElementById('update-notice')?.addEventListener('click', handleUpdateNoticeClick);
   }
 
 
@@ -784,6 +828,7 @@
   window.addToCart = addToCart;
   window.removeFromCart = removeFromCart;
   window.updateProductListFromScript = updateProductList;
+  window.notifyNewUploads = notifyNewUploads;
 
   document.addEventListener('DOMContentLoaded', initializeApp);
 })();

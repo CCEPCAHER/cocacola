@@ -1,27 +1,25 @@
-const CACHE_NAME = "cocacola-fem-v39";
-const DYNAMIC_CACHE = "cocacola-dynamic-v39";
+const CACHE_NAME = "cocacola-fem-v40";
+const DYNAMIC_CACHE = "cocacola-dynamic-v40";
 // Solo cambiar esta versión si hay que purgar las imágenes offline (también en index.html)
 const IMAGE_CACHE = "cocacola-images-v36";
+const FIREBASE_SDK = "https://www.gstatic.com/firebasejs/11.6.0";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=39",
-  "./script.js?v=39",
-  "./ui.js?v=39",
+  "./style.css?v=40",
+  "./script.js?v=40",
+  "./ui.js?v=40",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",
-  "./icons/icon-512x512.png"
+  "./icons/icon-512x512.png",
+  // Sin estos módulos la app no arranca sin conexión tras una actualización
+  `${FIREBASE_SDK}/firebase-app.js`,
+  `${FIREBASE_SDK}/firebase-auth.js`,
+  `${FIREBASE_SDK}/firebase-firestore.js`,
+  `${FIREBASE_SDK}/firebase-storage.js`
 ];
-
-function getCleanUrl(url) {
-  const cleanUrl = new URL(url);
-  if (cleanUrl.hostname.includes("firebasestorage.googleapis.com") || cleanUrl.hostname.includes("firebasestorage.app")) {
-    cleanUrl.search = ""; 
-  }
-  return cleanUrl.toString();
-}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
