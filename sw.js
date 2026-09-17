@@ -1,14 +1,14 @@
-const CACHE_NAME = "cocacola-fem-v38";
-const DYNAMIC_CACHE = "cocacola-dynamic-v38";
+const CACHE_NAME = "cocacola-fem-v39";
+const DYNAMIC_CACHE = "cocacola-dynamic-v39";
 // Solo cambiar esta versión si hay que purgar las imágenes offline (también en index.html)
 const IMAGE_CACHE = "cocacola-images-v36";
 
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./style.css?v=38",
-  "./script.js?v=38",
-  "./ui.js?v=38",
+  "./style.css?v=39",
+  "./script.js?v=39",
+  "./ui.js?v=39",
   "./manifest.json",
   "./favicon.ico",
   "./icons/icon-192.png",

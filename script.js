@@ -77,17 +77,15 @@
     updateProductList();
   }
 
-  // Función para obtener fechas desde Firestore (con prioridad sobre fechas por defecto)
+  // Función para obtener las fechas de la promoción configuradas en el admin (Firestore)
   function getFirestoreDate(sectionName, dateType) {
-    const normalizedKey = sectionName.toUpperCase().replace(/\s+/g, '_');
-    const promo = promotionDates[normalizedKey];
+    const promo = promotionDates[toPromoKey(sectionName)];
     if (promo && promo.active) {
       console.log(`📅 Usando fecha de Firestore para ${sectionName} (${dateType}): ${promo[dateType]}`);
       return promo[dateType];
     }
     
-    // Si no hay fecha de Firestore, retornar null para evitar mostrar "Oferta caducada"
-    // con fechas por defecto obsoletas
+    // Sin fechas en Firestore no se muestra etiqueta de oferta
     console.log(`📅 Sin fecha de Firestore para ${sectionName} (${dateType}). Retornando null.`);
     return null;
   }
@@ -103,8 +101,7 @@
     if (document.getElementById('product-list') && document.getElementById('product-list').innerHTML === '') {
       updateProductList();
     }
-    
-    createFilterDropdown();
+
     addEventListeners();
     if (window.initFullscreenModal) window.initFullscreenModal();
     
@@ -132,16 +129,12 @@
     // Solo actualizar el DOM si el contenido ha cambiado para evitar parpadeos
     if (productListElem.innerHTML !== newHTML) {
       productListElem.innerHTML = newHTML;
-      
+      // Mantener el filtro activo en el nuevo contenido
+      applySectionFilter();
+
       // Re-inicializar utilidades que dependen del nuevo DOM
       if (window.updateProductImages) window.updateProductImages();
       if (window.lazyLoadImages) window.lazyLoadImages();
-      
-      // Si hay un filtro activo, aplicarlo al nuevo contenido
-      const filter = document.getElementById('section-filter');
-      if (filter && filter.value && typeof filterSections === 'function') {
-        filterSections();
-      }
     }
 
     // Las fechas de subida pueden cambiar aunque los productos no cambien
@@ -186,7 +179,7 @@
   // Función para generar productos dinámicamente basándose en las imágenes disponibles
   function generateProductsFromImages(sectionName) {
     const products = [];
-    const baseName = sectionName.toLowerCase().replace(/\s+/g, '_');
+    const baseName = toFolderName(sectionName);
 
     // Usar el conteo real de Firebase Storage si está disponible,
     // sino usar el conteo configurado como fallback
@@ -219,77 +212,13 @@
         image: `images/${baseName}/${baseName}_${i}_thumb.jpg`,
         fullImage: `images/${baseName}/${baseName}_${i}.jpg`,
         // Solo el primer producto tendrá fechas si la sección las permite
-        // Usar fechas de Firestore si están disponibles, sino fechas por defecto
+        // Usar fechas de Firestore si están configuradas (sin fechas no se muestra etiqueta)
         startDate: (i === 0 && hasDates) ? getFirestoreDate(sectionName, 'startDate') : null,
         endDate: (i === 0 && hasDates) ? getFirestoreDate(sectionName, 'endDate') : null
       });
     }
     
     return products;
-  }
-
-  // Función para obtener fechas por defecto basándose en el nombre de la sección
-  // Estas fechas se sobrescribirán con las fechas del administrador cuando estén disponibles
-  function getDefaultStartDate(sectionName) {
-    // Fechas por defecto que coinciden con las del administrador
-    const dateMap = {
-      'FEM ALCAMPO': '2025-10-23',
-      'FEM ALCAMPO SIGUIENTE': '2025-11-06',
-      'FEM CARREFOUR': '2025-10-28',
-      'FEM CARREFOUR SIGUIENTE': '2025-11-14',
-      'FEM CARREFOUR MARKET': '2025-10-14',
-      'FEM CARREFOUR MARKET SIGUIENTE': '2025-10-28',
-      'FEM SUPECO': '2025-10-25',
-      'FEM SUPECO SIGUIENTE': '2025-11-08',
-      'FEM SORLI': '2025-10-20',
-      'FEM SORLI SIGUIENTE': '2025-11-03',
-      'FEM SCLAT BONPREU': '2025-10-18',
-      'FEM SCLAT BONPREU SIGUIENTE': '2025-11-01',
-      'FEM CAPRABO': '2025-10-16',
-      'FEM CAPRABO SIGUIENTE': '2025-10-30',
-      'FEM CONSUM': '2025-10-22',
-      'FEM CONSUM SIGUIENTE': '2025-11-05',
-      'FEM CONDIS': '2025-10-22',
-      'FEM CONDIS SIGUIENTE': '2025-11-05',
-      'FEM COVIRAN': '2025-10-21',
-      'FEM COVIRAN SIGUIENTE': '2025-11-04',
-      'FEM ECI': '2025-10-24',
-      'FEM ECI SIGUIENTE': '2025-11-07',
-      'ACUERDO NACIONAL 2025': '2025-10-01',
-      'FOCOS': '2025-10-01'
-    };
-    return dateMap[sectionName] || '2025-10-20';
-  }
-
-  function getDefaultEndDate(sectionName) {
-    // Fechas por defecto que coinciden con las del administrador
-    const dateMap = {
-      'FEM ALCAMPO': '2025-11-05',
-      'FEM ALCAMPO SIGUIENTE': '2025-11-19',
-      'FEM CARREFOUR': '2025-11-13',
-      'FEM CARREFOUR SIGUIENTE': '2025-11-28',
-      'FEM CARREFOUR MARKET': '2025-10-27',
-      'FEM CARREFOUR MARKET SIGUIENTE': '2025-11-11',
-      'FEM SUPECO': '2025-11-08',
-      'FEM SUPECO SIGUIENTE': '2025-11-22',
-      'FEM SORLI': '2025-11-02',
-      'FEM SORLI SIGUIENTE': '2025-11-16',
-      'FEM SCLAT BONPREU': '2025-10-31',
-      'FEM SCLAT BONPREU SIGUIENTE': '2025-11-14',
-      'FEM CAPRABO': '2025-10-29',
-      'FEM CAPRABO SIGUIENTE': '2025-11-12',
-      'FEM CONSUM': '2025-11-04',
-      'FEM CONSUM SIGUIENTE': '2025-11-18',
-      'FEM CONDIS': '2025-11-04',
-      'FEM CONDIS SIGUIENTE': '2025-11-18',
-      'FEM COVIRAN': '2025-11-03',
-      'FEM COVIRAN SIGUIENTE': '2025-11-17',
-      'FEM ECI': '2025-11-06',
-      'FEM ECI SIGUIENTE': '2025-11-20',
-      'ACUERDO NACIONAL 2025': '2025-10-31',
-      'FOCOS': '2025-10-31'
-    };
-    return dateMap[sectionName] || '2025-11-10';
   }
 
   function createSection(sectionName, products) {
@@ -566,6 +495,7 @@
 
   // ========================
   // PANEL DE ACTUALIZACIONES (parte superior)
+  // Es también el filtro de secciones de la app
   // ========================
   const FRESH_DAYS = 7;   // verde: subido en los últimos 7 días
   const STALE_DAYS = 30;  // naranja: más de 30 días sin subir nada (mismo umbral que el admin)
@@ -578,10 +508,15 @@
     { status: 'unknown', label: 'Sin fecha de subida' }
   ];
 
-  let showAllUpdates = false;
+  let activeSection = '';     // cadena filtrada ('' = todas)
+  let showAllUpdates = false; // grupos de "Ver las otras" desplegados
 
   function toFolderName(sectionName) {
     return sectionName.toLowerCase().replace(/\s+/g, '_');
+  }
+
+  function toPromoKey(sectionName) {
+    return sectionName.toUpperCase().replace(/\s+/g, '_');
   }
 
   function getLastUpdatesMap() {
@@ -608,6 +543,13 @@
     return `Hace ${days} días`;
   }
 
+  // dd/mm, con el año solo si no es el actual
+  function formatShortDate(date) {
+    const options = { day: '2-digit', month: '2-digit' };
+    if (date.getFullYear() !== new Date().getFullYear()) options.year = 'numeric';
+    return date.toLocaleDateString('es-ES', options);
+  }
+
   function sectionHasImages(sectionName) {
     const count = (window.firebaseImageActualCounts || {})[toFolderName(sectionName)];
     return (count !== undefined ? count : (sectionImageCounts[sectionName] || 0)) > 0;
@@ -621,17 +563,19 @@
     return isNaN(d.getTime()) ? null : d;
   }
 
-  function isPromoExpired(sectionName) {
-    const promo = promotionDates[sectionName.toUpperCase().replace(/\s+/g, '_')];
-    if (!promo || !promo.active || !promo.endDate) return false;
+  // Fecha de fin de la promoción activa, solo si ya ha pasado
+  function getExpiredEndDate(sectionName) {
+    const promo = promotionDates[toPromoKey(sectionName)];
+    if (!promo || !promo.active || !promo.endDate) return null;
     const [y, m, d] = promo.endDate.split('-');
-    return daysSince(new Date(y, m - 1, d)) > 0;
+    const endDate = new Date(y, m - 1, d);
+    return daysSince(endDate) > 0 ? endDate : null;
   }
 
   // Etiqueta "Nuevo" junto al título de las secciones subidas en los últimos 7 días
   function sectionNewBadge(sectionName) {
     const updatedAt = getSectionUpdatedAt(sectionName);
-    if (!updatedAt || isPromoExpired(sectionName)) return '';
+    if (!updatedAt || getExpiredEndDate(sectionName)) return '';
     const days = daysSince(updatedAt);
     if (days >= FRESH_DAYS) return '';
     return `<span class="section-new-badge">Nuevo · ${relativeDayLabel(days)}</span>`;
@@ -644,42 +588,39 @@
       .filter(Boolean)
       .sort((a, b) => b - a)[0] || null;
     const hasNext = !!getSectionUpdatedAt(nextName);
-    const isExpired = isPromoExpired(sectionName);
+    const expiredEndDate = getExpiredEndDate(sectionName);
 
     const days = updatedAt ? daysSince(updatedAt) : null;
     let status;
-    if (isExpired) status = 'expired';
+    if (expiredEndDate) status = 'expired';
     else if (days === null) status = 'unknown';
     else if (days < FRESH_DAYS) status = 'fresh';
     else if (days <= STALE_DAYS) status = 'ok';
     else status = 'stale';
 
     let label;
-    if (isExpired) label = 'Caducada';
+    if (expiredEndDate) label = 'Caducada';
     else if (days === null) label = 'Sin fecha';
     else label = relativeDayLabel(days);
 
-    // Texto completo para la barra de detalle (en móvil no hay tooltip)
+    // Barra de detalle: solo lo que la casilla no dice ya
     const detail = [];
-    if (isExpired) detail.push('Oferta caducada');
     if (updatedAt) {
+      const dayStr = days <= 0 ? 'hoy' : days === 1 ? 'ayer' : `el ${formatShortDate(updatedAt)}`;
       const timeStr = updatedAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-      if (days <= 0) detail.push(`Actualizado hoy a las ${timeStr}`);
-      else if (days === 1) detail.push(`Actualizado ayer a las ${timeStr}`);
-      else detail.push(`Actualizado el ${updatedAt.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} (hace ${days} días)`);
-    } else {
-      detail.push('Sin fecha de subida');
+      detail.push(`Subido ${dayStr} a las ${timeStr}`);
     }
-    if (hasNext) detail.push('FEM siguiente ya disponible');
+    if (expiredEndDate) detail.push(`Terminó el ${formatShortDate(expiredEndDate)}`);
+    if (hasNext) detail.push('FEM siguiente disponible');
 
     return { sectionName, status, label, updatedAt, hasNext, detail: detail.join(' · ') };
   }
 
-  function renderUpdateChip(it, activeSection) {
+  function renderUpdateChip(it) {
     const isActive = it.sectionName === activeSection;
     return `
       <button type="button" class="update-chip is-${it.status}${isActive ? ' is-active' : ''}"
-        data-section="${it.sectionName}" aria-pressed="${isActive}" title="${it.detail}">
+        data-section="${it.sectionName}" aria-pressed="${isActive}">
         <span class="update-dot" aria-hidden="true"></span>
         <span class="update-chip-name">${it.sectionName.replace(/^FEM /, '')}</span>
         <span class="update-chip-meta">
@@ -698,90 +639,88 @@
       .map(getSectionUpdateStatus)
       .sort((a, b) => (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) || ((b.updatedAt || 0) - (a.updatedAt || 0)));
 
-    // Sin ninguna fecha todavía (p. ej. primera carga sin conexión): no mostrar un panel vacío
-    if (items.every(it => it.status === 'unknown')) {
-      container.classList.add('hidden');
-      return;
-    }
-
     let collapsed = false;
     try { collapsed = localStorage.getItem('updateStatusCollapsed') === '1'; } catch (e) {}
 
-    const activeSection = document.getElementById('section-filter')?.value || '';
     const active = items.find(it => it.sectionName === activeSection);
     const fresh = items.filter(it => it.status === 'fresh');
     const others = items.filter(it => it.status !== 'fresh');
     const outdatedCount = items.filter(it => it.status === 'stale' || it.status === 'expired').length;
+    const outdatedText = `${outdatedCount} ${outdatedCount === 1 ? 'desactualizada' : 'desactualizadas'}`;
 
-    const pills = [
-      `<span class="update-pill${fresh.length ? ' is-fresh' : ''}">${fresh.length || 'Ninguna'} ${fresh.length === 1 ? 'nueva' : 'nuevas'} esta semana</span>`,
-      outdatedCount
-        ? `<span class="update-pill is-outdated">${outdatedCount} ${outdatedCount === 1 ? 'desactualizada' : 'desactualizadas'}</span>`
-        : ''
-    ].join('');
-
-    // La sección filtrada se muestra siempre, aunque esté en el grupo plegado
-    const pinned = !showAllUpdates && active && active.status !== 'fresh' ? [active] : [];
-    const mainChips = [...fresh, ...pinned].map(it => renderUpdateChip(it, activeSection)).join('');
-    const emptyMsg = fresh.length ? '' : '<span class="update-empty">Nada nuevo en los últimos 7 días</span>';
-    const moreBtn = others.length
-      ? `<button type="button" class="update-more" aria-expanded="${showAllUpdates}">${showAllUpdates ? 'Ver menos ▴' : `Ver las otras ${others.length} ▾`}</button>`
-      : '';
-
-    const groups = showAllUpdates
-      ? UPDATE_GROUPS.map(group => {
-          const groupItems = others.filter(it => it.status === group.status);
-          if (!groupItems.length) return '';
-          return `
-            <div class="update-group">
-              <p class="update-group-label">${group.label}</p>
-              <div class="update-chips">${groupItems.map(it => renderUpdateChip(it, activeSection)).join('')}</div>
-            </div>`;
-        }).join('')
-      : '';
-
+    // Barra del filtro activo: se ve también con el panel plegado
     const detail = active
       ? `
         <div class="update-detail is-${active.status}" role="status">
           <span class="update-dot" aria-hidden="true"></span>
-          <span class="update-detail-text"><strong>${active.sectionName}</strong> · ${active.detail}</span>
-          <button type="button" class="update-detail-clear" aria-label="Quitar filtro">✕</button>
+          <span class="update-detail-text"><strong>${active.sectionName.replace(/^FEM /, '')}</strong>${active.detail ? ` · ${active.detail}` : ''}</span>
+          <button type="button" class="update-detail-clear" aria-label="Ver todas las secciones">✕</button>
         </div>`
       : '';
 
+    let summary = '';
+    let body = detail;
+
+    if (collapsed) {
+      // Plegado: el resumen sustituye a las casillas
+      summary = `
+        <span class="update-status-summary">
+          <span class="update-pill${fresh.length ? ' is-fresh' : ''}">${fresh.length || 'Ninguna'} ${fresh.length === 1 ? 'nueva' : 'nuevas'} esta semana</span>
+          ${outdatedCount ? `<span class="update-pill is-outdated">${outdatedText}</span>` : ''}
+        </span>`;
+    } else {
+      // La sección filtrada se muestra siempre, aunque esté en un grupo plegado
+      const pinned = !showAllUpdates && active && active.status !== 'fresh' ? [active] : [];
+      const mainChips = [...fresh, ...pinned].map(renderUpdateChip).join('');
+      const emptyMsg = fresh.length ? '' : '<span class="update-empty">Nada nuevo en los últimos 7 días</span>';
+      const moreBtn = others.length
+        ? `
+          <button type="button" class="update-more" aria-expanded="${showAllUpdates}">
+            ${showAllUpdates
+              ? 'Ver menos ▴'
+              : `Ver las otras ${others.length}${outdatedCount ? ` · <span class="update-more-outdated">${outdatedText}</span>` : ''} ▾`}
+          </button>`
+        : '';
+      const groups = showAllUpdates
+        ? UPDATE_GROUPS.map(group => {
+            const groupItems = others.filter(it => it.status === group.status);
+            if (!groupItems.length) return '';
+            return `
+              <div class="update-group">
+                <p class="update-group-label">${group.label}</p>
+                <div class="update-chips">${groupItems.map(renderUpdateChip).join('')}</div>
+              </div>`;
+          }).join('')
+        : '';
+
+      body = `<div class="update-chips">${mainChips}${emptyMsg}</div>${detail}${moreBtn}${groups}`;
+    }
+
     const html = `
-      <button type="button" class="update-status-toggle" aria-expanded="${!collapsed}" aria-controls="update-status-body">
+      <button type="button" class="update-status-toggle" aria-expanded="${!collapsed}">
         <span class="update-status-title">🕒 Actualizaciones</span>
-        <span class="update-status-summary">${pills}</span>
+        ${summary}
         <span class="update-status-caret" aria-hidden="true">▾</span>
       </button>
-      <div id="update-status-body" class="update-status-body">
-        <div class="update-chips">${mainChips}${emptyMsg}</div>
-        ${detail}
-        ${moreBtn}
-        ${groups}
-      </div>`;
+      ${body ? `<div class="update-status-body">${body}</div>` : ''}`;
 
     container.classList.toggle('is-collapsed', collapsed);
-    container.classList.remove('hidden');
     if (container.innerHTML !== html) container.innerHTML = html;
   }
 
   function handleUpdateStatusClick(e) {
-    const select = document.getElementById('section-filter');
-
     const chip = e.target.closest('.update-chip');
-    if (chip && select) {
+    if (chip) {
       // Tocar la sección ya filtrada vuelve a mostrar todas
-      select.value = select.value === chip.dataset.section ? '' : chip.dataset.section;
+      activeSection = activeSection === chip.dataset.section ? '' : chip.dataset.section;
       // Plegar la lista: la sección elegida queda fijada arriba junto a su detalle
       showAllUpdates = false;
       filterSections();
       return;
     }
 
-    if (e.target.closest('.update-detail-clear') && select) {
-      select.value = '';
+    if (e.target.closest('.update-detail-clear')) {
+      activeSection = '';
       filterSections();
       return;
     }
@@ -794,55 +733,34 @@
     }
 
     if (e.target.closest('.update-status-toggle')) {
-      const container = document.getElementById('update-status');
-      const collapsed = !container.classList.contains('is-collapsed');
+      const collapsed = !document.getElementById('update-status').classList.contains('is-collapsed');
       try { localStorage.setItem('updateStatusCollapsed', collapsed ? '1' : '0'); } catch (err) {}
       triggerHaptic('light');
       renderUpdateStatus();
     }
   }
 
-  function createFilterDropdown() {
-    const container = document.getElementById('filter-container');
-    if (!container) return;
-    const select = document.createElement('select');
-    select.id = 'section-filter';
-    select.innerHTML = '<option value="">Todas las secciones</option>';
-    
-    // Solo mostrar las secciones principales (sin SIGUIENTE) en el dropdown
-    SECTION_NAMES.forEach(s => {
-      if (!s.includes('SIGUIENTE')) {
-        const opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s;
-        select.appendChild(opt);
-      }
+  // Muestra solo la cadena filtrada (actual + SIGUIENTE); las secciones sin productos siguen ocultas
+  function applySectionFilter() {
+    document.querySelectorAll('.section').forEach(s => {
+      const sectionName = s.dataset.section;
+      const matches = !activeSection || sectionName === activeSection || sectionName === `${activeSection} SIGUIENTE`;
+      s.style.display = matches && s.childElementCount ? 'block' : 'none';
     });
-    select.addEventListener('change', filterSections);
-    container.appendChild(select);
   }
 
+  // Cambio de filtro por el usuario
   function filterSections() {
-    const selected = document.getElementById('section-filter').value;
     triggerHaptic('light');
 
     const applyFilter = () => {
-      document.querySelectorAll('.section').forEach(s => {
-        const sectionName = s.dataset.section;
-        if (!selected) {
-          s.style.display = 'block';
-        } else {
-          const shouldShow = sectionName === selected || sectionName === selected + ' SIGUIENTE';
-          s.style.display = shouldShow ? 'block' : 'none';
-        }
-      });
+      applySectionFilter();
 
       // Re-cargar imágenes lazy de las secciones que acaban de hacerse visibles
       // Primero intentar asignar URLs ya cacheadas
       if (window.updateProductImages) window.updateProductImages();
       // Luego re-observar las imágenes lazy restantes que no tenían URL en caché
       if (window.lazyLoadImages) window.lazyLoadImages();
-      // Marcar la sección filtrada en el panel de actualizaciones
       renderUpdateStatus();
     };
 
