@@ -294,7 +294,7 @@
 
   function createSection(sectionName, products) {
     const escapeHTML = (str) => String(str || '').replace(/"/g, '&quot;');
-    let html = `<h2 class="section-title">${sectionName}</h2><div class="carousel-container">`;
+    let html = `<h2 class="section-title">${sectionName}${sectionNewBadge(sectionName)}</h2><div class="carousel-container">`;
 
     products.forEach((p, i) => {
       const btnId = `${sectionName.replace(/\s/g, '_')}-${i}`;
@@ -570,6 +570,15 @@
   const FRESH_DAYS = 7;   // verde: subido en los últimos 7 días
   const STALE_DAYS = 30;  // naranja: más de 30 días sin subir nada (mismo umbral que el admin)
   const STATUS_ORDER = { fresh: 0, ok: 1, stale: 2, expired: 3, unknown: 4 };
+  // Grupos que aparecen al pulsar "Ver las otras" (las nuevas siempre están visibles)
+  const UPDATE_GROUPS = [
+    { status: 'ok', label: 'Hace 7–30 días' },
+    { status: 'stale', label: 'Hace más de 30 días' },
+    { status: 'expired', label: 'Oferta caducada' },
+    { status: 'unknown', label: 'Sin fecha de subida' }
+  ];
+
+  let showAllUpdates = false;
 
   function toFolderName(sectionName) {
     return sectionName.toLowerCase().replace(/\s+/g, '_');
@@ -593,37 +602,49 @@
     return Math.round((today - day) / (1000 * 60 * 60 * 24));
   }
 
+  function relativeDayLabel(days) {
+    if (days <= 0) return 'Hoy';
+    if (days === 1) return 'Ayer';
+    return `Hace ${days} días`;
+  }
+
+  function sectionHasImages(sectionName) {
+    const count = (window.firebaseImageActualCounts || {})[toFolderName(sectionName)];
+    return (count !== undefined ? count : (sectionImageCounts[sectionName] || 0)) > 0;
+  }
+
+  // Fecha de la última subida de una sección (solo si tiene imágenes: al traspasar
+  // un periodo, SIGUIENTE queda vacía pero con fecha nueva)
+  function getSectionUpdatedAt(sectionName) {
+    if (!SECTION_NAMES.includes(sectionName) || !sectionHasImages(sectionName)) return null;
+    const d = new Date(getLastUpdatesMap()[toFolderName(sectionName)]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function isPromoExpired(sectionName) {
+    const promo = promotionDates[sectionName.toUpperCase().replace(/\s+/g, '_')];
+    if (!promo || !promo.active || !promo.endDate) return false;
+    const [y, m, d] = promo.endDate.split('-');
+    return daysSince(new Date(y, m - 1, d)) > 0;
+  }
+
+  // Etiqueta "Nuevo" junto al título de las secciones subidas en los últimos 7 días
+  function sectionNewBadge(sectionName) {
+    const updatedAt = getSectionUpdatedAt(sectionName);
+    if (!updatedAt || isPromoExpired(sectionName)) return '';
+    const days = daysSince(updatedAt);
+    if (days >= FRESH_DAYS) return '';
+    return `<span class="section-new-badge">Nuevo · ${relativeDayLabel(days)}</span>`;
+  }
+
   // Estado de una cadena: se considera su sección actual + su SIGUIENTE
   function getSectionUpdateStatus(sectionName) {
-    const actualCounts = window.firebaseImageActualCounts || {};
-    const lastUpdates = getLastUpdatesMap();
     const nextName = `${sectionName} SIGUIENTE`;
-
-    const hasImages = (name) => {
-      const count = actualCounts[toFolderName(name)];
-      return (count !== undefined ? count : (sectionImageCounts[name] || 0)) > 0;
-    };
-    const getUpdatedAt = (name) => {
-      const d = new Date(lastUpdates[toFolderName(name)]);
-      return isNaN(d.getTime()) ? null : d;
-    };
-
-    // Solo cuentan carpetas con imágenes (al traspasar un periodo, SIGUIENTE queda vacía con fecha nueva)
-    let updatedAt = null;
-    [sectionName, nextName].forEach(name => {
-      if (!SECTION_NAMES.includes(name) || !hasImages(name)) return;
-      const d = getUpdatedAt(name);
-      if (d && (!updatedAt || d > updatedAt)) updatedAt = d;
-    });
-
-    const hasNext = SECTION_NAMES.includes(nextName) && hasImages(nextName) && !!getUpdatedAt(nextName);
-
-    const promo = promotionDates[sectionName.toUpperCase().replace(/\s+/g, '_')];
-    let isExpired = false;
-    if (promo && promo.active && promo.endDate) {
-      const [y, m, d] = promo.endDate.split('-');
-      isExpired = daysSince(new Date(y, m - 1, d)) > 0;
-    }
+    const updatedAt = [getSectionUpdatedAt(sectionName), getSectionUpdatedAt(nextName)]
+      .filter(Boolean)
+      .sort((a, b) => b - a)[0] || null;
+    const hasNext = !!getSectionUpdatedAt(nextName);
+    const isExpired = isPromoExpired(sectionName);
 
     const days = updatedAt ? daysSince(updatedAt) : null;
     let status;
@@ -635,21 +656,37 @@
 
     let label;
     if (isExpired) label = 'Caducada';
-    else if (days === null) label = 'Sin datos';
-    else if (days <= 0) label = 'Hoy';
-    else if (days === 1) label = 'Ayer';
-    else label = `Hace ${days} días`;
+    else if (days === null) label = 'Sin fecha';
+    else label = relativeDayLabel(days);
 
-    const tooltip = [];
-    if (isExpired) tooltip.push('Oferta caducada');
+    // Texto completo para la barra de detalle (en móvil no hay tooltip)
+    const detail = [];
+    if (isExpired) detail.push('Oferta caducada');
     if (updatedAt) {
-      const dateStr = updatedAt.toLocaleDateString('es-ES');
       const timeStr = updatedAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-      tooltip.push(`Actualizado el ${dateStr} a las ${timeStr}`);
+      if (days <= 0) detail.push(`Actualizado hoy a las ${timeStr}`);
+      else if (days === 1) detail.push(`Actualizado ayer a las ${timeStr}`);
+      else detail.push(`Actualizado el ${updatedAt.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })} (hace ${days} días)`);
+    } else {
+      detail.push('Sin fecha de subida');
     }
-    if (hasNext) tooltip.push('FEM siguiente ya disponible');
+    if (hasNext) detail.push('FEM siguiente ya disponible');
 
-    return { sectionName, status, label, updatedAt, hasNext, tooltip: tooltip.join(' · ') };
+    return { sectionName, status, label, updatedAt, hasNext, detail: detail.join(' · ') };
+  }
+
+  function renderUpdateChip(it, activeSection) {
+    const isActive = it.sectionName === activeSection;
+    return `
+      <button type="button" class="update-chip is-${it.status}${isActive ? ' is-active' : ''}"
+        data-section="${it.sectionName}" aria-pressed="${isActive}" title="${it.detail}">
+        <span class="update-dot" aria-hidden="true"></span>
+        <span class="update-chip-name">${it.sectionName.replace(/^FEM /, '')}</span>
+        <span class="update-chip-meta">
+          <span class="update-chip-time">${it.label}</span>
+          ${it.hasNext ? '<span class="update-chip-next">+ Siguiente</span>' : ''}
+        </span>
+      </button>`;
   }
 
   function renderUpdateStatus() {
@@ -671,26 +708,46 @@
     try { collapsed = localStorage.getItem('updateStatusCollapsed') === '1'; } catch (e) {}
 
     const activeSection = document.getElementById('section-filter')?.value || '';
-    const freshCount = items.filter(it => it.status === 'fresh').length;
+    const active = items.find(it => it.sectionName === activeSection);
+    const fresh = items.filter(it => it.status === 'fresh');
+    const others = items.filter(it => it.status !== 'fresh');
     const outdatedCount = items.filter(it => it.status === 'stale' || it.status === 'expired').length;
 
     const pills = [
-      freshCount
-        ? `<span class="update-pill is-fresh">${freshCount} ${freshCount === 1 ? 'actualizada' : 'actualizadas'} esta semana</span>`
-        : '<span class="update-pill">Nada nuevo esta semana</span>',
+      `<span class="update-pill${fresh.length ? ' is-fresh' : ''}">${fresh.length || 'Ninguna'} ${fresh.length === 1 ? 'nueva' : 'nuevas'} esta semana</span>`,
       outdatedCount
         ? `<span class="update-pill is-outdated">${outdatedCount} ${outdatedCount === 1 ? 'desactualizada' : 'desactualizadas'}</span>`
         : ''
     ].join('');
 
-    const chips = items.map(it => `
-      <button type="button" class="update-chip is-${it.status}${it.sectionName === activeSection ? ' is-active' : ''}"
-        data-section="${it.sectionName}" aria-pressed="${it.sectionName === activeSection}" title="${it.tooltip}">
-        <span class="update-dot" aria-hidden="true"></span>
-        <span class="update-chip-name">${it.sectionName.replace(/^FEM /, '')}</span>
-        <span class="update-chip-time">${it.label}</span>
-        ${it.hasNext ? '<span class="update-chip-next" title="FEM siguiente ya disponible">+SIG</span>' : ''}
-      </button>`).join('');
+    // La sección filtrada se muestra siempre, aunque esté en el grupo plegado
+    const pinned = !showAllUpdates && active && active.status !== 'fresh' ? [active] : [];
+    const mainChips = [...fresh, ...pinned].map(it => renderUpdateChip(it, activeSection)).join('');
+    const emptyMsg = fresh.length ? '' : '<span class="update-empty">Nada nuevo en los últimos 7 días</span>';
+    const moreBtn = others.length
+      ? `<button type="button" class="update-more" aria-expanded="${showAllUpdates}">${showAllUpdates ? 'Ver menos ▴' : `Ver las otras ${others.length} ▾`}</button>`
+      : '';
+
+    const groups = showAllUpdates
+      ? UPDATE_GROUPS.map(group => {
+          const groupItems = others.filter(it => it.status === group.status);
+          if (!groupItems.length) return '';
+          return `
+            <div class="update-group">
+              <p class="update-group-label">${group.label}</p>
+              <div class="update-chips">${groupItems.map(it => renderUpdateChip(it, activeSection)).join('')}</div>
+            </div>`;
+        }).join('')
+      : '';
+
+    const detail = active
+      ? `
+        <div class="update-detail is-${active.status}" role="status">
+          <span class="update-dot" aria-hidden="true"></span>
+          <span class="update-detail-text"><strong>${active.sectionName}</strong> · ${active.detail}</span>
+          <button type="button" class="update-detail-clear" aria-label="Quitar filtro">✕</button>
+        </div>`
+      : '';
 
     const html = `
       <button type="button" class="update-status-toggle" aria-expanded="${!collapsed}" aria-controls="update-status-body">
@@ -699,14 +756,10 @@
         <span class="update-status-caret" aria-hidden="true">▾</span>
       </button>
       <div id="update-status-body" class="update-status-body">
-        <div class="update-chips">${chips}</div>
-        <p class="update-legend">
-          <span class="update-legend-item is-fresh"><span class="update-dot"></span>Últimos 7 días</span>
-          <span class="update-legend-item is-ok"><span class="update-dot"></span>7–30 días</span>
-          <span class="update-legend-item is-stale"><span class="update-dot"></span>+30 días</span>
-          <span class="update-legend-item is-expired"><span class="update-dot"></span>Caducada</span>
-          <span class="update-legend-hint">Toca una sección para filtrar</span>
-        </p>
+        <div class="update-chips">${mainChips}${emptyMsg}</div>
+        ${detail}
+        ${moreBtn}
+        ${groups}
       </div>`;
 
     container.classList.toggle('is-collapsed', collapsed);
@@ -715,13 +768,28 @@
   }
 
   function handleUpdateStatusClick(e) {
+    const select = document.getElementById('section-filter');
+
     const chip = e.target.closest('.update-chip');
-    if (chip) {
-      const select = document.getElementById('section-filter');
-      if (!select) return;
+    if (chip && select) {
       // Tocar la sección ya filtrada vuelve a mostrar todas
       select.value = select.value === chip.dataset.section ? '' : chip.dataset.section;
+      // Plegar la lista: la sección elegida queda fijada arriba junto a su detalle
+      showAllUpdates = false;
       filterSections();
+      return;
+    }
+
+    if (e.target.closest('.update-detail-clear') && select) {
+      select.value = '';
+      filterSections();
+      return;
+    }
+
+    if (e.target.closest('.update-more')) {
+      showAllUpdates = !showAllUpdates;
+      triggerHaptic('light');
+      renderUpdateStatus();
       return;
     }
 
